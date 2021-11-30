@@ -29,7 +29,7 @@ namespace alternator.core
             await semaphore.WaitAsync();
             try
             {
-                account.SwapLogin(loginFile);
+                await account.SwapLogin(loginFile);
                 var client = new Client(account);
                 await client.Start();
             }

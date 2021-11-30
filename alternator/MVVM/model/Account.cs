@@ -1,5 +1,5 @@
 ﻿using System.IO;
-using System.Threading;
+using System.Threading.Tasks;
 
 namespace alternator.model
 {
@@ -14,13 +14,17 @@ namespace alternator.model
             LoginFile = loginFile;
         }
 
-        public void SwapLogin(FileInfo pathToLogin)
+        public async Task SwapLogin(FileInfo pathToLogin)
         {
-            var destination = Path.Combine(pathToLogin.DirectoryName, $"orig_{pathToLogin.Name}");
-            if (!File.Exists(destination)) File.Copy(pathToLogin.Name, destination, true);
 
-            File.Copy(LoginFile.FullName, pathToLogin.FullName, true);
-            Thread.Sleep(1000);
+            await Task.Run(() =>
+            {
+                var destination = Path.Combine(pathToLogin.DirectoryName, $"orig_{pathToLogin.Name}");
+                if (!File.Exists(destination)) File.Copy(pathToLogin.FullName, destination, true);
+
+                File.Copy(LoginFile.FullName, pathToLogin.FullName, true);
+            });
+            await Task.Delay(200);
         }
 
         public void SwapLoginSymLink(FileInfo pathToLogin)
