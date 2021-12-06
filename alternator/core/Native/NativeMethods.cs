@@ -3,9 +3,9 @@ using System.Text;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 
-namespace alternator.core
+namespace guildwars2.tools.alternator
 {
-    internal static class NativeMethods
+    internal static class Native
     {
         public const string USER32 = "user32.dll";
         public const string KERNEL32 = "kernel32.dll";
@@ -36,16 +36,10 @@ namespace alternator.core
 
         internal static IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong)
         {
-#if x86
-            return (IntPtr)SetWindowLongPtr32(hWnd, nIndex, (int)dwNewLong);
-#elif x64
-            return SetWindowLongPtr64(hWnd, nIndex, dwNewLong);
-#else
             if (IntPtr.Size == 4)
                 return (IntPtr)SetWindowLongPtr32(hWnd, nIndex, (int)dwNewLong);
             else
                 return SetWindowLongPtr64(hWnd, nIndex, dwNewLong);
-#endif
         }
 
         [DllImport(USER32, EntryPoint = "GetWindowLong")]
@@ -56,16 +50,10 @@ namespace alternator.core
 
         internal static IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex)
         {
-#if x86
-            return GetWindowLongPtr32(hWnd, nIndex);
-#elif x64
-            return GetWindowLongPtr64(hWnd, nIndex);
-#else
             if (IntPtr.Size == 4)
                 return GetWindowLongPtr32(hWnd, nIndex);
             else
                 return GetWindowLongPtr64(hWnd, nIndex);
-#endif
         }
 
         [DllImport(USER32, SetLastError = true)]
@@ -91,7 +79,7 @@ namespace alternator.core
 
         [DllImport(USER32, SetLastError = true)]
         internal static extern IntPtr DeferWindowPos(IntPtr hWinPosInfo, IntPtr hWnd,
-            IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags);
+        IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags);
 
         [DllImport(USER32)]
         internal static extern bool EndDeferWindowPos(IntPtr hWinPosInfo);
@@ -428,9 +416,6 @@ namespace alternator.core
 
         [DllImport(SHELL32)]
         internal static extern IntPtr SHGetFileInfo(string pszPath, uint dwFileAttributes, ref SHFILEINFO psfi, uint cbSizeFileInfo, uint uFlags);
-
-        [DllImport(SHELL32)]
-        internal static extern int SHGetImageList(int iImageList, ref Guid riid, out IImageList ppv);
 
         [DllImport(PSAPI, SetLastError = true)]
         internal static extern int EnumProcessModulesEx(IntPtr hProcess, IntPtr lphModule, int cb, out int lpcbNeeded, uint dwFilterFlag);

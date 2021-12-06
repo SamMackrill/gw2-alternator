@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace alternator.core
+namespace guildwars2.tools.alternator
 {
     [StructLayout(LayoutKind.Sequential)]
     public struct WINDOWPOS
@@ -528,7 +528,7 @@ namespace alternator.core
         SHGSI_SHELLICONSIZE = 0x000000004
     }
 
-    [StructLayoutAttribute(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct SHSTOCKICONINFO
     {
         public UInt32 cbSize;
@@ -1322,9 +1322,9 @@ namespace alternator.core
         public LARGE_INTEGER AllocationSize;
         public LARGE_INTEGER EndOfFile;
         public uint NumberOfLinks;
-        [MarshalAsAttribute(UnmanagedType.Bool)]
+        [MarshalAs(UnmanagedType.Bool)]
         public bool DeletePending;
-        [MarshalAsAttribute(UnmanagedType.Bool)]
+        [MarshalAs(UnmanagedType.Bool)]
         public bool Directory;
     }
 
@@ -1381,106 +1381,4 @@ namespace alternator.core
         public int crEffect;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
-    public struct IMAGEINFO
-    {
-        public IntPtr hbmImage;
-        public IntPtr hbmMask;
-        public int Unused1;
-        public int Unused2;
-        public RECT rcImage;
-    }
-
-    [ComImportAttribute()]
-    [GuidAttribute("46EB5926-582E-4017-9FDF-E8998DAA0950")]
-    [InterfaceTypeAttribute(ComInterfaceType.InterfaceIsIUnknown)]
-    public interface IImageList
-    {
-        [PreserveSig]
-        int Add(IntPtr hbmImage, IntPtr hbmMask, ref int pi);
-
-        [PreserveSig]
-        int ReplaceIcon(int i, IntPtr hicon, ref int pi);
-
-        [PreserveSig]
-        int SetOverlayImage(int iImage, int iOverlay);
-
-        [PreserveSig]
-        int Replace(int i, IntPtr hbmImage, IntPtr hbmMask);
-
-        [PreserveSig]
-        int AddMasked(IntPtr hbmImage, int crMask, ref int pi);
-
-        [PreserveSig]
-        int Draw(ref IMAGELISTDRAWPARAMS pimldp);
-
-        [PreserveSig]
-        int Remove(int i);
-
-        [PreserveSig]
-        int GetIcon(int i, int flags, ref IntPtr picon);
-
-        [PreserveSig]
-        int GetImageInfo(int i, ref IMAGEINFO pImageInfo);
-
-        [PreserveSig]
-        int Copy(int iDst, IImageList punkSrc, int iSrc, int uFlags);
-
-        [PreserveSig]
-        int Merge(int i1, IImageList punk2, int i2, int dx, int dy, ref Guid riid, ref IntPtr ppv);
-
-        [PreserveSig]
-        int Clone(ref Guid riid, ref IntPtr ppv);
-
-        [PreserveSig]
-        int GetImageRect(int i, ref RECT prc);
-
-        [PreserveSig]
-        int GetIconSize(ref int cx, ref int cy);
-
-        [PreserveSig]
-        int SetIconSize(int cx, int cy);
-
-        [PreserveSig]
-        int GetImageCount(ref int pi);
-
-        [PreserveSig]
-        int SetImageCount(int uNewCount);
-
-        [PreserveSig]
-        int SetBkColor(int clrBk, ref int pclr);
-
-        [PreserveSig]
-        int GetBkColor(ref int pclr);
-
-        [PreserveSig]
-        int BeginDrag(int iTrack, int dxHotspot, int dyHotspot);
-
-        [PreserveSig]
-        int EndDrag();
-
-        [PreserveSig]
-        int DragEnter(IntPtr hwndLock, int x, int y);
-
-        [PreserveSig]
-        int DragLeave(IntPtr hwndLock);
-
-        [PreserveSig]
-        int DragMove(int x, int y);
-
-        [PreserveSig]
-        int SetDragCursorImage(ref IImageList punk, int iDrag, int dxHotspot, int dyHotspot);
-
-        [PreserveSig]
-        int DragShowNolock(int fShow);
-
-        [PreserveSig]
-        int GetDragImage(ref System.Drawing.Point ppt, ref System.Drawing.Point pptHotspot, ref Guid riid, ref IntPtr ppv);
-
-        [PreserveSig]
-        int GetItemFlags(int i, ref int dwFlags);
-
-        [PreserveSig]
-        int GetOverlayImage(int iOverlay, ref int piIndex);
-    };
 }

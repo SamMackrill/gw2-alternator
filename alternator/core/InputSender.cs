@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace alternator.core
+namespace guildwars2.tools.alternator
 {
     /// <summary>
     /// Thanks to Bojidar Qnkov for this approach

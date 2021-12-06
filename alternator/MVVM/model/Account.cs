@@ -1,45 +1,53 @@
-﻿using System.Diagnostics;
+﻿using System;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 
-namespace alternator.model
+namespace guildwars2.tools.alternator
 {
+    [Serializable]
     public class Account
     {
-        public string Name { get; set; }
-        public FileInfo LoginFile { get; set; }
+        private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
-        public Account(string name, FileInfo loginFile)
+        public string Name { get; set; }
+
+        [NonSerialized] public FileInfo LoginFile;
+        public DateTime LastSuccess { get; set; }
+        public string LoginFilePath { get; set; }
+
+        public Account(string name, string loginFilePath)
         {
             Name = name;
-            LoginFile = loginFile;
+            LoginFilePath = loginFilePath;
+
+            LoginFile = new FileInfo(loginFilePath);
         }
 
-        public void SwapLogin(FileInfo pathToLogin)
+        public void SwapLogin(FileInfo gw2LocatDat)
         {
-            //var destination = Path.Combine(pathToLogin.DirectoryName, $"orig_{pathToLogin.Name}");
-            //if (!File.Exists(destination)) File.Copy(pathToLogin.FullName, destination, true);
-
-            var first = true;
-            while (true)
+            if (gw2LocatDat.Exists)
             {
-                try
+                if (gw2LocatDat.LinkTarget != null)
                 {
-                    File.Copy(LoginFile.FullName, pathToLogin.FullName, true);
-                    Debug.WriteLine($"{Name} File copied: {LoginFile.FullName}");
-                    return;
+                    gw2LocatDat.Delete();
                 }
-                catch (IOException e) when ((e.HResult & 0x0000FFFF) == 32)
+                else
                 {
-                    if (first)
-                    {
-                        Debug.WriteLine($"{Name} File Locked: {pathToLogin.FullName}");
-                        first = false;
-                    }
-                    Task.Delay(500);
+                    File.Move(gw2LocatDat.FullName, $"{gw2LocatDat.FullName}.bak", true);
                 }
             }
+
+            gw2LocatDat.CreateAsSymbolicLink(LoginFile.FullName);
+            //var psi = new ProcessStartInfo("cmd.exe", $@"mklink /J ""{gw2LocatDat.FullName}"" ""{LoginFile.FullName}""")
+            //{
+            //    CreateNoWindow = true,
+            //    UseShellExecute = false
+            //};
+            //Process.Start(psi).WaitForExit();
+
+            //var res = Native.CreateSymbolicLink(gw2LocatDat.FullName, LoginFile.FullName, SymbolicLink.File);
+
+            Logger.Debug("{0} dat file linked to: {1}", Name, LoginFile.FullName);
         }
 
         public async Task SwapLoginAsync(FileInfo pathToLogin)

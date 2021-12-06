@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 
-namespace alternator.core
+namespace guildwars2.tools.alternator
 {
     static class Win32Handles
     {
@@ -38,13 +38,13 @@ namespace alternator.core
                     IntPtr h = IntPtr.Zero;
                     try
                     {
-                        if (!NativeMethods.DuplicateHandle(p.Handle, handle, NativeMethods.GetCurrentProcess(), out h, 0, false, DuplicateOptions.DUPLICATE_CLOSE_SOURCE))
+                        if (!Native.DuplicateHandle(p.Handle, handle, Native.GetCurrentProcess(), out h, 0, false, DuplicateOptions.DUPLICATE_CLOSE_SOURCE))
                             throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
                     }
                     finally
                     {
                         if (h != IntPtr.Zero)
-                            NativeMethods.CloseHandle(h);
+                            Native.CloseHandle(h);
                     }
                 }
             }
@@ -77,12 +77,12 @@ namespace alternator.core
 
         private static string GetObjectName(Buffer buffer, UIntPtr processId, UIntPtr handle, bool queryInfo)
         {
-            var _processHandle = NativeMethods.OpenProcess(ProcessAccessFlags.All, false, processId);
+            var _processHandle = Native.OpenProcess(ProcessAccessFlags.All, false, processId);
             var _handle = IntPtr.Zero;
 
             try
             {
-                if (!NativeMethods.DuplicateHandle(_processHandle, handle, NativeMethods.GetCurrentProcess(), out _handle, 0, false, DuplicateOptions.DUPLICATE_SAME_ACCESS))
+                if (!Native.DuplicateHandle(_processHandle, handle, Native.GetCurrentProcess(), out _handle, 0, false, DuplicateOptions.DUPLICATE_SAME_ACCESS))
                     return null;
 
                 int nameLength;
@@ -94,7 +94,7 @@ namespace alternator.core
 
                     //warning: not fully implemented in Wine and will always return a 0 length
 
-                    if (NativeMethods.NtQueryObject(_handle, ObjectInformationClass.ObjectBasicInformation, out basicInfo, Marshal.SizeOf(typeof(OBJECT_BASIC_INFORMATION)), ref nameLength) != NtStatus.Success)
+                    if (Native.NtQueryObject(_handle, ObjectInformationClass.ObjectBasicInformation, out basicInfo, Marshal.SizeOf(typeof(OBJECT_BASIC_INFORMATION)), ref nameLength) != NtStatus.Success)
                         return null;
 
                     nameLength = basicInfo.NameInformationLength;
@@ -137,7 +137,7 @@ namespace alternator.core
 
                 do
                 {
-                    var r = NativeMethods.NtQueryObject(_handle, ObjectInformationClass.ObjectNameInformation, buffer.handle, buffer.length, ref nameLength);
+                    var r = Native.NtQueryObject(_handle, ObjectInformationClass.ObjectNameInformation, buffer.handle, buffer.length, ref nameLength);
 
                     switch (r)
                     {
@@ -180,9 +180,9 @@ namespace alternator.core
             finally
             {
                 if (_handle != IntPtr.Zero)
-                    NativeMethods.CloseHandle(_handle);
+                    Native.CloseHandle(_handle);
                 if (_processHandle != IntPtr.Zero)
-                    NativeMethods.CloseHandle(_processHandle);
+                    Native.CloseHandle(_processHandle);
             }
         }
 
@@ -240,7 +240,7 @@ namespace alternator.core
 
                 do
                 {
-                    var r = NativeMethods.NtQuerySystemInformation(infoClass, _info, infoLength, ref length);
+                    var r = Native.NtQuerySystemInformation(infoClass, _info, infoLength, ref length);
 
                     switch (r)
                     {

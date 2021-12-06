@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace alternator
+namespace guildwars2.tools.alternator
 {
     /// <summary>
     /// Interaction logic for App.xaml

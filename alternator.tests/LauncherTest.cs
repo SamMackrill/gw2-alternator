@@ -1,7 +1,7 @@
 using FluentAssertions;
 using Xunit;
 
-namespace alternator.tests
+namespace guildwars2.tools.alternator.tests
 {
     public class LauncherTest
     {

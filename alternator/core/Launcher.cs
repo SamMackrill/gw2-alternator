@@ -1,11 +1,10 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-using alternator.model;
-
-namespace alternator.core
+namespace guildwars2.tools.alternator
 {
     public interface ILauncher
     {
@@ -15,6 +14,7 @@ namespace alternator.core
 
     public class Launcher
     {
+        private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         private readonly Account account;
 
         public Launcher(Account account)
@@ -22,34 +22,54 @@ namespace alternator.core
             this.account = account;
         }
 
-        public void Launch(FileInfo loginFile, SemaphoreSlim loginSemaphore, SemaphoreSlim exeSemaphore)
+        public void Launch(FileInfo loginFile, SemaphoreSlim loginSemaphore, SemaphoreSlim exeSemaphore, ref int launchCount)
         {
             Debug.WriteLine($"{account.Name} login semaphore={loginSemaphore.CurrentCount}");
             loginSemaphore.Wait();
-            Debug.WriteLine($"{account.Name} Login Free");
-            Client client;
+            Logger.Debug("{0} Login Free", account.Name);
             try
             {
+                Client client;
                 try
                 {
                     account.SwapLogin(loginFile);
                     client = new Client(account);
                     Debug.WriteLine($"{account.Name} exe semaphore={exeSemaphore.CurrentCount}");
                     exeSemaphore.Wait();
+                    int delay = LaunchDelay(++launchCount);
+                    Debug.WriteLine($"{account.Name} delay={delay}s");
+                    Task.Delay(new TimeSpan(0, 0, delay));
                     client.Start();
                 }
                 finally
                 {
-                    Debug.WriteLine($"{account.Name} Login Finished");
+                    Logger.Debug("{0} Login Finished", account.Name);
                     loginSemaphore.Release();
                 }
-                client.WaitForExit();
+
+                if (client.WaitForExit())
+                {
+                    account.LastSuccess = DateTime.UtcNow;
+                }
+                else
+                {
+                    Logger.Debug("{0} exe Failed", account.Name);
+                    //exeSemaphore.Release();
+                }
             }
             finally
             {
-                Debug.WriteLine($"{account.Name} exe Finished");
+                Logger.Debug("{0} exe Finished", account.Name);
                 exeSemaphore.Release();
             }
+        }
+
+        private int LaunchDelay(int count)
+        {
+            if (count <= 1) return 5;
+            if (count < 5) return (1 << (count - 2)) * 10;
+
+            return Math.Min(800, (300 + 20 * (count - 5)));
         }
 
         public async Task LaunchAsync(FileInfo loginFile, SemaphoreSlim semaphore)

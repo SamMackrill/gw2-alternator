@@ -5,8 +5,10 @@
     <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
-    <StartupObject>alternator.App</StartupObject>
+    <StartupObject>guildwars2.tools.alternator.App</StartupObject>
     <UseWindowsForms>True</UseWindowsForms>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <RootNamespace>guildwars2.tools.alternator</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,6 +17,19 @@
 
   <ItemGroup>
     <Folder Include="MVVM\view\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NLog" Version="5.0.0-preview.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="accounts.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="NLog.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

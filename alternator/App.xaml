@@ -1,7 +1,7 @@
-﻿<Application x:Class="alternator.App"
+﻿<Application x:Class="guildwars2.tools.alternator.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:alternator"
+             xmlns:local="clr-namespace:guildwars2.tools.alternator"
              StartupUri="MVVM/viewmodel/MainWindow.xaml">
     <Application.Resources>
          

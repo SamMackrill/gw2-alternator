@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 
-namespace alternator.core
+namespace guildwars2.tools.alternator
 {
     static class Loop
     {

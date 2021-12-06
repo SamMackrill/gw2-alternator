@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace alternator.core
+namespace guildwars2.tools.alternator
 {
     public static class Extensions
     {
