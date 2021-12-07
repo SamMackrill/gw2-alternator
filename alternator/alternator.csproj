@@ -16,10 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="MVVM\view\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="NLog" Version="5.0.0-preview.3" />
   </ItemGroup>
 
