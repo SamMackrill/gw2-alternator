@@ -24,7 +24,7 @@ namespace guildwars2.tools.alternator
 
         public void Launch(FileInfo loginFile, SemaphoreSlim loginSemaphore, SemaphoreSlim exeSemaphore, ref int launchCount)
         {
-            Debug.WriteLine($"{account.Name} login semaphore={loginSemaphore.CurrentCount}");
+            Logger.Debug("{0} login semaphore={1}", account.Name, loginSemaphore.CurrentCount);
             loginSemaphore.Wait();
             Logger.Debug("{0} Login Free", account.Name);
             try
@@ -34,10 +34,10 @@ namespace guildwars2.tools.alternator
                 {
                     account.SwapLogin(loginFile);
                     client = new Client(account);
-                    Debug.WriteLine($"{account.Name} exe semaphore={exeSemaphore.CurrentCount}");
+                    Logger.Debug("{0} login semaphore={1}", account.Name, loginSemaphore.CurrentCount);
                     exeSemaphore.Wait();
                     int delay = LaunchDelay(++launchCount);
-                    Debug.WriteLine($"{account.Name} delay={delay}s");
+                    Logger.Debug("{0} delay={1}s", account.Name, delay);
                     Task.Delay(new TimeSpan(0, 0, delay));
                     client.Start();
                 }
@@ -72,23 +72,23 @@ namespace guildwars2.tools.alternator
             return Math.Min(800, (300 + 20 * (count - 5)));
         }
 
-        public async Task LaunchAsync(FileInfo loginFile, SemaphoreSlim semaphore)
-        {
+        //public async Task LaunchAsync(FileInfo loginFile, SemaphoreSlim semaphore)
+        //{
 
-            await semaphore.WaitAsync();
-            Client client;
-            try
-            {
-                await account.SwapLoginAsync(loginFile);
-                client = new Client(account);
-                await client.StartAsync();
-            }
-            finally
-            {
-                semaphore.Release();
-            }
+        //    await semaphore.WaitAsync();
+        //    Client client;
+        //    try
+        //    {
+        //        await account.SwapLoginAsync(loginFile);
+        //        client = new Client(account);
+        //        await client.StartAsync();
+        //    }
+        //    finally
+        //    {
+        //        semaphore.Release();
+        //    }
 
-            client.WaitForExit();
-        }
+        //    client.WaitForExit();
+        //}
     }
 }

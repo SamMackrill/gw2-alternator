@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,22 +16,6 @@ namespace guildwars2.tools.alternator
         {
             this.account = account;
         }
-
-        [DllImport("user32.dll")]
-        public static extern int SetForegroundWindow(IntPtr hWnd);
-        [DllImport("user32.dll")]
-        static extern IntPtr GetForegroundWindow();
-
-        public delegate void WinEventDelegate(IntPtr hWinEventHook, uint eventType, IntPtr hwnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime);
-
-        [DllImport("user32.dll")]
-        static extern IntPtr SetWinEventHook(uint eventMin, uint eventMax, IntPtr modWinEventProc, WinEventDelegate winEventProc, uint processId, uint threadId, uint flags);
-
-        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        static extern int GetClassName(IntPtr wnd, StringBuilder className, int maxCount);
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        static extern int GetWindowText(IntPtr wnd, StringBuilder text, int maxCount);
 
         private Process p;
 
@@ -76,33 +59,36 @@ namespace guildwars2.tools.alternator
             p.Exited += Exited;
 
             _ = p.Start();
-            Logger.Debug("{0} Client Started", account.Name);
+            Logger.Debug("{0} Started", account.Name);
+            var hook = Native.SetWinEventHook((uint)AccessibleEvents.Create, (uint)AccessibleEvents.DescriptionChange, IntPtr.Zero, WinEventHookCallback, (uint)p.Id, 0, 0);
+            Logger.Debug("{0} Hook {1}", account.Name, hook);
+            Application.DoEvents();
             p.WaitForInputIdle();
-            _ = SetWinEventHook((uint)AccessibleEvents.SystemSound, (uint)AccessibleEvents.AcceleratorChange, IntPtr.Zero, WinEventHookCallback, (uint)p.Id, 0, 0);
             KillMutex();
-            Logger.Debug("{0} Client Killed Mutex", account.Name);
+            Logger.Debug("{0} Killed Mutex", account.Name);
         }
 
-        public async Task StartAsync()
-        {
-            // Run gw2 exe with arguments
-            var pi = new ProcessStartInfo(@"G:\Games\gw2\Gw2-64.exe")
-            {
-                CreateNoWindow = true,
-                Arguments = $"-autologin -windowed -nosound -shareArchive -maploadinfo", // -dat \"{account.LoginFile}\"",
-                UseShellExecute = false,
-                WorkingDirectory = @"G:\Games\gw2"
-            };
-            p = new Process { StartInfo = pi };
-            p.EnableRaisingEvents = true;
-            p.Exited += Exited;
+        //public async Task StartAsync()
+        //{
+        //    // Run gw2 exe with arguments
+        //    var pi = new ProcessStartInfo(@"G:\Games\gw2\Gw2-64.exe")
+        //    {
+        //        CreateNoWindow = true,
+        //        Arguments = $"-autologin -windowed -nosound -shareArchive -maploadinfo", // -dat \"{account.LoginFile}\"",
+        //        UseShellExecute = false,
+        //        WorkingDirectory = @"G:\Games\gw2"
+        //    };
+        //    p = new Process { StartInfo = pi };
+        //    p.EnableRaisingEvents = true;
+        //    p.Exited += Exited;
 
-            _ = p.Start();
-            p.WaitForInputIdle();
-            _ = SetWinEventHook((uint)AccessibleEvents.SystemSound, (uint)AccessibleEvents.AcceleratorChange, IntPtr.Zero, WinEventHookCallback, (uint)p.Id, 0, 0);
-            KillMutex();
-            Logger.Debug("Mutex Killed");
-        }
+        //    _ = p.Start();
+        //    p.WaitForInputIdle();
+        //    _ = Native.SetWinEventHook((uint)AccessibleEvents.SystemSound, (uint)AccessibleEvents.AcceleratorChange, IntPtr.Zero, WinEventHookCallback, (uint)p.Id, 0, 0);
+        //    KillMutex();
+        //    Logger.Debug("Mutex Killed");
+        //}
+
         private bool KillMutex()
         {
             var name = "AN-Mutex-Window-Guild Wars 2";
@@ -199,20 +185,25 @@ namespace guildwars2.tools.alternator
         {
             p.Refresh();
             if (p.HasExited) return true;
+
+            Logger.Debug("{0} Window Title {1}", account.Name, p.MainWindowTitle);
+            Logger.Debug("{0} HandleCount {1}", account.Name, p.HandleCount);
+            Logger.Debug("{0} ThreadCount {1}", account.Name, p.Threads.Count);
+
             var memoryUsage = p.WorkingSet64 / 1024;
             var diff = Math.Abs(memoryUsage - lastMemoryUsage);
             lastMemoryUsage = memoryUsage;
-            Logger.Debug("{0} Mem={1} Mem-Diff={2}", account.Name, memoryUsage, diff);
+            Logger.Debug("{0} Mem={1} Diff={2}", account.Name, memoryUsage, diff);
             return memoryUsage > min && diff < delta;
         }
 
         private void SendEnter()
         {
             Logger.Debug("{0} Send ENTER", account.Name);
-            var currentFocus = GetForegroundWindow();
-            _ = SetForegroundWindow(p.MainWindowHandle);
+            var currentFocus = Native.GetForegroundWindow();
+            _ = Native.SetForegroundWindow(p.MainWindowHandle);
             InputSender.ClickKey(0x1c); // Enter
-            _ = SetForegroundWindow(currentFocus);
+            _ = Native.SetForegroundWindow(currentFocus);
         }
 
         private bool AllExpectedEventsToLogSelection()
@@ -228,21 +219,19 @@ namespace guildwars2.tools.alternator
                 StringBuilder eventBuffer = new(100);
                 var accessibleEvent = (AccessibleEvents)eventType;
                 Logger.Debug("{0} {1}({2})", account.Name, accessibleEvent, eventType);
-                _ = GetClassName(wnd, eventBuffer, eventBuffer.Capacity);
+                _ = Native.GetClassName(wnd, eventBuffer, eventBuffer.Capacity);
                 var className = eventBuffer.ToString();
                 if (!string.IsNullOrEmpty(className)) Logger.Debug("{0} ClassName={1}", account.Name, className);
 
                 switch (accessibleEvent)
                 {
                     case AccessibleEvents.NameChange:
-                        {
-                            _ = GetWindowText(wnd, eventBuffer, eventBuffer.Capacity);
-                            var windowsText = eventBuffer.ToString();
-                            Logger.Debug("{0} NameChange to {1}", account.Name, windowsText);
-                            eventCounter.NameChange++;
-                            if (windowsText == "Guild Wars 2") eventCounter.Gw2NameChange++;
-                            break;
-                        }
+                        _ = Native.GetWindowText(wnd, eventBuffer, eventBuffer.Capacity);
+                        var windowsText = eventBuffer.ToString();
+                        Logger.Debug("{0} NameChange to {1}", account.Name, windowsText);
+                        eventCounter.NameChange++;
+                        if (windowsText == "Guild Wars 2") eventCounter.Gw2NameChange++;
+                        break;
                     case AccessibleEvents.Create:
                         eventCounter.Create++;
                         break;
