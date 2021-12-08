@@ -175,6 +175,7 @@ namespace guildwars2.tools.alternator
             var start = DateTime.Now;
             do
             {
+                Application.DoEvents();
                 Thread.Sleep(pause);
                 if (MemoryUsageStable(ref memoryUsage, characterSelectMinMemory, characterSelectMinDiff)) return true;
             } while (DateTime.Now.Subtract(start).TotalSeconds < timeout) ;

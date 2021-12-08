@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,17 +26,13 @@ namespace guildwars2.tools.alternator
         {
             var loginSemaphore = new SemaphoreSlim(0, 1);
             var exeSemaphore = new SemaphoreSlim(0, 1);
-            var tasks = new List<Task>();
             int launchCount = 0;
-            foreach(var account in accounts)
-            {
-                var task = Task.Run(() =>
+            var tasks = accounts.Select(account => Task.Run(() =>
                 {
                     var launcher = new Launcher(account);
                     launcher.Launch(loginFile, loginSemaphore, exeSemaphore, ref launchCount);
-                });
-                tasks.Add(task);
-            }
+                }))
+                .ToList();
             Logger.Debug("{0} threads primed.", tasks.Count);
             // Allow all the tasks to start and block.
             Thread.Sleep(200);

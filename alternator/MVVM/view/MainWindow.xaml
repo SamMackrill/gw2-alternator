@@ -29,7 +29,7 @@
             </Grid.RowDefinitions>
 
             <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
-                <Image Source="\images\alternate.png" Width="64"/>
+                <Image Source="/images/alternate.png" Width="64"/>
                 <TextBlock
                        VerticalAlignment="Center"
                        HorizontalAlignment="Center"

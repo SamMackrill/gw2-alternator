@@ -12,14 +12,21 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="images\alternate.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="NLog" Version="5.0.0-preview.3" />
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="images\alternate.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="accounts.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="images\alternate.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="NLog.config">
