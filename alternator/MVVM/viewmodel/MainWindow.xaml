@@ -5,8 +5,56 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:guildwars2.tools.alternator"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Height="450" Width="800"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        Background="Transparent"
+        AllowsTransparency="True"
+        >
 
-    </Grid>
+    <Window.DataContext>
+        <local:MainViewModel/>
+    </Window.DataContext>
+
+    <Border Background="#272537"
+            CornerRadius="20">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="200"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="75"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
+                <Image Source="\images\alternate.png" Width="64"/>
+                <TextBlock
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Center"
+                       TextAlignment="Center"
+                       Foreground="White"
+                       FontSize="22">
+                GW2
+                <LineBreak/>
+                Alternator
+                </TextBlock>
+            </StackPanel>
+
+            <StackPanel Grid.Row="1" Grid.Column="0">
+                <RadioButton Height="50" Foreground="White" FontSize="14"
+                             Command="{Binding LoginAllCommand}"
+                             Style="{StaticResource MenuButtonTheme}">
+                    Run
+                </RadioButton>
+                <RadioButton Height="50" Foreground="White" FontSize="14"
+                             Style="{StaticResource MenuButtonTheme}">
+                    Update
+                </RadioButton>
+            </StackPanel>
+
+        </Grid>
+
+    </Border>
 </Window>

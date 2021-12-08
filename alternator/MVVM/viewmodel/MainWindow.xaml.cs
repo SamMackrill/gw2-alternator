@@ -19,16 +19,16 @@ namespace guildwars2.tools.alternator
 
             InitializeComponent();
 
-            var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            //var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
-            var accountsJson = "accounts.json";
-            var accounts = JsonSerializer.Deserialize<List<Account>>(File.ReadAllText(accountsJson));
+            //var accountsJson = "accounts.json";
+            //var accounts = JsonSerializer.Deserialize<List<Account>>(File.ReadAllText(accountsJson));
 
-            var launcher = new ClientController(new FileInfo(Path.Combine(appData, @"Guild Wars 2\Local.dat")));
-            launcher.Launch(accounts.Where(a=> a.LastSuccess < DateTime.UtcNow.Date));
+            //var launcher = new ClientController(new FileInfo(Path.Combine(appData, @"Guild Wars 2\Local.dat")));
+            //launcher.Launch(accounts.Where(a=> a.LastSuccess < DateTime.UtcNow.Date));
 
-            File.WriteAllText(accountsJson, JsonSerializer.Serialize(accounts, new JsonSerializerOptions{AllowTrailingCommas = true, WriteIndented = true}));
-            LogManager.Shutdown();
+            //File.WriteAllText(accountsJson, JsonSerializer.Serialize(accounts, new JsonSerializerOptions{AllowTrailingCommas = true, WriteIndented = true}));
+            //LogManager.Shutdown();
         }
 
         private void SetLogging()

@@ -12,15 +12,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="core\ProcessUtil.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="NLog" Version="5.0.0-preview.3" />
   </ItemGroup>
 
   <ItemGroup>
     <None Update="accounts.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="images\alternate.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="NLog.config">
