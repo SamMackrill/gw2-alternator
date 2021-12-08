@@ -4,6 +4,10 @@
              xmlns:local="clr-namespace:guildwars2.tools.alternator"
              StartupUri="MVVM/viewmodel/MainWindow.xaml">
     <Application.Resources>
-         
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="theme/MenuButtonTheme.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>
