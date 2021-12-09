@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -17,7 +16,7 @@ namespace guildwars2.tools.alternator
             this.account = account;
         }
 
-        private Process p;
+        private Process? p;
 
         private class EventCounter
         {
@@ -29,22 +28,25 @@ namespace guildwars2.tools.alternator
             public int LocationChange { get; set; }
             public int Focus { get; set; }
 
-            public void DebugDisplay()
-            {
-                Debug.WriteLine($"NameChange: {NameChange}");
-                Debug.WriteLine($"Gw2NameChange: {Gw2NameChange}");
-                Debug.WriteLine($"Create: {Create}");
-                Debug.WriteLine($"Destroy: {Destroy}");
-                Debug.WriteLine($"Show: {Show}");
-                Debug.WriteLine($"LocationChange: {LocationChange}");
-                Debug.WriteLine($"Focus: {Focus}");
-                Logger.Debug("");
-            }
+            //public void DebugDisplay()
+            //{
+            //    Debug.WriteLine($"NameChange: {NameChange}");
+            //    Debug.WriteLine($"Gw2NameChange: {Gw2NameChange}");
+            //    Debug.WriteLine($"Create: {Create}");
+            //    Debug.WriteLine($"Destroy: {Destroy}");
+            //    Debug.WriteLine($"Show: {Show}");
+            //    Debug.WriteLine($"LocationChange: {LocationChange}");
+            //    Debug.WriteLine($"Focus: {Focus}");
+            //    Logger.Debug("");
+            //}
         }
 
         private readonly EventCounter eventCounter = new EventCounter();
 
-        public void Start()
+        public DateTime StartedTime => p?.StartTime ?? DateTime.MinValue;
+        public DateTime ExitTime => p?.ExitTime ?? DateTime.MinValue;
+
+        public bool Start()
         {
             // Run gw2 exe with arguments
             var pi = new ProcessStartInfo(@"G:\Games\gw2\Gw2-64.exe")
@@ -60,12 +62,15 @@ namespace guildwars2.tools.alternator
 
             _ = p.Start();
             Logger.Debug("{0} Started", account.Name);
-            var hook = Native.SetWinEventHook((uint)AccessibleEvents.Create, (uint)AccessibleEvents.DescriptionChange, IntPtr.Zero, WinEventHookCallback, (uint)p.Id, 0, 0);
-            Logger.Debug("{0} Hook {1}", account.Name, hook);
-            Application.DoEvents();
+            //var hook = Native.SetWinEventHook((uint)AccessibleEvents.Create, (uint)AccessibleEvents.DescriptionChange, IntPtr.Zero, WinEventHookCallback, (uint)p.Id, 0, 0);
+            //Logger.Debug("{0} Hook {1}", account.Name, hook);
+            //Application.DoEvents();
             p.WaitForInputIdle();
-            KillMutex();
-            Logger.Debug("{0} Killed Mutex", account.Name);
+            if (KillMutex()) return true;
+
+            Logger.Debug("{0} Mutex will not die, give up", account.Name);
+            p.Kill(true);
+            return false;
         }
 
         //public async Task StartAsync()
@@ -89,24 +94,30 @@ namespace guildwars2.tools.alternator
         //    Logger.Debug("Mutex Killed");
         //}
 
+        private const string MutexName = "AN-Mutex-Window-Guild Wars 2";
+
         private bool KillMutex()
         {
-            var name = "AN-Mutex-Window-Guild Wars 2";
+            if (p == null) return true;
 
-            var handle = Win32Handles.GetHandle(p.Id, name, Win32Handles.MatchMode.EndsWith);
+            var handle = Win32Handles.GetHandle(p.Id, MutexName, Win32Handles.MatchMode.EndsWith);
 
-            if (handle != null)
+            if (handle == null) return p.MainWindowHandle != IntPtr.Zero;
+
+            //Logger.Debug("{0} Got handle to Mutex", account.Name);
+            handle.Kill();
+            Logger.Debug("{0} Killed Mutex", account.Name);
+            return true;
+        }
+
+        public async Task<bool> WaitForExit()
+        {
+            if (p == null)
             {
-                Logger.Debug("{0} Got handle to Mutex", account.Name);
-                handle.Kill();
+                Logger.Debug("{0} No process", account.Name);
                 return true;
             }
 
-            return p.MainWindowHandle != IntPtr.Zero;
-        }
-
-        public bool WaitForExit()
-        {
             try
             {
                 p.Refresh();
@@ -126,7 +137,7 @@ namespace guildwars2.tools.alternator
                 //}
                 //eventCounter.DebugDisplay();
 
-                if (!WaitForStable(ref memoryUsage, 2000, 750_000, 200, 120))
+                if (!await WaitForStable(2000, 750_000, 200, 120))
                 {
                     Logger.Debug("{0} Timed-out waiting for Character Selection", account.Name);
                     return false;
@@ -137,12 +148,13 @@ namespace guildwars2.tools.alternator
                     return false;
                 }
 
+                Logger.Debug("{0} got to Character Selection", account.Name);
                 SendEnter();
 
-                Logger.Debug("{0} Wait for load-in to world", account.Name);
-                if (!WaitForStable(ref memoryUsage, 2000, 900_000, 2000, 180))
+                Logger.Debug("{0} Wait for {1} to load-in to world", account.Name, account.Character ?? "character");
+                if (!await WaitForStable(2000, 900_000, 2000, 180))
                 {
-                    Logger.Debug("{0} Timed-out waiting for load-in to world", account.Name);
+                    Logger.Debug("{0} Timed-out waiting for {1} to load-in to world", account.Name, account.Character ?? "character");
                     return false;
                 }
                 if (p.HasExited)
@@ -150,8 +162,9 @@ namespace guildwars2.tools.alternator
                     Logger.Debug("{0} Died!", account.Name);
                     return false;
                 }
-                Logger.Debug("{0} Kill!", account.Name);
+                Logger.Debug("{0} {1} loaded into world OK, kill process", account.Name, account.Character ?? "character");
                 p.Kill(true);
+                await Task.Delay(200);
                 return true;
             }
             catch (Exception e)
@@ -170,36 +183,39 @@ namespace guildwars2.tools.alternator
             }
         }
 
-        private bool WaitForStable(ref long memoryUsage, int pause, long characterSelectMinMemory, long characterSelectMinDiff, double timeout)
+        private long lastMemoryUsage;
+
+        private async Task<bool> WaitForStable(int pause, long characterSelectMinMemory, long characterSelectMinDiff, double timeout)
         {
             var start = DateTime.Now;
             do
             {
-                Application.DoEvents();
-                Thread.Sleep(pause);
-                if (MemoryUsageStable(ref memoryUsage, characterSelectMinMemory, characterSelectMinDiff)) return true;
+                await Task.Delay(pause);
+                if (MemoryUsageStable(characterSelectMinMemory, characterSelectMinDiff)) return true;
             } while (DateTime.Now.Subtract(start).TotalSeconds < timeout) ;
             return false;
         }
 
-        private bool MemoryUsageStable(ref long lastMemoryUsage, long min, long delta)
+        private bool MemoryUsageStable(long min, long delta)
         {
             p.Refresh();
             if (p.HasExited) return true;
 
-            Logger.Debug("{0} Window Title {1}", account.Name, p.MainWindowTitle);
-            Logger.Debug("{0} HandleCount {1}", account.Name, p.HandleCount);
-            Logger.Debug("{0} ThreadCount {1}", account.Name, p.Threads.Count);
+            //Logger.Debug("{0} Window Title {1}", account.Name, p.MainWindowTitle);
+            //Logger.Debug("{0} HandleCount {1}", account.Name, p.HandleCount);
+            //Logger.Debug("{0} ThreadCount {1}", account.Name, p.Threads.Count);
 
             var memoryUsage = p.WorkingSet64 / 1024;
             var diff = Math.Abs(memoryUsage - lastMemoryUsage);
             lastMemoryUsage = memoryUsage;
-            Logger.Debug("{0} Mem={1} Diff={2}", account.Name, memoryUsage, diff);
+            //Logger.Debug("{0} Mem={1} Diff={2}", account.Name, memoryUsage, diff);
             return memoryUsage > min && diff < delta;
         }
 
         private void SendEnter()
         {
+            if (p == null) return;
+
             Logger.Debug("{0} Send ENTER", account.Name);
             var currentFocus = Native.GetForegroundWindow();
             _ = Native.SetForegroundWindow(p.MainWindowHandle);
@@ -262,6 +278,7 @@ namespace guildwars2.tools.alternator
         private void Exited(object? sender, EventArgs e)
         {
             var p = sender as Process;
+            Logger.Debug("{0} GW2 process exited", account.Name);
         }
 
     }

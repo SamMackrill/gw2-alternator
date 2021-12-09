@@ -186,7 +186,7 @@ namespace guildwars2.tools.alternator
             }
         }
 
-        public static IObjectHandle GetHandle(int processId, string objectName, MatchMode match)
+        public static IObjectHandle? GetHandle(int processId, string objectName, MatchMode match)
         {
             Func<string, bool> f;
 
@@ -223,7 +223,7 @@ namespace guildwars2.tools.alternator
             return GetHandle(processId, objectName, f);
         }
 
-        public static IObjectHandle GetHandle(int processId, string objectName, Func<string, bool> objectNameCallback)
+        public static IObjectHandle? GetHandle(int processId, string objectName, Func<string, bool> objectNameCallback)
         {
             var infoClass = SYSTEM_INFORMATION_CLASS.SystemExtendedHandleInformation;
             int infoLength = 0x10000;

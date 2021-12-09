@@ -9,7 +9,7 @@ namespace guildwars2.tools.alternator
 {
     public interface IClientController
     {
-        void Launch(IEnumerable<Account> accounts);
+        Task Launch(IEnumerable<Account> accounts);
     }
 
     public class ClientController : IClientController
@@ -22,26 +22,33 @@ namespace guildwars2.tools.alternator
             this.loginFile = loginFile;
         }
 
-        public void Launch(IEnumerable<Account> accounts)
+        private const int maxInstances = 1;
+
+        public async Task Launch(IEnumerable<Account> accounts)
         {
+            if (!accounts.Any())
+            {
+                Logger.Debug("No accounts to run.");
+                return;
+            }
             var loginSemaphore = new SemaphoreSlim(0, 1);
-            var exeSemaphore = new SemaphoreSlim(0, 1);
-            int launchCount = 0;
-            var tasks = accounts.Select(account => Task.Run(() =>
+            var exeSemaphore = new SemaphoreSlim(0, maxInstances);
+            var launchCount = new Counter();
+            var tasks = accounts.Select(account => Task.Run(async () =>
                 {
                     var launcher = new Launcher(account);
-                    launcher.Launch(loginFile, loginSemaphore, exeSemaphore, ref launchCount);
+                    await launcher.Launch(loginFile, loginSemaphore, exeSemaphore, 3, launchCount);
                 }))
                 .ToList();
             Logger.Debug("{0} threads primed.", tasks.Count);
             // Allow all the tasks to start and block.
-            Thread.Sleep(200);
+            await Task.Delay(200);
 
             // Release the hounds
-            exeSemaphore.Release(1);
+            exeSemaphore.Release(maxInstances);
             loginSemaphore.Release(1);
 
-            Task.WaitAll(tasks.ToArray());
+            await Task.WhenAll(tasks.ToArray());
 
             Logger.Debug("All thread exited.");
         }

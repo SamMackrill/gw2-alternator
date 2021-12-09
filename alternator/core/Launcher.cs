@@ -1,17 +1,10 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace guildwars2.tools.alternator
 {
-    public interface ILauncher
-    {
-        void Launch(FileInfo loginFile, SemaphoreSlim semaphore);
-         Task LaunchAsync(FileInfo loginFile, SemaphoreSlim semaphore);
-    }
-
     public class Launcher
     {
         private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
@@ -22,73 +15,89 @@ namespace guildwars2.tools.alternator
             this.account = account;
         }
 
-        public void Launch(FileInfo loginFile, SemaphoreSlim loginSemaphore, SemaphoreSlim exeSemaphore, ref int launchCount)
+        public async Task<bool> Launch(FileInfo loginFile, SemaphoreSlim loginSemaphore, SemaphoreSlim exeSemaphore, int maxRetries, Counter launchCount)
         {
-            Logger.Debug("{0} login semaphore={1}", account.Name, loginSemaphore.CurrentCount);
-            loginSemaphore.Wait();
-            Logger.Debug("{0} Login Free", account.Name);
-            try
+            int attempt = 0;
+            var client = new Client(account);
+
+            async Task? ReleaseLogin(int attemptCount)
             {
-                Client client;
+                var secondsSinceLogin = (DateTime.Now - client.StartedTime).TotalSeconds;
+                Logger.Debug("{0} secondsSinceLogin={1}s", account.Name, secondsSinceLogin);
+                Logger.Debug("{0} launchCount={1}", account.Name, launchCount.Count);
+                var delay = LaunchDelay(launchCount.Count, attemptCount);
+                Logger.Debug("{0} minimum delay={1}s", account.Name, delay);
+                delay -= (int)secondsSinceLogin;
+                Logger.Debug("{0} actual delay={1}s", account.Name, delay);
+                if (delay > 0) await Task.Delay(new TimeSpan(0, 0, delay));
+                loginSemaphore.Release();
+                Logger.Debug("{0} loginSemaphore released", account.Name);
+            }
+
+            while (++attempt <= maxRetries)
+            {
+                Logger.Debug("{0} login semaphore={1}", account.Name, loginSemaphore.CurrentCount);
+                await loginSemaphore.WaitAsync();
+                Logger.Debug("{0} Login Free", account.Name);
+                Task? releaseLoginTask = null;
                 try
                 {
-                    account.SwapLogin(loginFile);
-                    client = new Client(account);
-                    Logger.Debug("{0} login semaphore={1}", account.Name, loginSemaphore.CurrentCount);
-                    exeSemaphore.Wait();
-                    int delay = LaunchDelay(++launchCount);
-                    Logger.Debug("{0} delay={1}s", account.Name, delay);
-                    Task.Delay(new TimeSpan(0, 0, delay));
-                    client.Start();
+                    await account.SwapLoginAsync(loginFile);
+                    Task<bool> waitForExitTask;
+                    try
+                    {
+                        Logger.Debug("{0} login semaphore={1}", account.Name, loginSemaphore.CurrentCount);
+                        await exeSemaphore.WaitAsync();
+                        launchCount.Increment();
+                        if (!client.Start())
+                        {
+                            Logger.Debug("{0} exe start Failed", account.Name);
+                            continue;
+                        }
+                        Logger.Debug("{0} Login Finished", account.Name);
+                        waitForExitTask = client.WaitForExit();
+                    }
+                    finally
+                    {
+                        if (releaseLoginTask != null) await releaseLoginTask;
+                        releaseLoginTask = ReleaseLogin(attempt);
+                    }
+
+                    if (await waitForExitTask)
+                    {
+                        account.LastSuccess = DateTime.UtcNow;
+                        return true;
+                    }
+
+                    Logger.Debug("{0} exe Failed", account.Name);
                 }
                 finally
                 {
-                    Logger.Debug("{0} Login Finished", account.Name);
-                    loginSemaphore.Release();
-                }
-
-                if (client.WaitForExit())
-                {
-                    account.LastSuccess = DateTime.UtcNow;
-                }
-                else
-                {
-                    Logger.Debug("{0} exe Failed", account.Name);
-                    //exeSemaphore.Release();
+                    if (releaseLoginTask != null) await releaseLoginTask;
+                    Logger.Debug("{0} exe terminated", account.Name);
+                    exeSemaphore.Release();
                 }
             }
-            finally
-            {
-                Logger.Debug("{0} exe Finished", account.Name);
-                exeSemaphore.Release();
-            }
+            Logger.Debug("{0} too many attempts, giving up", account.Name);
+            return false;
         }
 
-        private int LaunchDelay(int count)
+
+        private int LaunchDelay(int count, int attempt)
         {
+            if (attempt > 1) return 300;
+
             if (count <= 1) return 5;
-            if (count < 5) return (1 << (count - 2)) * 10;
+            if (count < 5) return 5 + (1 << (count - 2)) * 5;
+            return 60;
+            //return Math.Min(800, (300 + 10 * (count - 5)));
 
-            return Math.Min(800, (300 + 20 * (count - 5)));
+            // 0 | 5
+            // 1 | 5
+            // 2 | 10
+            // 3 | 15
+            // 4 | 25
+            // 5 | 60
         }
-
-        //public async Task LaunchAsync(FileInfo loginFile, SemaphoreSlim semaphore)
-        //{
-
-        //    await semaphore.WaitAsync();
-        //    Client client;
-        //    try
-        //    {
-        //        await account.SwapLoginAsync(loginFile);
-        //        client = new Client(account);
-        //        await client.StartAsync();
-        //    }
-        //    finally
-        //    {
-        //        semaphore.Release();
-        //    }
-
-        //    client.WaitForExit();
-        //}
     }
 }

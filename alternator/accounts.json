@@ -1,181 +1,217 @@
 [
     {
         "Name": "Hugo",
+        "Character": "Hugaz The Awesome",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\2.dat"
     },
     {
         "Name": "Sophia",
+        "Character": "Ophiasa",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\3.dat"
     },
     {
         "Name": "Fish2",
+        "Character": "Fishspeaker",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\4.dat"
     },
     {
         "Name": "Fish3",
+        "Character": "Fishpaeste",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\5.dat"
     },
     {
         "Name": "Fish4",
+        "Character": "Fishpye",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\6.dat"
     },
     {
         "Name": "Fish5",
+        "Character": "Fishfingerr",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\7.dat"
     },
     {
         "Name": "Fish6",
+        "Character": "Fishmounger",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\8.dat"
     },
     {
         "Name": "Fish7",
+        "Character": "Fishwifu",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\9.dat"
     },
     {
         "Name": "Fish8",
+        "Character": "Fishwurm",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\10.dat"
     },
     {
         "Name": "Fish9",
+        "Character": "Fishabilities",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\11.dat"
     },
     {
         "Name": "Fish10",
+        "Character": "Fishinesses",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\12.dat"
     },
     {
         "Name": "Fish11",
+        "Character": "Fishooks",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\13.dat"
     },
     {
         "Name": "Fish12",
+        "Character": "Fishing Smack",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\14.dat"
     },
     {
         "Name": "Fish13",
+        "Character": "Fishkake",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\15.dat"
     },
     {
         "Name": "Fish14",
+        "Character": "Fishstock",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\16.dat"
     },
     {
         "Name": "Fish15",
+        "Character": "Fishiing",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\17.dat"
     },
     {
         "Name": "Fish16",
+        "Character": "Fishsskale",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\18.dat"
     },
     {
         "Name": "Fish17",
+        "Character": "Fishaeye",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\19.dat"
     },
     {
         "Name": "Fish18",
+        "Character": "Fishiiey",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\20.dat"
     },
     {
         "Name": "Fish19",
+        "Character": "Fishbowlle",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\21.dat"
     },
     {
         "Name": "Fish20",
+        "Character": "Fishupp",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\22.dat"
     },
     {
         "Name": "Fish21",
+        "Character": "Fishheade",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\23.dat"
     },
     {
         "Name": "Fish22",
+        "Character": "Fishalot",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\24.dat"
     },
     {
         "Name": "Fish23",
+        "Character": "Fishbaite",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\25.dat"
     },
     {
         "Name": "Fish24",
+        "Character": "Fishtaail",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\26.dat"
     },
     {
         "Name": "Fish25",
+        "Character": "Fishpott",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\27.dat"
     },
     {
         "Name": "Fish26",
+        "Character": "Fishlike",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\28.dat"
     },
     {
         "Name": "Fish27",
+        "Character": "Fishmeal",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\29.dat"
     },
     {
         "Name": "Fish28",
+        "Character": "Fisherwomann",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\30.dat"
     },
     {
         "Name": "Fish29",
+        "Character": "Fishnetts",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\31.dat"
     },
     {
         "Name": "Fish30",
+        "Character": "Fisheggz",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\32.dat"
     },
     {
         "Name": "Fish31",
+        "Character": "Fisheries",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\33.dat"
     },
     {
         "Name": "Fish32",
+        "Character": "Fish And Chipz",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\34.dat"
     },
     {
         "Name": "Fish33",
+        "Character": "Fish Tanker",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\35.dat"
     },
     {
         "Name": "Fish34",
+        "Character": "Fishfoode",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\36.dat"
     },
     {
         "Name": "Fish35",
+        "Character": "Fishbbone",
         "LastSuccess": "0001-01-01T00:00:00",
         "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\37.dat"
     }
