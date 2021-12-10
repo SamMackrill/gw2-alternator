@@ -31,24 +31,16 @@ namespace guildwars2.tools.alternator
                 Logger.Debug("No accounts to run.");
                 return;
             }
+            Logger.Debug("Max GW2 Instances={0}", maxInstances);
             var loginSemaphore = new SemaphoreSlim(0, 1);
-            var accountsSemaphore = new SemaphoreSlim(0, 1);
             var exeSemaphore = new SemaphoreSlim(0, maxInstances);
             var launchCount = new Counter();
             var tasks = accountManager.Accounts.Select(account => Task.Run(async () =>
                 {
                     var launcher = new Launcher(account);
                     await launcher.Launch(loginFile, loginSemaphore, exeSemaphore, 3, launchCount);
+                    await accountManager.Save();
                     LogManager.Flush();
-                    try
-                    {
-                        await accountsSemaphore.WaitAsync();
-                        await accountManager.Save();
-                    }
-                    finally
-                    {
-                        accountsSemaphore.Release();
-                    }
                 }))
                 .ToList();
             Logger.Debug("{0} threads primed.", tasks.Count);
@@ -58,7 +50,6 @@ namespace guildwars2.tools.alternator
             // Release the hounds
             exeSemaphore.Release(maxInstances);
             loginSemaphore.Release(1);
-            accountsSemaphore.Release(1);
 
             await Task.WhenAll(tasks.ToArray());
 
