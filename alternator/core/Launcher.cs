@@ -88,8 +88,8 @@ namespace guildwars2.tools.alternator
             if (attempt > 1) return 300;
 
             if (count <= 1) return 5;
-            if (count < 5) return 5 + (1 << (count - 2)) * 5;
-            return 60;
+            //if (count < 5) return 5 + (1 << (count - 2)) * 5;
+            return 10;
             //return Math.Min(800, (300 + 10 * (count - 5)));
 
             // 0 | 5
