@@ -1,46 +1,43 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text.Json;
 using AsyncAwaitBestPractices.MVVM;
+using guildwars2.tools.alternator.core;
 using NLog;
 
 namespace guildwars2.tools.alternator
 {
     class MainViewModel : ObservableObject
     {
-        public IAsyncCommand<object>? LoginAllCommand { get; set; }
+        public IAsyncCommand<object>? LoginAllMultiCommand { get; set; }
+        public IAsyncCommand<object>? LoginAllSingleCommand { get; set; }
         private const string AccountsJson = "accounts.json";
 
         public MainViewModel()
         {
             SetLogging();
 
-            LoginAllCommand = new AsyncCommand<object>(async o => {
+            LoginAllMultiCommand = new AsyncCommand<object>(async o => {
                 var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
-                List<Account>? accounts;
-                await using (var stream = File.OpenRead(AccountsJson))
-                {
-                    accounts = await JsonSerializer.DeserializeAsync<List<Account>>(stream);
-                }
+                var launcher = new ClientController(new FileInfo(Path.Combine(appData, @"Guild Wars 2\Local.dat")));
+                var accountManager = new AccountManager(AccountsJson, launcher);
+
+                await accountManager.Launch(4);
+
+                LogManager.Shutdown();
+            });
+
+            LoginAllSingleCommand = new AsyncCommand<object>(async o => {
+                var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
                 var launcher = new ClientController(new FileInfo(Path.Combine(appData, @"Guild Wars 2\Local.dat")));
-                var accountsToRun = accounts.Where(a => a.LastSuccess < DateTime.UtcNow.Date);
-                await launcher.Launch(accountsToRun);
+                var accountManager = new AccountManager(AccountsJson, launcher);
 
-                File.WriteAllText(AccountsJson, JsonSerializer.Serialize(accounts, new JsonSerializerOptions { AllowTrailingCommas = true, WriteIndented = true }));
-
-                await using (var stream = File.OpenWrite(AccountsJson))
-                {
-                    await JsonSerializer.SerializeAsync(stream, accounts, new JsonSerializerOptions { AllowTrailingCommas = true, WriteIndented = true });
-                }
+                await accountManager.Launch(1);
 
                 LogManager.Shutdown();
             });
         }
-
 
         private void SetLogging()
         {

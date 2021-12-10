@@ -44,9 +44,14 @@
 
             <StackPanel Grid.Row="1" Grid.Column="0">
                 <RadioButton Height="50" Foreground="White" FontSize="14"
-                             Command="{Binding LoginAllCommand}"
+                             Command="{Binding LoginAllMultiCommand}"
                              Style="{StaticResource MenuButtonTheme}">
-                    Run
+                    Login Parallel
+                </RadioButton>
+                <RadioButton Height="50" Foreground="White" FontSize="14"
+                             Command="{Binding LoginAllSingleCommand}"
+                             Style="{StaticResource MenuButtonTheme}">
+                    Login Serial
                 </RadioButton>
                 <RadioButton Height="50" Foreground="White" FontSize="14"
                              Style="{StaticResource MenuButtonTheme}">

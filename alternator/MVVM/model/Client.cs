@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using NLog;
 
 namespace guildwars2.tools.alternator
 {
@@ -149,6 +150,7 @@ namespace guildwars2.tools.alternator
                 }
 
                 Logger.Debug("{0} got to Character Selection", account.Name);
+                LogManager.Flush();
                 SendEnter();
 
                 Logger.Debug("{0} Wait for {1} to load-in to world", account.Name, account.Character ?? "character");
@@ -163,6 +165,7 @@ namespace guildwars2.tools.alternator
                     return false;
                 }
                 Logger.Debug("{0} {1} loaded into world OK, kill process", account.Name, account.Character ?? "character");
+                LogManager.Flush();
                 p.Kill(true);
                 await Task.Delay(200);
                 return true;
@@ -180,6 +183,7 @@ namespace guildwars2.tools.alternator
                     Logger.Debug("{0} Kill runaway", account.Name);
                     p.Kill(true);
                 }
+                LogManager.Flush();
             }
         }
 
