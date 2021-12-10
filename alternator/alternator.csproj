@@ -9,10 +9,15 @@
     <UseWindowsForms>True</UseWindowsForms>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <RootNamespace>guildwars2.tools.alternator</RootNamespace>
+    <ApplicationIcon>images\alternate.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="images\alternate.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="images\alternate.ico" />
   </ItemGroup>
 
   <ItemGroup>
