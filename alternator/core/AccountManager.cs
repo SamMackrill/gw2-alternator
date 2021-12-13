@@ -91,7 +91,9 @@ namespace guildwars2.tools.alternator
                 LaunchType.UpdateAll => Accounts,
                 LaunchType.CollectAll => Accounts,
                 LaunchType.LaunchNeeded => Accounts.Where(a => a.LastLogin < DateTime.UtcNow.Date).ToList(),
-                LaunchType.CollectNeeded => Accounts.Where(a => a.LastCollection < DateTime.UtcNow.Date).ToList(),
+                LaunchType.CollectNeeded => Accounts.Where(a => a.LastCollection < DateTime.UtcNow.Date
+                                                        && DateTime.UtcNow.Date.Subtract(a.LastCollection).TotalDays > 30
+                                                        ).ToList(),
                 _ => throw new ArgumentException(message: "invalid enum value", paramName: nameof(launchType))
             };
         }

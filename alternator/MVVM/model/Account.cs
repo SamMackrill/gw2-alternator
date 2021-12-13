@@ -16,6 +16,7 @@ namespace guildwars2.tools.alternator
         public string LoginFilePath { get; set; }
         public DateTime LastLogin { get; set; }
         public DateTime LastCollection { get; set; }
+        public DateTime CreatedAt { get; set; }
 
         [NonSerialized] public FileInfo LoginFile;
 
@@ -27,6 +28,7 @@ namespace guildwars2.tools.alternator
 
             LastLogin = DateTime.MinValue;
             LastCollection = DateTime.MinValue;
+            CreatedAt = DateTime.Now;
             LoginFile = new FileInfo(loginFilePath);
         }
 
