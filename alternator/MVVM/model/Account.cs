@@ -13,10 +13,11 @@ namespace guildwars2.tools.alternator
 
         public string Name { get; set; }
         public string? Character { get; set; }
+        public string LoginFilePath { get; set; }
+        public DateTime LastLogin { get; set; }
+        public DateTime LastCollection { get; set; }
 
         [NonSerialized] public FileInfo LoginFile;
-        public DateTime LastSuccess { get; set; }
-        public string LoginFilePath { get; set; }
 
         public Account(string name, string? character, string loginFilePath)
         {
@@ -24,10 +25,12 @@ namespace guildwars2.tools.alternator
             Character = character;
             LoginFilePath = loginFilePath;
 
+            LastLogin = DateTime.MinValue;
+            LastCollection = DateTime.MinValue;
             LoginFile = new FileInfo(loginFilePath);
         }
 
-        private string DebugDisplay => $"{Name} ({Character}) {LastSuccess}";
+        private string DebugDisplay => $"{Name} ({Character}) {LastLogin} {LastCollection}";
 
         private void SwapLogin(FileInfo gw2LocalDat)
         {

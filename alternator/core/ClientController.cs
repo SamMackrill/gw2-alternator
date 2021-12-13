@@ -9,24 +9,23 @@ using NLog;
 
 namespace guildwars2.tools.alternator
 {
-    public interface IClientController
-    {
-        Task Launch(AccountManager accountManager, int maxInstances);
-    }
-
-    public class ClientController : IClientController
+    public class ClientController
     {
         private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         private readonly FileInfo loginFile;
+        private readonly LaunchType launchType;
 
-        public ClientController(FileInfo loginFile)
+        public event EventHandler<GenericEventArgs<bool>>? AfterLaunch;
+
+        public ClientController(FileInfo loginFile, LaunchType launchType)
         {
             this.loginFile = loginFile;
+            this.launchType = launchType;
         }
 
-        public async Task Launch(AccountManager accountManager, int maxInstances)
+        public async Task Launch(List<Account> accounts, int maxInstances, CancellationToken launchCancelled)
         {
-            if (!accountManager.Accounts.Any())
+            if (!accounts.Any())
             {
                 Logger.Debug("No accounts to run.");
                 return;
@@ -35,17 +34,18 @@ namespace guildwars2.tools.alternator
             var loginSemaphore = new SemaphoreSlim(0, 1);
             var exeSemaphore = new SemaphoreSlim(0, maxInstances);
             var launchCount = new Counter();
-            var tasks = accountManager.Accounts.Select(account => Task.Run(async () =>
+            var tasks = accounts.Select(account => Task.Run(async () =>
                 {
-                    var launcher = new Launcher(account);
-                    await launcher.Launch(loginFile, loginSemaphore, exeSemaphore, 3, launchCount);
-                    await accountManager.Save();
+                    var launcher = new Launcher(account, launchType, launchCancelled);
+                    var success = await launcher.Launch(loginFile, loginSemaphore, exeSemaphore, 3, launchCount);
+                    AfterLaunch?.Invoke(account, new GenericEventArgs<bool>(success));
                     LogManager.Flush();
-                }))
+                }, launchCancelled))
                 .ToList();
             Logger.Debug("{0} threads primed.", tasks.Count);
             // Allow all the tasks to start and block.
-            await Task.Delay(200);
+            await Task.Delay(200, launchCancelled);
+            if (launchCancelled.IsCancellationRequested) return;
 
             // Release the hounds
             exeSemaphore.Release(maxInstances);

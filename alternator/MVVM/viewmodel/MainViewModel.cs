@@ -1,5 +1,8 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows;
 using AsyncAwaitBestPractices.MVVM;
 using guildwars2.tools.alternator.core;
 using NLog;
@@ -8,35 +11,66 @@ namespace guildwars2.tools.alternator
 {
     class MainViewModel : ObservableObject
     {
-        public IAsyncCommand<object>? LoginAllMultiCommand { get; set; }
-        public IAsyncCommand<object>? LoginAllSingleCommand { get; set; }
+        public IAsyncCommand? LoginAllMultiCommand { get; set; }
+        public IAsyncCommand? LoginAllSingleCommand { get; set; }
+        public IAsyncCommand? CollectCommand { get; set; }
+        public IAsyncCommand? StopCommand { get; set; }
+        public IAsyncCommand? ShowSettingsCommand { get; set; }
+
         private const string AccountsJson = "accounts.json";
+        private CancellationTokenSource cts;
+        private string appData;
+
+
+        private bool running;
+        private bool Running {
+            get => running;
+            set
+            {
+                running = value;
+                LoginAllMultiCommand?.RaiseCanExecuteChanged();
+                LoginAllSingleCommand?.RaiseCanExecuteChanged();
+                CollectCommand?.RaiseCanExecuteChanged();
+                StopCommand?.RaiseCanExecuteChanged();
+                ShowSettingsCommand?.RaiseCanExecuteChanged();
+            }
+        }
 
         public MainViewModel()
         {
+            appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             SetLogging();
 
-            LoginAllMultiCommand = new AsyncCommand<object>(async o => {
-                var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            async Task Login(int maxInstances, LaunchType launchType)
+            {
+                try
+                {
+                    Running = true;
 
-                var launcher = new ClientController(new FileInfo(Path.Combine(appData, @"Guild Wars 2\Local.dat")));
-                var accountManager = new AccountManager(AccountsJson, launcher);
+                    cts = new CancellationTokenSource();
+                    cts.Token.ThrowIfCancellationRequested();
+                    var launcher = new ClientController(new FileInfo(Path.Combine(appData, @"Guild Wars 2\Local.dat")), launchType);
+                    var accountManager = new AccountManager(AccountsJson, launcher);
 
-                await accountManager.Launch(4);
+                    await accountManager.Launch(maxInstances, launchType, cts.Token);
 
-                LogManager.Shutdown();
-            });
+                    LogManager.Shutdown();
+                }
+                finally
+                {
+                    Running = false;
+                }
+            }
 
-            LoginAllSingleCommand = new AsyncCommand<object>(async o => {
-                var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            LoginAllMultiCommand = new AsyncCommand(async () => { await Login(4, LaunchType.LaunchNeeded); }, o => !Running);
+            LoginAllSingleCommand = new AsyncCommand(async () => { await Login(1, LaunchType.LaunchNeeded); }, o => !Running);
+            CollectCommand = new AsyncCommand(async () => { await Login(2, LaunchType.CollectNeeded); }, o => !Running);
 
-                var launcher = new ClientController(new FileInfo(Path.Combine(appData, @"Guild Wars 2\Local.dat")));
-                var accountManager = new AccountManager(AccountsJson, launcher);
-
-                await accountManager.Launch(1);
-
-                LogManager.Shutdown();
-            });
+            StopCommand = new AsyncCommand(async () => cts?.Cancel(), o => Running);
+            ShowSettingsCommand = new AsyncCommand(async () =>
+            {
+                
+            }, o => !Running);
         }
 
         private void SetLogging()

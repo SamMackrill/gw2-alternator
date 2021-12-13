@@ -9,15 +9,19 @@
     <UseWindowsForms>True</UseWindowsForms>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <RootNamespace>guildwars2.tools.alternator</RootNamespace>
-    <ApplicationIcon>images\alternate.ico</ApplicationIcon>
+    <ApplicationIcon>images\alternate_orange.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="images\alternate.png" />
+    <None Remove="images\alternate_orange.png" />
+    <None Remove="images\close-window.png" />
+    <None Remove="images\minimize-window.png" />
+    <None Remove="images\settings3.png" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="images\alternate.ico" />
+    <Content Include="images\alternate_orange.ico" />
   </ItemGroup>
 
   <ItemGroup>
@@ -29,6 +33,10 @@
     <Resource Include="images\alternate.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="images\alternate_orange.png" />
+    <Resource Include="images\close-window.png" />
+    <Resource Include="images\minimize-window.png" />
+    <Resource Include="images\settings3.png" />
   </ItemGroup>
 
   <ItemGroup>

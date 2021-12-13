@@ -10,31 +10,28 @@
         ResizeMode="NoResize"
         Background="Transparent"
         AllowsTransparency="True"
+        MouseLeftButtonDown="Window_MouseLeftButtonDown"
         >
 
     <Window.DataContext>
         <local:MainViewModel/>
     </Window.DataContext>
 
-    <Border Background="#272537"
-            CornerRadius="20">
-        <Grid>
+    <Border BorderBrush="#FB651D" BorderThickness="3" CornerRadius="20" Background="#242424">
+        <Grid ShowGridLines="False">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="200"/>
-                <ColumnDefinition/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition  Width="*"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="75"/>
-                <RowDefinition/>
+                <RowDefinition Height="2"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
-                <Image Source="/images/alternate.png" Width="64"/>
+            <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal">
+                <Image Source="/images/alternate_orange.png" Width="64"/>
                 <TextBlock
-                       VerticalAlignment="Center"
-                       HorizontalAlignment="Center"
-                       TextAlignment="Center"
-                       Foreground="White"
                        FontSize="22">
                 GW2
                 <LineBreak/>
@@ -42,7 +39,63 @@
                 </TextBlock>
             </StackPanel>
 
-            <StackPanel Grid.Row="1" Grid.Column="0">
+            <DockPanel x:Name="TitleBar" Grid.Row="1" Grid.Column="1" 
+                       Background="#242424" 
+                       Height="24" 
+                       HorizontalAlignment="Stretch"
+                       VerticalAlignment="Top"
+                       LastChildFill="true" 
+                       Margin="0,5,10,0">
+
+                <Button DockPanel.Dock="Right"  
+                        Padding="0" 
+                        Opacity="0.6"
+                        VerticalAlignment="Center" 
+                        BorderThickness="0" 
+                        Height="24" Width="24"
+                        Background="Transparent"
+                        Style="{StaticResource FadeOutButton}"
+                        Click="CloseButton_Click"
+                >
+                    <Image Source="/images/close-window.png"  Width="24" />
+                </Button>
+
+                <Button DockPanel.Dock="Right"  
+                        Padding="0" 
+                        Margin="0,0,8,0"
+                        Opacity="0.6"
+                        VerticalAlignment="Center" 
+                        BorderThickness="0" 
+                        Height="24" Width="24"
+                        Background="Transparent"
+                        Style="{StaticResource FadeOutButton}"
+                        Click="MinimizeButton_Click"
+                        >
+
+                    <Image Source="/images/minimize-window.png"  Width="24" />
+                </Button>
+
+                <Button DockPanel.Dock="Right"  
+                        Padding="0"
+                        Margin="0,0,8,0"
+                        Opacity="0.6"
+                        VerticalAlignment="Center" 
+                        BorderThickness="0" 
+                        Height="24" Width="24"
+                        Background="Transparent"
+                        Style="{StaticResource FadeOutButton}"
+                        ToolTip="Settings"
+                        Command="{Binding Path=ShowSettingsCommand, Mode=OneWay}">
+
+                    <Image Source="/images/settings3.png"  Width="24" />
+                </Button>
+
+                <Label Padding="0" FontWeight="DemiBold" Content="{Binding Path=Title}" />
+
+            </DockPanel>
+
+
+            <StackPanel Grid.Row="2" Grid.Column="0">
                 <RadioButton Height="50" Foreground="White" FontSize="14"
                              Command="{Binding LoginAllMultiCommand}"
                              Style="{StaticResource MenuButtonTheme}">
@@ -54,8 +107,18 @@
                     Login Serial
                 </RadioButton>
                 <RadioButton Height="50" Foreground="White" FontSize="14"
+                             Command="{Binding CollectCommand}"
                              Style="{StaticResource MenuButtonTheme}">
-                    Update
+                    Collect
+                </RadioButton>
+                <RadioButton Height="50" Foreground="White" FontSize="14"
+                             Style="{StaticResource MenuButtonTheme}">
+                    Force Update
+                </RadioButton>
+                <RadioButton Height="50" Foreground="White" FontSize="14"
+                             Command="{Binding StopCommand}"
+                             Style="{StaticResource MenuButtonTheme}">
+                    Stop!
                 </RadioButton>
             </StackPanel>
 
