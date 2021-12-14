@@ -30,14 +30,18 @@ namespace guildwars2.tools.alternator
 
                 async Task? ReleaseLogin(int attemptCount, CancellationToken cancellationToken)
                 {
-                    var secondsSinceLogin = (DateTime.Now - client.StartedTime).TotalSeconds;
-                    Logger.Debug("{0} secondsSinceLogin={1}s", account.Name, secondsSinceLogin);
-                    Logger.Debug("{0} launchCount={1}", account.Name, launchCount.Count);
-                    var delay = LaunchDelay(launchCount.Count, attemptCount);
-                    Logger.Debug("{0} minimum delay={1}s", account.Name, delay);
-                    delay -= (int)secondsSinceLogin;
-                    Logger.Debug("{0} actual delay={1}s", account.Name, delay);
-                    if (delay > 0) await Task.Delay(new TimeSpan(0, 0, delay), cancellationToken);
+                    if (launchType is not LaunchType.UpdateAll)
+                    {
+                        var secondsSinceLogin = (DateTime.Now - client.StartedTime).TotalSeconds;
+                        Logger.Debug("{0} secondsSinceLogin={1}s", account.Name, secondsSinceLogin);
+                        Logger.Debug("{0} launchCount={1}", account.Name, launchCount.Count);
+                        var delay = LaunchDelay(launchCount.Count, attemptCount);
+                        Logger.Debug("{0} minimum delay={1}s", account.Name, delay);
+                        delay -= (int) secondsSinceLogin;
+                        Logger.Debug("{0} actual delay={1}s", account.Name, delay);
+                        if (delay > 0) await Task.Delay(new TimeSpan(0, 0, delay), cancellationToken);
+                    }
+
                     loginSemaphore.Release();
                     Logger.Debug("{0} loginSemaphore released", account.Name);
                 }
@@ -58,13 +62,13 @@ namespace guildwars2.tools.alternator
                             Logger.Debug("{0} login semaphore={1}", account.Name, loginSemaphore.CurrentCount);
                             await exeSemaphore.WaitAsync(launchCancelled);
                             launchCount.Increment();
-                            if (!client.Start())
+                            if (!client.Start(launchType))
                             {
                                 Logger.Debug("{0} exe start Failed", account.Name);
                                 continue;
                             }
                             Logger.Debug("{0} Login Finished", account.Name);
-                            waitForExitTask = client.WaitForExit(launchType is LaunchType.LaunchAll or LaunchType.LaunchNeeded, launchCancelled);
+                            waitForExitTask = client.WaitForExit(launchType, launchCancelled);
                         }
                         finally
                         {

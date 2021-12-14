@@ -23,13 +23,14 @@ namespace guildwars2.tools.alternator
             this.account = account;
         }
 
-        public bool Start()
+        public bool Start(LaunchType launchType)
         {
             // Run gw2 exe with arguments
+            var gw2Arguments = launchType is LaunchType.UpdateAll ? "-image" : $"-autologin -windowed -nosound -shareArchive -maploadinfo -dx9"; // -dat \"{account.LoginFile}\""
             var pi = new ProcessStartInfo(@"G:\Games\gw2\Gw2-64.exe")
             {
                 CreateNoWindow = true,
-                Arguments = $"-autologin -windowed -nosound -shareArchive -maploadinfo -dx9", // -dat \"{account.LoginFile}\"",
+                Arguments = gw2Arguments, 
                 UseShellExecute = false,
                 WorkingDirectory = @"G:\Games\gw2"
             };
@@ -39,6 +40,9 @@ namespace guildwars2.tools.alternator
 
             _ = p.Start();
             Logger.Debug("{0} Started", account.Name);
+
+            if (launchType is LaunchType.UpdateAll) return true;
+
             p.WaitForInputIdle();
             if (KillMutex()) return true;
 
@@ -61,7 +65,7 @@ namespace guildwars2.tools.alternator
             return true;
         }
 
-        public async Task<bool> WaitForExit(bool autoTerminate, CancellationToken cancellationToken)
+        public async Task<bool> WaitForExit(LaunchType launchType, CancellationToken cancellationToken)
         {
             if (p == null)
             {
@@ -71,64 +75,14 @@ namespace guildwars2.tools.alternator
 
             try
             {
-                p.Refresh();
-                if (p.HasExited)
+                if (launchType is not LaunchType.UpdateAll)
                 {
-                    Logger.Error("{0} Died!", account.Name);
-                    return false;
+                    if (!await WaitForCharacterSelection(cancellationToken)) return false;
+                    if (!EnterWorld()) return false;
+                    if (launchType is LaunchType.LaunchAll or LaunchType.LaunchNeeded) return await WaitForEntryThenExit(cancellationToken);
                 }
 
-                lastMemoryUsage = p.WorkingSet64 / 1024;
-
-                Logger.Debug("{0} Wait for Character Selection", account.Name);
-
-                if (!await WaitForStable(2000, 750_000, 200, 120, cancellationToken))
-                {
-                    Logger.Error("{0} Timed-out waiting for Character Selection", account.Name);
-                    return false;
-                }
-                if (p.HasExited)
-                {
-                    Logger.Error("{0} Died!", account.Name);
-                    return false;
-                }
-
-                Logger.Debug("{0} got to Character Selection", account.Name);
-                LogManager.Flush();
-                SendEnter(p);
-
-                if (autoTerminate)
-                {
-                    Logger.Debug("{0} Wait for {1} to load-in to world", account.Name,
-                        account.Character ?? "character");
-                    if (!await WaitForStable(2000, 900_000, 2000, 180, cancellationToken))
-                    {
-                        Logger.Error("{0} Timed-out waiting for {1} to load-in to world", account.Name, account.Character ?? "character");
-                        return false;
-                    }
-
-                    if (p.HasExited)
-                    {
-                        Logger.Error("{0} Died!", account.Name);
-                        return false;
-                    }
-
-                    Logger.Debug("{0} {1} loaded into world OK, kill process", account.Name,
-                        account.Character ?? "character");
-                    LogManager.Flush();
-                    await Kill(p);
-                    return true;
-                }
-
-                do
-                {
-                    await Task.Delay(200, cancellationToken);
-                    p.Refresh();
-                    if (!p.HasExited) continue;
-                    Logger.Info("{0} GW2 Closed by user", account.Name);
-                    return true;
-                } while (true);
-
+                return await WaitForProcessToExit(cancellationToken);
             }
             catch (OperationCanceledException)
             {
@@ -150,6 +104,86 @@ namespace guildwars2.tools.alternator
                 }
                 LogManager.Flush();
             }
+        }
+
+        public async Task<bool> WaitForProcessToExit(CancellationToken cancellationToken)
+        {
+            if (p == null)
+            {
+                Logger.Error("{0} No process", account.Name);
+                return false;
+            }
+            // TODO add timeout?
+            do
+            {
+                await Task.Delay(200, cancellationToken);
+                p.Refresh();
+                if (!p.HasExited) continue;
+                Logger.Info("{0} GW2 Closed", account.Name);
+                return true;
+            } while (true);
+        }
+
+        private async Task<bool> WaitForEntryThenExit(CancellationToken cancellationToken)
+        {
+            if (p == null) return false;
+            p.Refresh();
+            Logger.Debug("{0} Wait for {1} to load-in to world", account.Name, account.Character ?? "character");
+            if (!await WaitForStable(2000, 900_000, 2000, 180, cancellationToken))
+            {
+                Logger.Error("{0} Timed-out waiting for {1} to load-in to world", account.Name,
+                    account.Character ?? "character");
+                {
+                    return false;
+                }
+            }
+
+            p.Refresh();
+            if (p.HasExited)
+            {
+                Logger.Error("{0} Died!", account.Name);
+                return false;
+            }
+
+            Logger.Debug("{0} {1} loaded into world OK, kill process", account.Name, account.Character ?? "character");
+            LogManager.Flush();
+            await Kill(p);
+            return true;
+        }
+
+        private bool EnterWorld()
+        {
+            if (p == null) return false;
+            p.Refresh();
+            if (p.HasExited)
+            {
+                Logger.Error("{0} Died!", account.Name);
+                return false;
+            }
+
+            Logger.Debug("{0} got to Character Selection", account.Name);
+            LogManager.Flush();
+            SendEnter(p);
+            return true;
+        }
+
+        private async Task<bool> WaitForCharacterSelection(CancellationToken cancellationToken)
+        {
+            if (p == null) return false;
+            p.Refresh();
+            if (p.HasExited)
+            {
+                Logger.Error("{0} Died!", account.Name);
+                return false;
+            }
+
+            lastMemoryUsage = p.WorkingSet64 / 1024;
+
+            Logger.Debug("{0} Wait for Character Selection", account.Name);
+            if (await WaitForStable(2000, 750_000, 200, 120, cancellationToken)) return true;
+
+            Logger.Error("{0} Timed-out waiting for Character Selection", account.Name);
+            return false;
         }
 
         private long lastMemoryUsage;

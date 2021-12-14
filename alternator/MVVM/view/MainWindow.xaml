@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:guildwars2.tools.alternator"
+        xmlns:view="clr-namespace:guildwars2.tools.alternator.MVVM.view"
         mc:Ignorable="d"
         Height="450" Width="800"
         WindowStyle="None"
@@ -29,23 +30,31 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal">
-                <Image Source="/images/alternate_orange.png" Width="64"/>
-                <TextBlock
-                       FontSize="22">
-                GW2
-                <LineBreak/>
-                Alternator
-                </TextBlock>
-            </StackPanel>
 
-            <DockPanel x:Name="TitleBar" Grid.Row="1" Grid.Column="1" 
+
+            <DockPanel x:Name="TitleBar" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" 
                        Background="#242424" 
                        Height="24" 
                        HorizontalAlignment="Stretch"
                        VerticalAlignment="Top"
                        LastChildFill="true" 
-                       Margin="0,5,10,0">
+                       Margin="5,5,10,5">
+
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" Margin="0" VerticalAlignment="Center">
+                    <TextBlock FontSize="22" 
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Center"
+                               Padding="0"
+                               Margin="0,0,-4,0"
+                               Text="GW2" />
+                    <Image Source="/images/alternate_orange-wide.png" Height="24" Margin="0" />
+                    <TextBlock FontSize="22" 
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Center"
+                               Padding="0"
+                               Margin="-5,0,0,0"
+                               Text="Alternator" />
+                </StackPanel>
 
                 <Button DockPanel.Dock="Right"  
                         Padding="0" 
@@ -90,7 +99,8 @@
                     <Image Source="/images/settings3.png"  Width="24" />
                 </Button>
 
-                <Label Padding="0" FontWeight="DemiBold" Content="{Binding Path=Title}" />
+                <TextBlock Padding="20,0,0,0" FontWeight="DemiBold"
+                            FontSize="22" Text="{Binding TimeUtc}" />
 
             </DockPanel>
 
@@ -112,6 +122,7 @@
                     Collect
                 </RadioButton>
                 <RadioButton Height="50" Foreground="White" FontSize="14"
+                             Command="{Binding UpdateCommand}"
                              Style="{StaticResource MenuButtonTheme}">
                     Force Update
                 </RadioButton>
@@ -121,6 +132,9 @@
                     Stop!
                 </RadioButton>
             </StackPanel>
+
+            <view:Accounts Grid.Row="2" Grid.Column="1" />
+
 
         </Grid>
 

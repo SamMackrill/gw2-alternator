@@ -2,24 +2,26 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using AsyncAwaitBestPractices.MVVM;
 using guildwars2.tools.alternator.core;
 using NLog;
 
 namespace guildwars2.tools.alternator
 {
-    class MainViewModel : ObservableObject
+    public class MainViewModel : ObservableObject
     {
         public IAsyncCommand? LoginAllMultiCommand { get; set; }
         public IAsyncCommand? LoginAllSingleCommand { get; set; }
         public IAsyncCommand? CollectCommand { get; set; }
+        public IAsyncCommand? UpdateCommand { get; set; }
         public IAsyncCommand? StopCommand { get; set; }
         public IAsyncCommand? ShowSettingsCommand { get; set; }
 
+        public string TimeUtc { get; set; }
+
         private const string AccountsJson = "accounts.json";
         private CancellationTokenSource cts;
-        private string appData;
+        private readonly string appData;
 
 
         private bool running;
@@ -31,6 +33,7 @@ namespace guildwars2.tools.alternator
                 LoginAllMultiCommand?.RaiseCanExecuteChanged();
                 LoginAllSingleCommand?.RaiseCanExecuteChanged();
                 CollectCommand?.RaiseCanExecuteChanged();
+                UpdateCommand?.RaiseCanExecuteChanged();
                 StopCommand?.RaiseCanExecuteChanged();
                 ShowSettingsCommand?.RaiseCanExecuteChanged();
             }
@@ -65,6 +68,7 @@ namespace guildwars2.tools.alternator
             LoginAllMultiCommand = new AsyncCommand(async () => { await Login(4, LaunchType.LaunchNeeded); }, o => !Running);
             LoginAllSingleCommand = new AsyncCommand(async () => { await Login(1, LaunchType.LaunchNeeded); }, o => !Running);
             CollectCommand = new AsyncCommand(async () => { await Login(2, LaunchType.CollectNeeded); }, o => !Running);
+            UpdateCommand = new AsyncCommand(async () => { await Login(1, LaunchType.UpdateAll); }, o => !Running);
 
             StopCommand = new AsyncCommand(async () => cts?.Cancel(), o => Running);
             ShowSettingsCommand = new AsyncCommand(async () =>

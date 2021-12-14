@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace guildwars2.tools.alternator
 {
-    class ObservableObject : INotifyPropertyChanged
+    public class ObservableObject : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 
