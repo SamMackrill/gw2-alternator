@@ -1,11 +1,10 @@
-﻿namespace guildwars2.tools.alternator.core
+﻿namespace guildwars2.tools.alternator;
+
+public enum LaunchType
 {
-    public enum LaunchType
-    {
-        LaunchAll,
-        LaunchNeeded,
-        CollectAll,
-        CollectNeeded,
-        UpdateAll,
-    }
+    LaunchAll,
+    LaunchNeeded,
+    CollectAll,
+    CollectNeeded,
+    UpdateAll,
 }

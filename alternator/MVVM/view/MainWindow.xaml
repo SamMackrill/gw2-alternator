@@ -3,8 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:guildwars2.tools.alternator"
         xmlns:view="clr-namespace:guildwars2.tools.alternator.MVVM.view"
+        xmlns:viewmodel="clr-namespace:guildwars2.tools.alternator.MVVM.viewmodel"
         mc:Ignorable="d"
         Height="450" Width="800"
         WindowStyle="None"
@@ -15,7 +15,7 @@
         >
 
     <Window.DataContext>
-        <local:MainViewModel/>
+        <viewmodel:MainViewModel/>
     </Window.DataContext>
 
     <Border BorderBrush="#FB651D" BorderThickness="3" CornerRadius="20" Background="#242424">
@@ -27,7 +27,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="2"/>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
 
@@ -133,9 +133,26 @@
                 </RadioButton>
             </StackPanel>
 
-            <view:Accounts Grid.Row="2" Grid.Column="1" />
+            <DataGrid Grid.Row="2" Grid.Column="1" 
+                      Background="Transparent"
+                      Margin="20"
+                      AutoGenerateColumns="true"
+                      CanUserSortColumns="True"
+                      CanUserResizeColumns="True"
+                      CanUserReorderColumns="True"
+                      GridLinesVisibility="Vertical"
+                      RowHeaderWidth="0"
+                      SelectionMode="Extended"
+                      IsReadOnly="True"
+                      SelectionUnit="FullRow"
+                      BorderThickness="0"
+                      
+                      ItemsSource="{Binding EntriesCollectionView}">
 
-
+                <!--<DataGrid.Columns>
+                    <DataGridTextColumn Header="Name" Binding="{Binding Account.Name}"/>
+                </DataGrid.Columns>-->
+            </DataGrid>
         </Grid>
 
     </Border>

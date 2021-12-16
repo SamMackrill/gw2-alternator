@@ -1,12 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace guildwars2.tools.alternator.MVVM.viewmodel;
 
-namespace guildwars2.tools.alternator
+public class AccountsViewModel : ObservableCollectionEx<AccountViewModel>
 {
-    public class AccountsViewModel : ObservableObject
+    public ListCollectionView? EntriesCollectionView { get; }
+
+    public AccountsViewModel()
     {
+        EntriesCollectionView = CollectionViewSource.GetDefaultView(this) as ListCollectionView;
+    }
+
+    public void Add(IEnumerable<Account>? accounts)
+    {
+        if (accounts == null) return;
+        AddRange(accounts.Select(a => new AccountViewModel(a)));
     }
 }

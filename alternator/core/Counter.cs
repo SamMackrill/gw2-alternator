@@ -1,6 +1,4 @@
-﻿using System.Threading;
-
-namespace guildwars2.tools.alternator;
+﻿namespace guildwars2.tools.alternator;
 
 public class Counter
 {

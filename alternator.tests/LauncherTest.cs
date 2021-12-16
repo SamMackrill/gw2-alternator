@@ -1,15 +1,14 @@
 using FluentAssertions;
 using Xunit;
 
-namespace guildwars2.tools.alternator.tests
+namespace guildwars2.tools.alternator.tests;
+
+public class LauncherTest
 {
-    public class LauncherTest
+    [Fact]
+    public void Test1()
     {
-        [Fact]
-        public void Test1()
-        {
-            var result = 2 > 1;
-            result.Should().BeTrue();
-        }
+        var result = 2 > 1;
+        result.Should().BeTrue();
     }
 }

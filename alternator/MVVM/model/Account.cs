@@ -1,65 +1,94 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Threading.Tasks;
+﻿namespace guildwars2.tools.alternator.MVVM.model;
 
-namespace guildwars2.tools.alternator
+[Serializable]
+[DebuggerDisplay("{" + nameof(DebugDisplay) + ",nq}")]
+public class Account : ObservableObject
 {
-    [Serializable]
-    [DebuggerDisplay("{" + nameof(DebugDisplay) + ",nq}")]
-    public class Account
+    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+    public string Name
     {
-        private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+        get => name;
+        set => SetProperty(ref name, value);
+    }
 
-        public string Name { get; set; }
-        public string? Character { get; set; }
-        public string LoginFilePath { get; set; }
-        public DateTime LastLogin { get; set; }
-        public DateTime LastCollection { get; set; }
-        public DateTime CreatedAt { get; set; }
+    public string? Character
+    {
+        get => character;
+        set => SetProperty(ref character, value);
+    }
 
-        [NonSerialized] public FileInfo LoginFile;
+    public string LoginFilePath
+    {
+        get => loginFilePath;
+        set => SetProperty(ref loginFilePath, value);
+    }
 
-        public Account(string name, string? character, string loginFilePath)
+    public DateTime LastLogin
+    {
+        get => lastLogin;
+        set => SetProperty(ref lastLogin, value);
+    }
+
+    public DateTime LastCollection
+    {
+        get => lastCollection;
+        set => SetProperty(ref lastCollection, value);
+    }
+
+    public DateTime CreatedAt
+    {
+        get => createdAt;
+        set => SetProperty(ref createdAt, value);
+    }
+
+    [NonSerialized] public FileInfo LoginFile;
+    private string name;
+    private string? character;
+    private string loginFilePath;
+    private DateTime lastLogin;
+    private DateTime lastCollection;
+    private DateTime createdAt;
+
+    public Account(string name, string? character, string loginFilePath)
+    {
+        Name = name;
+        Character = character;
+        LoginFilePath = loginFilePath;
+
+        LastLogin = DateTime.MinValue;
+        LastCollection = DateTime.MinValue;
+        CreatedAt = DateTime.Now;
+        LoginFile = new FileInfo(loginFilePath);
+    }
+
+    private string DebugDisplay => $"{Name} ({Character}) {LastLogin} {LastCollection}";
+
+    private void SwapLogin(FileInfo gw2LocalDat)
+    {
+        if (gw2LocalDat.Exists)
         {
-            Name = name;
-            Character = character;
-            LoginFilePath = loginFilePath;
-
-            LastLogin = DateTime.MinValue;
-            LastCollection = DateTime.MinValue;
-            CreatedAt = DateTime.Now;
-            LoginFile = new FileInfo(loginFilePath);
-        }
-
-        private string DebugDisplay => $"{Name} ({Character}) {LastLogin} {LastCollection}";
-
-        private void SwapLogin(FileInfo gw2LocalDat)
-        {
-            if (gw2LocalDat.Exists)
+            if (gw2LocalDat.LinkTarget != null)
             {
-                if (gw2LocalDat.LinkTarget != null)
-                {
-                    gw2LocalDat.Delete();
-                }
-                else
-                {
-                    File.Move(gw2LocalDat.FullName, $"{gw2LocalDat.FullName}.bak", true);
-                }
+                gw2LocalDat.Delete();
             }
-
-            // Symbolic link creation requires process to be Admin
-            gw2LocalDat.CreateAsSymbolicLink(LoginFile.FullName);
-            Logger.Debug("{0} dat file linked to: {1}", Name, LoginFile.FullName);
-        }
-
-        public async Task SwapLoginAsync(FileInfo gw2LocalDat)
-        {
-            await Task.Run(() =>
+            else
             {
-                SwapLogin(gw2LocalDat);
-            });
-            await Task.Delay(200);
+                File.Move(gw2LocalDat.FullName, $"{gw2LocalDat.FullName}.bak", true);
+            }
         }
+
+        // Symbolic link creation requires process to be Admin
+        gw2LocalDat.CreateAsSymbolicLink(LoginFile.FullName);
+        Logger.Debug("{0} dat file linked to: {1}", Name, LoginFile.FullName);
+    }
+
+    public async Task SwapLoginAsync(FileInfo gw2LocalDat)
+    {
+        await Task.Run(() =>
+        {
+            SwapLogin(gw2LocalDat);
+        });
+        await Task.Delay(200);
     }
 }

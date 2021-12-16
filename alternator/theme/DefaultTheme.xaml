@@ -6,6 +6,28 @@
         <Setter Property="Control.Background" Value="#242424"/>
     </Style>
 
+    <Style TargetType="DataGridCell" BasedOn="{StaticResource DefaultStyle}">
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+
+    <Style TargetType="DataGridRow" BasedOn="{StaticResource DefaultStyle}">
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+
+    <Style TargetType="ScrollBar">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource DefaultStyle}">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="FontWeight" Value="ExtraBold"/>
+        <!--<Setter Property="FontSize" Value="18"/>-->
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
     <Style TargetType="Label" BasedOn="{StaticResource DefaultStyle}">
         <Setter Property="HorizontalAlignment" Value="Left" />
         <Setter Property="VerticalAlignment" Value="Center" />
