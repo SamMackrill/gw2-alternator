@@ -15,7 +15,6 @@ public class MainViewModel : ObservableObject
     private CancellationTokenSource? cts;
 
     private readonly AccountManager accountManager;
-
     public AccountsViewModel AccountsViewModel { get; set; }
 
     private bool running;
@@ -40,9 +39,6 @@ public class MainViewModel : ObservableObject
         var datFile = new FileInfo(Path.Combine(appData, @"Guild Wars 2\Local.dat"));
 
         SetLogging();
-
-        Entries = new ObservableCollectionEx<AccountViewModel>();
-        EntriesCollectionView = CollectionViewSource.GetDefaultView(Entries) as ListCollectionView;
 
         accountManager = new AccountManager(AccountsJson);
         accountManager.Loaded += OnAccountsLoaded;
@@ -86,13 +82,10 @@ public class MainViewModel : ObservableObject
         });
     }
 
-    private ObservableCollectionEx<AccountViewModel> Entries { get; }
-    public ListCollectionView? EntriesCollectionView { get; }
 
     private void OnAccountsLoaded(object? sender, EventArgs e)
     {
         AccountsViewModel.Add(accountManager.Accounts);
-        Entries.AddRange(accountManager.Accounts.Select(a => new AccountViewModel(a))); ;
     }
 
     private void Initialise()

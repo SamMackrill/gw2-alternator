@@ -4,22 +4,29 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewmodel="clr-namespace:guildwars2.tools.alternator.MVVM.viewmodel"
-             d:DataContext="{d:DesignInstance Type=viewmodel:AccountsViewModel}"
+             d:DataContext="{d:DesignInstance Type=viewmodel:MainViewModel}"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="400">
 
 
     <DataGrid Background="Transparent"
-              Foreground="AliceBlue"
-              Margin="10"
-              VerticalAlignment="Stretch"
-              HorizontalAlignment="Stretch"
+              Margin="20"
               AutoGenerateColumns="true"
-              ItemsSource="{Binding EntriesCollectionView}">
+              CanUserSortColumns="True"
+              CanUserResizeColumns="True"
+              CanUserReorderColumns="True"
+              GridLinesVisibility="Vertical"
+              RowHeaderWidth="0"
+              SelectionMode="Extended"
+              IsReadOnly="True"
+              SelectionUnit="FullRow"
+              BorderThickness="0"
+              ItemsSource="{Binding AccountsViewModel}">
 
-        <DataGrid.Columns>
+        <!--<DataGrid.Columns>
             <DataGridTextColumn Header="Name" Binding="{Binding Account.Name}"/>
-        </DataGrid.Columns>
+        </DataGrid.Columns>-->
+
     </DataGrid>
 
 </UserControl>
