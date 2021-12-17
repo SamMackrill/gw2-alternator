@@ -70,7 +70,7 @@ public class MainViewModel : ObservableObject
             }
         }
 
-        LoginAllMultiCommand = new AsyncCommand(async () => { await LaunchMultipleAccounts(4, LaunchType.LaunchNeeded); }, _ => !Running);
+        LoginAllMultiCommand = new AsyncCommand(async () => { await LaunchMultipleAccounts(4, LaunchType.LaunchAll); }, _ => !Running);
         LoginAllSingleCommand = new AsyncCommand(async () => { await LaunchMultipleAccounts(1, LaunchType.LaunchNeeded); }, _ => !Running);
         CollectCommand = new AsyncCommand(async () => { await LaunchMultipleAccounts(2, LaunchType.CollectNeeded); }, _ => !Running);
         UpdateCommand = new AsyncCommand(async () => { await LaunchMultipleAccounts(1, LaunchType.UpdateAll); }, _ => !Running);

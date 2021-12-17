@@ -3,15 +3,19 @@
 public class Launcher
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
     private readonly Account account;
     private readonly LaunchType launchType;
     private readonly CancellationToken launchCancelled;
+    private readonly Client client;
 
     public Launcher(Account account, LaunchType launchType, CancellationToken launchCancelled)
     {
         this.account = account;
         this.launchType = launchType;
         this.launchCancelled = launchCancelled;
+
+        client = new Client(account);
     }
 
     public async Task<bool> Launch(FileInfo loginFile, SemaphoreSlim loginSemaphore, SemaphoreSlim exeSemaphore,
@@ -20,13 +24,12 @@ public class Launcher
         try
         {
             int attempt = 0;
-            var client = new Client(account);
-
+            
             async Task? ReleaseLogin(int attemptCount, CancellationToken cancellationToken)
             {
                 if (launchType is not LaunchType.UpdateAll)
                 {
-                    var secondsSinceLogin = (DateTime.Now - client.StartedTime).TotalSeconds;
+                    var secondsSinceLogin = (DateTime.Now - client.StartTime).TotalSeconds;
                     Logger.Debug("{0} secondsSinceLogin={1}s", account.Name, secondsSinceLogin);
                     Logger.Debug("{0} launchCount={1}", account.Name, launchCount.Count);
                     var delay = LaunchDelay(launchCount.Count, attemptCount);
@@ -54,6 +57,7 @@ public class Launcher
                     try
                     {
                         Logger.Debug("{0} login semaphore={1}", account.Name, loginSemaphore.CurrentCount);
+                        client.RunStatus = State.Waiting;
                         await exeSemaphore.WaitAsync(launchCancelled);
                         launchCount.Increment();
                         if (!client.Start(launchType))
@@ -77,6 +81,7 @@ public class Launcher
                         return true;
                     }
 
+                    client.RunStatus = State.Error;
                     Logger.Error("{0} exe Failed", account.Name);
                 }
                 finally
@@ -86,14 +91,17 @@ public class Launcher
                     exeSemaphore.Release();
                 }
             }
+            client.RunStatus = State.Error;
             Logger.Error("{0} too many attempts, giving up", account.Name);
         }
         catch (OperationCanceledException)
         {
+            client.RunStatus = State.Cancelled;
             Logger.Debug("{0} cancelled", account.Name);
         }
         catch (Exception e)
         {
+            client.RunStatus = State.Error;
             Logger.Error(e, "{0} launch failed", account.Name);
         }
         return false;

@@ -4,42 +4,43 @@ public class ObservableCollectionEx<T> : ObservableCollection<T>, IDisposable
 {
     protected override event PropertyChangedEventHandler? PropertyChanged;
 
-    public void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    /// <summary> 
+    /// Initializes a new instance of the System.Collections.ObjectModel.ObservableCollection(Of T) class. 
+    /// </summary> 
+    public ObservableCollectionEx() { }
+
+    /// <summary> 
+    /// Initializes a new instance of the System.Collections.ObjectModel.ObservableCollection(Of T) class that contains elements copied from the specified collection. 
+    /// </summary> 
+    /// <param name="collection">collection: The collection from which the elements are copied.</param> 
+    /// <exception cref="System.ArgumentNullException">The collection parameter cannot be null.</exception> 
+    public ObservableCollectionEx(IEnumerable<T> collection)
+        : base(collection) { }
+
+    /// <summary>
+    /// seems like only existence of this allows to notify GC to clean up.
+    /// </summary>
+    public void Dispose() { }
+
+    private bool notificationSuppressed;
+    private bool suppressNotification;
+    public bool SuppressNotification
     {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
-
-
-    public void Dispose()
-    {
-        //seems like only existence of this allows to notify GC to clean up.
-    }
-
-
-    private bool notificationSupressed;
-    private bool supressNotification;
-    public bool SupressNotification
-    {
-        get
-        {
-            return supressNotification;
-        }
+        get => suppressNotification;
         set
         {
-            supressNotification = value;
-            if (supressNotification == false && notificationSupressed)
-            {
-                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
-                notificationSupressed = false;
-            }
+            suppressNotification = value;
+            if (suppressNotification || !notificationSuppressed) return;
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+            notificationSuppressed = false;
         }
     }
 
     protected override void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
     {
-        if (SupressNotification)
+        if (SuppressNotification)
         {
-            notificationSupressed = true;
+            notificationSuppressed = true;
             return;
         }
         base.OnCollectionChanged(e);
@@ -57,7 +58,7 @@ public class ObservableCollectionEx<T> : ObservableCollection<T>, IDisposable
     }
 
     /// <summary> 
-    /// Removes the first occurence of each item in the specified collection from ObservableCollection(Of T). 
+    /// Removes the first occurrence of each item in the specified collection from ObservableCollection(Of T). 
     /// </summary> 
     public void RemoveRange(IEnumerable<T> collection)
     {
@@ -86,18 +87,5 @@ public class ObservableCollectionEx<T> : ObservableCollection<T>, IDisposable
         foreach (var i in collection) Items.Add(i);
         OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
     }
-
-    /// <summary> 
-    /// Initializes a new instance of the System.Collections.ObjectModel.ObservableCollection(Of T) class. 
-    /// </summary> 
-    public ObservableCollectionEx() { }
-
-    /// <summary> 
-    /// Initializes a new instance of the System.Collections.ObjectModel.ObservableCollection(Of T) class that contains elements copied from the specified collection. 
-    /// </summary> 
-    /// <param name="collection">collection: The collection from which the elements are copied.</param> 
-    /// <exception cref="System.ArgumentNullException">The collection parameter cannot be null.</exception> 
-    public ObservableCollectionEx(IEnumerable<T> collection)
-        : base(collection) { }
 }
 

@@ -2,18 +2,19 @@
 
 public class AccountViewModel : ObservableObject
 {
+    private readonly Account account;
+
     public AccountViewModel(Account account)
     {
-        Account = account;
+        this.account = account;
     }
 
-    private Account Account { get; }
+    public string Name => account.Name ?? "Unknown";
+    public string Character => account.Character ?? "Unknown";
+    public string Login => $"{account.LastLogin.ToShortDateString()} {account.LastLogin.ToShortTimeString()}";
+    public LaunchState LaunchStatus => LaunchState.UpToDate;
+    public string Collected => $"{account.LastCollection.ToShortDateString()} {account.LastCollection.ToShortTimeString()}";
+    public int Age => (int)Math.Floor(DateTime.UtcNow.Subtract(account.CreatedAt).TotalDays);
 
-    public string Name => Account.Name ?? "Unknown";
-    public string Character => Account.Character ?? "Unknown";
-    public string Login => $"{Account.LastLogin.ToShortDateString()} {Account.LastLogin.ToShortTimeString()}";
-    public string Collected => $"{Account.LastCollection.ToShortDateString()} {Account.LastCollection.ToShortTimeString()}";
-    public int Age => (int)Math.Floor(DateTime.UtcNow.Subtract(Account.CreatedAt).TotalDays);
-
-    public string State => "Ready";
+    public State RunStatus => account.Client?.RunStatus ?? State.Unset;
 }

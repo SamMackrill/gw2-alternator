@@ -6,36 +6,42 @@ public class Account : ObservableObject
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
+    private string name;
     public string Name
     {
         get => name;
         set => SetProperty(ref name, value);
     }
 
+    private string? character;
     public string? Character
     {
         get => character;
         set => SetProperty(ref character, value);
     }
 
+    private string loginFilePath;
     public string LoginFilePath
     {
         get => loginFilePath;
         set => SetProperty(ref loginFilePath, value);
     }
 
+    private DateTime lastLogin;
     public DateTime LastLogin
     {
         get => lastLogin;
         set => SetProperty(ref lastLogin, value);
     }
 
+    private DateTime lastCollection;
     public DateTime LastCollection
     {
         get => lastCollection;
         set => SetProperty(ref lastCollection, value);
     }
 
+    private DateTime createdAt;
     public DateTime CreatedAt
     {
         get => createdAt;
@@ -43,12 +49,6 @@ public class Account : ObservableObject
     }
 
     [NonSerialized] public FileInfo LoginFile;
-    private string name;
-    private string? character;
-    private string loginFilePath;
-    private DateTime lastLogin;
-    private DateTime lastCollection;
-    private DateTime createdAt;
 
     public Account(string name, string? character, string loginFilePath)
     {
@@ -63,6 +63,7 @@ public class Account : ObservableObject
     }
 
     private string DebugDisplay => $"{Name} ({Character}) {LastLogin} {LastCollection}";
+    public Client Client { get; set; }
 
     private void SwapLogin(FileInfo gw2LocalDat)
     {

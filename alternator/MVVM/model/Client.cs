@@ -1,19 +1,36 @@
 ﻿namespace guildwars2.tools.alternator.MVVM.model;
 
-public class Client
+public class Client : ObservableObject
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private const string MutexName = "AN-Mutex-Window-Guild Wars 2";
 
     private readonly Account account;
     private Process? p;
+    private long lastMemoryUsage;
 
-    public DateTime StartedTime => p?.StartTime ?? DateTime.MinValue;
+
+    private DateTime startTime;
+    public DateTime StartTime
+    {
+        get => startTime;
+        set => SetProperty(ref startTime, value);
+    }
+
     public DateTime ExitTime => p?.ExitTime ?? DateTime.MinValue;
+
+    private State runStatus;
+    public State RunStatus
+    {
+        get => runStatus;
+        set => SetProperty(ref runStatus, value);
+    }
 
     public Client(Account account)
     {
         this.account = account;
+        account.Client = this;
+        RunStatus = State.Ready;
     }
 
     public bool Start(LaunchType launchType)
@@ -32,6 +49,8 @@ public class Client
         p.Exited += Exited;
 
         _ = p.Start();
+        RunStatus = State.Running;
+        startTime = p.StartTime;
         Logger.Debug("{0} Started {1}", account.Name, launchType);
 
         if (launchType is LaunchType.UpdateAll) return true;
@@ -179,8 +198,6 @@ public class Client
         return false;
     }
 
-    private long lastMemoryUsage;
-
     private async Task<bool> WaitForStable(int pause, long characterSelectMinMemory, long characterSelectMinDiff,
         double timeout, CancellationToken cancellationToken)
     {
@@ -239,6 +256,7 @@ public class Client
     {
         var deadProcess = sender as Process;
         Logger.Debug("{0} GW2 process exited", account.Name);
+        RunStatus = State.Completed;
     }
 
 }
