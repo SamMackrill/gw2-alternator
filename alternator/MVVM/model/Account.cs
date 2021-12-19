@@ -1,4 +1,6 @@
-﻿namespace guildwars2.tools.alternator.MVVM.model;
+﻿using System.Text.Json.Serialization;
+
+namespace guildwars2.tools.alternator.MVVM.model;
 
 [Serializable]
 [DebuggerDisplay("{" + nameof(DebugDisplay) + ",nq}")]
@@ -48,7 +50,9 @@ public class Account : ObservableObject
         set => SetProperty(ref createdAt, value);
     }
 
-    [NonSerialized] public FileInfo LoginFile;
+    [field: NonSerialized]
+    [JsonIgnore] 
+    public FileInfo LoginFile { get; set; }
 
     public Account(string name, string? character, string loginFilePath)
     {
@@ -63,6 +67,9 @@ public class Account : ObservableObject
     }
 
     private string DebugDisplay => $"{Name} ({Character}) {LastLogin} {LastCollection}";
+
+    [field: NonSerialized]
+    [JsonIgnore]
     public Client Client { get; set; }
 
     private void SwapLogin(FileInfo gw2LocalDat)
