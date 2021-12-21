@@ -29,7 +29,6 @@ public class Client : ObservableObject
     public Client(Account account)
     {
         this.account = account;
-        account.Client = this;
         RunStatus = State.Ready;
     }
 

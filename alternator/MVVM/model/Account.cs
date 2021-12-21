@@ -64,6 +64,7 @@ public class Account : ObservableObject
         LastCollection = DateTime.MinValue;
         CreatedAt = DateTime.Now;
         LoginFile = new FileInfo(loginFilePath);
+        Client = new Client(this);
     }
 
     private string DebugDisplay => $"{Name} ({Character}) {LastLogin} {LastCollection}";

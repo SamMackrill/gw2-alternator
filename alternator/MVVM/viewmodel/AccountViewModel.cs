@@ -7,6 +7,22 @@ public class AccountViewModel : ObservableObject
     public AccountViewModel(Account account)
     {
         this.account = account;
+        account.PropertyChanged += PropertyChanged;
+        account.Client.PropertyChanged += PropertyChanged;
+    }
+
+    private readonly Dictionary<string, string> propertyConverter = new()
+    {
+        { "LastLogin", "Login" },
+        { "LastCollection", "Collected" },
+        { "CreatedAt", "Age" },
+    };
+
+    private void PropertyChanged(object? sender, PropertyChangedEventArgs args)
+    {
+        if (args.PropertyName == null) return;
+        var propertyName = propertyConverter.ContainsKey(args.PropertyName) ? propertyConverter[args.PropertyName] : args.PropertyName;
+        OnPropertyChanged(propertyName);
     }
 
     public string Name => account.Name ?? "Unknown";

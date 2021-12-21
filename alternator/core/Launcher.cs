@@ -7,15 +7,12 @@ public class Launcher
     private readonly Account account;
     private readonly LaunchType launchType;
     private readonly CancellationToken launchCancelled;
-    private readonly Client client;
 
     public Launcher(Account account, LaunchType launchType, CancellationToken launchCancelled)
     {
         this.account = account;
         this.launchType = launchType;
         this.launchCancelled = launchCancelled;
-
-        client = new Client(account);
     }
 
     public async Task<bool> Launch(FileInfo loginFile, SemaphoreSlim loginSemaphore, SemaphoreSlim exeSemaphore,
@@ -29,7 +26,7 @@ public class Launcher
             {
                 if (launchType is not LaunchType.UpdateAll)
                 {
-                    var secondsSinceLogin = (DateTime.Now - client.StartTime).TotalSeconds;
+                    var secondsSinceLogin = (DateTime.Now - account.Client.StartTime).TotalSeconds;
                     Logger.Debug("{0} secondsSinceLogin={1}s", account.Name, secondsSinceLogin);
                     Logger.Debug("{0} launchCount={1}", account.Name, launchCount.Count);
                     var delay = LaunchDelay(launchCount.Count, attemptCount);
@@ -57,16 +54,16 @@ public class Launcher
                     try
                     {
                         Logger.Debug("{0} login semaphore={1}", account.Name, loginSemaphore.CurrentCount);
-                        client.RunStatus = State.Waiting;
+                        account.Client.RunStatus = State.Waiting;
                         await exeSemaphore.WaitAsync(launchCancelled);
                         launchCount.Increment();
-                        if (!client.Start(launchType))
+                        if (!account.Client.Start(launchType))
                         {
                             Logger.Error("{0} exe start Failed", account.Name);
                             continue;
                         }
                         Logger.Debug("{0} Login Finished", account.Name);
-                        waitForExitTask = client.WaitForExit(launchType, launchCancelled);
+                        waitForExitTask = account.Client.WaitForExit(launchType, launchCancelled);
                     }
                     finally
                     {
@@ -81,7 +78,7 @@ public class Launcher
                         return true;
                     }
 
-                    client.RunStatus = State.Error;
+                    account.Client.RunStatus = State.Error;
                     Logger.Error("{0} exe Failed", account.Name);
                 }
                 finally
@@ -91,17 +88,17 @@ public class Launcher
                     exeSemaphore.Release();
                 }
             }
-            client.RunStatus = State.Error;
+            account.Client.RunStatus = State.Error;
             Logger.Error("{0} too many attempts, giving up", account.Name);
         }
         catch (OperationCanceledException)
         {
-            client.RunStatus = State.Cancelled;
+            account.Client.RunStatus = State.Cancelled;
             Logger.Debug("{0} cancelled", account.Name);
         }
         catch (Exception e)
         {
-            client.RunStatus = State.Error;
+            account.Client.RunStatus = State.Error;
             Logger.Error(e, "{0} launch failed", account.Name);
         }
         return false;
