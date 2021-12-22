@@ -11,7 +11,7 @@
 
     <DataGrid Background="Transparent"
               Margin="20"
-              AutoGenerateColumns="true"
+              AutoGenerateColumns="False"
               CanUserSortColumns="True"
               CanUserResizeColumns="True"
               CanUserReorderColumns="True"
@@ -23,9 +23,15 @@
               BorderThickness="0"
               ItemsSource="{Binding AccountsViewModel}">
 
-        <!--<DataGrid.Columns>
-            <DataGridTextColumn Header="Name" Binding="{Binding Account.Name}"/>
-        </DataGrid.Columns>-->
+        <DataGrid.Columns>
+            <DataGridTextColumn Header="Account" Binding="{Binding Account}" />
+            <DataGridTextColumn Header="Character" Binding="{Binding Character}"/>
+            <DataGridTextColumn Header="Last Login" Binding="{Binding Login}"/>
+            <DataGridTextColumn Header="Launch?" Binding="{Binding LaunchStatus}"/>
+            <DataGridTextColumn Header="Last Collected" Binding="{Binding Collected}"/>
+            <DataGridTextColumn Header="Age" Binding="{Binding Age}"/>
+            <DataGridTextColumn Header="Status" Binding="{Binding RunStatus}"/>
+        </DataGrid.Columns>
 
     </DataGrid>
 

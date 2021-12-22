@@ -26,6 +26,7 @@
         <!--<Setter Property="FontSize" Value="18"/>-->
         <Setter Property="HorizontalAlignment" Value="Left" />
         <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Margin" Value="5,0,0,0" />
     </Style>
 
     <Style TargetType="Label" BasedOn="{StaticResource DefaultStyle}">
@@ -37,5 +38,6 @@
         <Setter Property="HorizontalAlignment" Value="Left" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
+
 
 </ResourceDictionary>

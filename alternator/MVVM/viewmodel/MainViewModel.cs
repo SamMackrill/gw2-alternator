@@ -1,4 +1,6 @@
-﻿namespace guildwars2.tools.alternator.MVVM.viewmodel;
+﻿using System.Windows.Threading;
+
+namespace guildwars2.tools.alternator.MVVM.viewmodel;
 
 public class MainViewModel : ObservableObject
 {
@@ -8,8 +10,6 @@ public class MainViewModel : ObservableObject
     public IAsyncCommand? UpdateCommand { get; set; }
     public IAsyncCommand? StopCommand { get; set; }
     public IAsyncCommand? ShowSettingsCommand { get; set; }
-
-    public string? TimeUtc { get; set; }
 
     private const string AccountsJson = "accounts.json";
     private CancellationTokenSource? cts;
@@ -32,6 +32,10 @@ public class MainViewModel : ObservableObject
             ShowSettingsCommand?.RaiseCanExecuteChanged();
         }
     }
+
+    public string TimeUtc => DateTime.UtcNow.ToString("HH:mm:ss");
+    public string ResetCountdown => DateTime.UtcNow.AddDays(1).Date.Subtract(DateTime.UtcNow).ToString(@"hh\:mm\:ss");
+
 
     public MainViewModel()
     {
@@ -80,6 +84,17 @@ public class MainViewModel : ObservableObject
         {
 
         });
+
+        var dt = new DispatcherTimer(DispatcherPriority.Background)
+        {
+            Interval = TimeSpan.FromSeconds(1)
+        };
+        dt.Tick += (_, _) =>
+        {
+            OnPropertyChanged(nameof(TimeUtc));
+            OnPropertyChanged(nameof(ResetCountdown));
+        };
+        dt.Start();
     }
 
 

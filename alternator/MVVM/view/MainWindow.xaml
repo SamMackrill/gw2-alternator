@@ -56,51 +56,78 @@
                                Text="Alternator" />
                 </StackPanel>
 
-                <Button DockPanel.Dock="Right"  
-                        Padding="0" 
-                        Opacity="0.6"
-                        VerticalAlignment="Center" 
-                        BorderThickness="0" 
-                        Height="24" Width="24"
-                        Background="Transparent"
-                        Style="{StaticResource FadeOutButton}"
-                        Click="CloseButton_Click"
-                >
-                    <Image Source="/images/close-window.png"  Width="24" />
-                </Button>
+                <StackPanel Orientation="Horizontal" 
+                            DockPanel.Dock="Left"
+                            Margin="0" 
+                            VerticalAlignment="Bottom">
+                    <TextBlock FontSize="22" 
+                                   Padding="0"
+                                   Margin="20,0,0,0"
+                                   FontWeight="DemiBold"
+                                   FontFamily="Consolas"
+                                   Text="{Binding TimeUtc, FallbackValue='00:00:00'}" />
+                    <TextBlock FontSize="22" 
+                               Padding="0"
+                               Margin="3,0,0,0"
+                               FontWeight="DemiBold"
+                               FontFamily="Consolas"
+                               Text="UTC" />
 
-                <Button DockPanel.Dock="Right"  
-                        Padding="0" 
-                        Margin="0,0,8,0"
-                        Opacity="0.6"
-                        VerticalAlignment="Center" 
-                        BorderThickness="0" 
-                        Height="24" Width="24"
-                        Background="Transparent"
-                        Style="{StaticResource FadeOutButton}"
-                        Click="MinimizeButton_Click"
-                        >
+                    <TextBlock FontSize="22" 
+                               Padding="0"
+                               Margin="20,0,0,0"
+                               FontWeight="DemiBold"
+                               FontFamily="Consolas"
+                               Text="{Binding ResetCountdown, FallbackValue='00:00:00'}" />
+                </StackPanel>
 
-                    <Image Source="/images/minimize-window.png"  Width="24" />
-                </Button>
+                <StackPanel Orientation="Horizontal" 
+                            DockPanel.Dock="Right"
+                            Margin="0" 
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center">
+                    <Button Padding="0"
+                            Margin="0,0,8,0"
+                            Opacity="0.6"
+                            VerticalAlignment="Center" 
+                            BorderThickness="0" 
+                            Height="24" Width="24"
+                            Background="Transparent"
+                            Style="{StaticResource FadeOutButton}"
+                            ToolTip="Settings"
+                            Command="{Binding Path=ShowSettingsCommand, Mode=OneWay}">
 
-                <Button DockPanel.Dock="Right"  
-                        Padding="0"
-                        Margin="0,0,8,0"
-                        Opacity="0.6"
-                        VerticalAlignment="Center" 
-                        BorderThickness="0" 
-                        Height="24" Width="24"
-                        Background="Transparent"
-                        Style="{StaticResource FadeOutButton}"
-                        ToolTip="Settings"
-                        Command="{Binding Path=ShowSettingsCommand, Mode=OneWay}">
+                        <Image Source="/images/settings3.png"  Width="24" />
+                    </Button>
 
-                    <Image Source="/images/settings3.png"  Width="24" />
-                </Button>
+                    <Button Padding="0" 
+                            Margin="0,0,8,0"
+                            Opacity="0.6"
+                            VerticalAlignment="Center" 
+                            BorderThickness="0" 
+                            Height="24" Width="24"
+                            Background="Transparent"
+                            Style="{StaticResource FadeOutButton}"
+                            Click="MinimizeButton_Click"
+                    >
 
-                <TextBlock Padding="20,0,0,0" FontWeight="DemiBold"
-                            FontSize="22" Text="{Binding TimeUtc}" />
+                        <Image Source="/images/minimize-window.png"  Width="24" />
+                    </Button>
+
+                    <Button  Padding="0" 
+                             Opacity="0.6"
+                             VerticalAlignment="Center" 
+                             BorderThickness="0" 
+                             Height="24" Width="24"
+                             Background="Transparent"
+                             Style="{StaticResource FadeOutButton}"
+                             Click="CloseButton_Click"
+                    >
+                        <Image Source="/images/close-window.png"  Width="24" />
+                    </Button>
+
+                </StackPanel>
+
 
             </DockPanel>
 

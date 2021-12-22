@@ -7,25 +7,27 @@ public class AccountViewModel : ObservableObject
     public AccountViewModel(Account account)
     {
         this.account = account;
-        account.PropertyChanged += PropertyChanged;
-        account.Client.PropertyChanged += PropertyChanged;
+        account.PropertyChanged += ModelPropertyChanged;
+        account.Client.PropertyChanged += ModelPropertyChanged;
     }
 
     private readonly Dictionary<string, string> propertyConverter = new()
     {
+        { "Name", "Account" },
         { "LastLogin", "Login" },
         { "LastCollection", "Collected" },
         { "CreatedAt", "Age" },
     };
 
-    private void PropertyChanged(object? sender, PropertyChangedEventArgs args)
+    private void ModelPropertyChanged(object? sender, PropertyChangedEventArgs args)
     {
         if (args.PropertyName == null) return;
         var propertyName = propertyConverter.ContainsKey(args.PropertyName) ? propertyConverter[args.PropertyName] : args.PropertyName;
         OnPropertyChanged(propertyName);
     }
 
-    public string Name => account.Name ?? "Unknown";
+    public string Account => account.Name ?? "Unknown";
+
     public string Character => account.Character ?? "Unknown";
     public string Login => $"{account.LastLogin.ToShortDateString()} {account.LastLogin.ToShortTimeString()}";
     public LaunchState LaunchStatus => LaunchState.UpToDate;
