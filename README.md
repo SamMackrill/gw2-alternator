@@ -1,4 +1,5 @@
 "# gw2-alternator" 
 
 Credits:
-Icon by https://www.flaticon.com/authors/ingmixa
+* Main icon by https://www.flaticon.com/authors/ingmixa
+* Other icons from: https://www.iconsdb.com/ with color: #FB651D

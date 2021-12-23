@@ -25,7 +25,7 @@ public class AccountManager
             Logger.Debug("Saving Accounts to {0}", accountsJson);
             await accountsSemaphore.WaitAsync();
 
-            await using (var stream = File.OpenWrite(accountsJson))
+            await using (var stream = new FileStream(accountsJson, FileMode.Create))
             {
                 await JsonSerializer.SerializeAsync(stream, Accounts, new JsonSerializerOptions { AllowTrailingCommas = true, WriteIndented = true });
             }

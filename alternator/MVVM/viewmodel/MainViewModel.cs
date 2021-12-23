@@ -81,6 +81,8 @@ public class MainViewModel : ObservableObject
     public string UpdateText => Running && ActiveLaunchType == LaunchType.Update ? "Updating" : "Update";
     public string StopText => Running && Stopping ? "Stopping" : "Stop!";
 
+    public string Version => "0.0.1";
+
     public MainViewModel()
     {
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
@@ -141,7 +143,12 @@ public class MainViewModel : ObservableObject
         }, _ => Running);
         ShowSettingsCommand = new AsyncCommand(async () =>
         {
-
+            var settingsView = new SettingsWindow
+            {
+                DataContext = new SettingsViewModel(this),
+                Owner = Application.Current.MainWindow
+            };
+            settingsView.ShowDialog();
         });
 
         var dt = new DispatcherTimer(DispatcherPriority.Background)

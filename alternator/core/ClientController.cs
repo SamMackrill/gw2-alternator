@@ -75,7 +75,7 @@ public class ClientController
         if (!backup.Exists) return;
         try
         {
-            loginFile.Delete(); // Symbolic links need to be specifically delete
+            file.Delete(); // Symbolic links need to be specifically delete
             backup.MoveTo(file.FullName);
         }
         catch (Exception e)

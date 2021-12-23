@@ -17,8 +17,10 @@
     <None Remove="images\alternate_orange-wide.png" />
     <None Remove="images\alternate_orange.png" />
     <None Remove="images\close-window.png" />
+    <None Remove="images\folder.png" />
     <None Remove="images\minimize-window.png" />
     <None Remove="images\settings3.png" />
+    <None Remove="images\undo.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -37,8 +39,10 @@
     <Resource Include="images\alternate_orange-wide.png" />
     <Resource Include="images\alternate_orange.png" />
     <Resource Include="images\close-window.png" />
+    <Resource Include="images\folder.png" />
     <Resource Include="images\minimize-window.png" />
     <Resource Include="images\settings3.png" />
+    <Resource Include="images\undo.png" />
   </ItemGroup>
 
   <ItemGroup>

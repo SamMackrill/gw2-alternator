@@ -8,7 +8,7 @@
         mc:Ignorable="d"
         Height="450" Width="800"
         WindowStyle="None"
-        ResizeMode="NoResize"
+        ResizeMode="CanResize"
         Background="Transparent"
         AllowsTransparency="True"
         MouseLeftButtonDown="Window_MouseLeftButtonDown"
@@ -136,8 +136,8 @@
             <StackPanel Grid.Row="2" Grid.Column="0">
                 <Border BorderThickness="1" 
                         CornerRadius="5"
-                        Margin="2,10,2,0"
-                        Background="#242424">
+                        Margin="4,10,2,0"
+                        Background="{StaticResource backgroundBrush}">
 
                     <Border.BorderBrush>
                         <VisualBrush>
