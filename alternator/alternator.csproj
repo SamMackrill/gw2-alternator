@@ -10,9 +10,12 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <RootNamespace>guildwars2.tools.alternator</RootNamespace>
     <ApplicationIcon>images\alternate_orange.ico</ApplicationIcon>
+    <PackageId>gw2-$(AssemblyName)</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="accounts.json" />
     <None Remove="images\alternate.png" />
     <None Remove="images\alternate_orange-wide.png" />
     <None Remove="images\alternate_orange.png" />
@@ -24,6 +27,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="accounts.json">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Content>
     <Content Include="images\alternate_orange.ico" />
   </ItemGroup>
 
@@ -46,15 +52,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="accounts.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="NLog.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
     <Page Update="theme\CheckBoxTheme.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
       <SubType>Designer</SubType>
@@ -63,6 +60,13 @@
 
   <ItemGroup>
     <Folder Include="core\Converters\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
