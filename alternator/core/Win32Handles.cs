@@ -71,7 +71,7 @@ static class Win32Handles
         }
     }
 
-    private static string GetObjectName(Buffer buffer, UIntPtr processId, UIntPtr handle, bool queryInfo)
+    private static string? GetObjectName(Buffer buffer, UIntPtr processId, UIntPtr handle, bool queryInfo)
     {
         var _processHandle = Native.OpenProcess(ProcessAccessFlags.All, false, processId);
         var _handle = IntPtr.Zero;
@@ -158,7 +158,7 @@ static class Win32Handles
             }
             while (querying);
 
-            var nameInfo = (OBJECT_NAME_INFORMATION)Marshal.PtrToStructure(buffer.handle, typeof(OBJECT_NAME_INFORMATION));
+            var nameInfo = (OBJECT_NAME_INFORMATION)Marshal.PtrToStructure(buffer.handle, typeof(OBJECT_NAME_INFORMATION))!;
 
             try
             {
@@ -166,7 +166,7 @@ static class Win32Handles
                     return null;
                 return nameInfo.Name.ToString();
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 //Util.Logging.Log(e);
             }
@@ -189,28 +189,16 @@ static class Win32Handles
         switch (match)
         {
             case MatchMode.Contains:
-                f = delegate(string s)
-                {
-                    return s.IndexOf(objectName) != -1;
-                };
+                f = s => s.IndexOf(objectName) != -1;
                 break;
             case MatchMode.EndsWith:
-                f = delegate(string s)
-                {
-                    return s.EndsWith(objectName, StringComparison.Ordinal);
-                };
+                f = s => s.EndsWith(objectName, StringComparison.Ordinal);
                 break;
             case MatchMode.Exact:
-                f = delegate(string s)
-                {
-                    return s.Equals(objectName);
-                };
+                f = s => s.Equals(objectName);
                 break;
             case MatchMode.StartsWith:
-                f = delegate(string s)
-                {
-                    return s.StartsWith(objectName, StringComparison.Ordinal);
-                };
+                f = s => s.StartsWith(objectName, StringComparison.Ordinal);
                 break;
             default:
                 throw new NotSupportedException();
@@ -224,7 +212,7 @@ static class Win32Handles
         var infoClass = SYSTEM_INFORMATION_CLASS.SystemExtendedHandleInformation;
         int infoLength = 0x10000;
         var _processId = (UIntPtr)processId;
-        Buffer[] buffers = null;
+        Buffer[]? buffers = null;
 
         var _info = Marshal.AllocHGlobal(infoLength);
 
@@ -269,7 +257,7 @@ static class Win32Handles
             }
             while (querying);
 
-            IntPtr _handle;
+            IntPtr handle;
             long handleCount;
             Type infoType;
 
@@ -285,7 +273,7 @@ static class Win32Handles
                 else
                     handleCount = Marshal.ReadInt64(_info);
 #endif
-                _handle = _info + IntPtr.Size * 2;
+                handle = _info + IntPtr.Size * 2;
                 infoType = typeof(SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX);
             }
             else
@@ -293,7 +281,7 @@ static class Win32Handles
                 //SystemHandleInformation count is 32bit
                 handleCount = Marshal.ReadInt32(_info);
 
-                _handle = _info + IntPtr.Size;
+                handle = _info + IntPtr.Size;
                 infoType = typeof(SYSTEM_HANDLE_TABLE_ENTRY_INFO);
             }
 
@@ -313,20 +301,20 @@ static class Win32Handles
             var loop = Loop.For(0, handleCount, THREADS, 1000,
                 delegate(byte thread, long i, Loop.IState state)
                 {
-                    var handleInfo = Marshal.PtrToStructure((IntPtr)(_handle.GetValue() + i * infoSize), infoType);
+                    var handleInfo = Marshal.PtrToStructure((IntPtr)(handle.GetValue() + i * infoSize), infoType);
                         
                     UIntPtr pid, h;
 
                     if (infoClass == SYSTEM_INFORMATION_CLASS.SystemExtendedHandleInformation)
                     {
-                        var info = (SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX)handleInfo;
+                        var info = (SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX)handleInfo!;
 
                         pid = info.UniqueProcessId;
                         h = info.HandleValue;
                     }
                     else
                     {
-                        var info = (SYSTEM_HANDLE_TABLE_ENTRY_INFO)handleInfo;
+                        var info = (SYSTEM_HANDLE_TABLE_ENTRY_INFO)handleInfo!;
 
                         //try to recover 32-bit processId from 16-bit info
                         if (info.UniqueProcessId == (ushort)processId)
@@ -349,7 +337,7 @@ static class Win32Handles
 
             loop.Wait();
 
-            return (ObjectHandle)loop.Result;
+            return loop.Result as ObjectHandle;
         }
         finally
         {

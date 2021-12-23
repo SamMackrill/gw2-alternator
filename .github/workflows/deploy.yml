@@ -22,7 +22,7 @@ jobs:
 
       - run: dotnet build ${{ env.PROJECT_PATH }} -c Release --no-restore
 
-      - run: dotnet publish ${{ env.PROJECT_PATH }} -c Release --no-self-contained -r win-x64 -p:PublishSingleFile=true --no-build
+      - run: dotnet publish ${{ env.PROJECT_PATH }} -c Release --no-self-contained -r win-x64 -p:PublishSingleFile=true --no-build -o publish
 
       - uses: actions/create-release@v1
         id: create_release
@@ -35,5 +35,5 @@ jobs:
       - uses: csexton/release-asset-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          pattern: alternator/bin/Release/win-x64/publish/*.exe
+          pattern: publish/*.exe
           release-url: ${{ steps.create_release.outputs.upload_url }}

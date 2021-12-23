@@ -1,6 +1,4 @@
-﻿using System.Windows.Threading;
-
-namespace guildwars2.tools.alternator.MVVM.viewmodel;
+﻿namespace guildwars2.tools.alternator.MVVM.viewmodel;
 
 public class MainViewModel : ObservableObject
 {
@@ -136,12 +134,17 @@ public class MainViewModel : ObservableObject
         CollectCommand = new AsyncCommand(async () => { await LaunchMultipleAccounts(LaunchType.Collect, ForceAll, ForceSerial); }, _ => !Running);
         UpdateCommand = new AsyncCommand(async () => { await LaunchMultipleAccounts(LaunchType.Update, ForceAll, ForceSerial); }, _ => !Running);
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         StopCommand = new AsyncCommand(async () =>
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             Stopping = true;
             cts?.Cancel();
         }, _ => Running);
+
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         ShowSettingsCommand = new AsyncCommand(async () =>
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             var settingsView = new SettingsWindow
             {
@@ -173,8 +176,10 @@ public class MainViewModel : ObservableObject
     {
         //Task.Run(() =>
         //{
-            accountManager.Load();
-       // });
+#pragma warning disable CS4014
+        accountManager.Load();
+#pragma warning restore CS4014
+        // });
 
     }
 

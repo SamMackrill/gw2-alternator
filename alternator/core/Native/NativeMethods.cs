@@ -299,12 +299,11 @@ internal static class Native
     [DllImport(SHELL32)]
     internal static extern void GetCurrentProcessExplicitAppUserModelID([Out(), MarshalAs(UnmanagedType.LPWStr)] out string AppID);
 
-    internal static string GetCurrentProcessExplicitAppUserModelID()
+    internal static string? GetCurrentProcessExplicitAppUserModelID()
     {
         try
         {
-            string id;
-            GetCurrentProcessExplicitAppUserModelID(out id);
+            GetCurrentProcessExplicitAppUserModelID(out var id);
             return id;
         }
         catch
@@ -334,7 +333,7 @@ internal static class Native
             Marshal.StructureToPtr(tbi, ptr, false);
             if (SendMessage(hwnd, (int)WindowMessages.WM_GETTITLEBARINFOEX, IntPtr.Zero, ptr) == IntPtr.Zero)
                 throw new NotSupportedException();
-            return (TITLEBARINFOEX)Marshal.PtrToStructure(ptr, tbi.GetType());
+            return (TITLEBARINFOEX)Marshal.PtrToStructure(ptr, tbi.GetType())!;
         }
         finally
         {

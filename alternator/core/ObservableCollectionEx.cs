@@ -2,7 +2,11 @@
 
 public class ObservableCollectionEx<T> : ObservableCollection<T>, IDisposable
 {
+#pragma warning disable CS0067 // Async method lacks 'await' operators and will run synchronously
+
+    /// <inheritdoc />
     protected override event PropertyChangedEventHandler? PropertyChanged;
+#pragma warning restore CS0067 // Async method lacks 'await' operators and will run synchronously
 
     /// <summary> 
     /// Initializes a new instance of the System.Collections.ObjectModel.ObservableCollection(Of T) class. 

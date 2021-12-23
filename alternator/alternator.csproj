@@ -2,15 +2,17 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
+    <AssemblyName>gw2-alternator</AssemblyName>
     <TargetFramework>net6.0-windows</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
-    <StartupObject>guildwars2.tools.alternator.App</StartupObject>
     <UseWindowsForms>True</UseWindowsForms>
+    <StartupObject>guildwars2.tools.alternator.App</StartupObject>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <RootNamespace>guildwars2.tools.alternator</RootNamespace>
     <ApplicationIcon>images\alternate_orange.ico</ApplicationIcon>
-    <PackageId>gw2-$(AssemblyName)</PackageId>
+    <PackageId>$(AssemblyName)</PackageId>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 

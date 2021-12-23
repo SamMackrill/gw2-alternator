@@ -8,8 +8,8 @@ public class Account : ObservableObject
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-    private string name;
-    public string Name
+    private string? name;
+    public string? Name
     {
         get => name;
         set => SetProperty(ref name, value);
@@ -22,8 +22,8 @@ public class Account : ObservableObject
         set => SetProperty(ref character, value);
     }
 
-    private string loginFilePath;
-    public string LoginFilePath
+    private string? loginFilePath;
+    public string? LoginFilePath
     {
         get => loginFilePath;
         set => SetProperty(ref loginFilePath, value);
@@ -70,7 +70,7 @@ public class Account : ObservableObject
     }
 
 
-    public Account(string name, string? character, string loginFilePath)
+    public Account(string? name, string? character, string? loginFilePath)
     {
         Name = name;
         Character = character;
@@ -122,7 +122,7 @@ public class Account : ObservableObject
     {
         await Task.Run(() =>
         {
-            LinkFiles(gw2LocalDat, new FileInfo(loginFilePath));
+            if (loginFilePath != null) LinkFiles(gw2LocalDat, new FileInfo(loginFilePath));
         });
         await Task.Run(() =>
         {

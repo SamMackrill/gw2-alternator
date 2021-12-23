@@ -11,7 +11,7 @@ public class SettingsViewModel : ObservableObject
         this.main = main;
     }
 
-    public string Gw2Folder { get; set; }
+    public string? Gw2Folder { get; set; }
 
     public string Title => $"GW2 alternator Settings V{main.Version?.ToString() ?? "0.0.0 (dev)"}";
 

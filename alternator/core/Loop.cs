@@ -26,7 +26,7 @@ static class Loop
             get;
         }
 
-        object Result
+        object? Result
         {
             get;
         }
@@ -47,7 +47,7 @@ static class Loop
         /// <summary>
         /// Breaks out of the loop, termination all threads after completing their current task and returning the value
         /// </summary>
-        void Return(object o);
+        void Return(object? o);
     }
 
     public delegate void WorkAction(byte thread, long index, IState state);
@@ -56,11 +56,12 @@ static class Loop
     {
         private class Worker
         {
-            private ParallelFor source;
-            private long index, last;
-            private byte threadIndex;
+            private readonly ParallelFor source;
+            private long index;
+            private long last;
+            private readonly byte threadIndex;
             private bool completed;
-            private Thread thread;
+            private Thread? thread;
 
             public Worker(ParallelFor p, byte index)
             {
@@ -68,7 +69,7 @@ static class Loop
                 threadIndex = index;
             }
 
-            public void DoWork()
+            private void DoWork()
             {
                 while (true)
                 {
@@ -95,7 +96,7 @@ static class Loop
                     {
                         source.work(threadIndex, index, source);
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         //Util.Logging.Log(e);
                     }
@@ -109,8 +110,10 @@ static class Loop
                     if (thread == null || !thread.IsAlive)
                     {
                         completed = false;
-                        thread = new Thread(DoWork);
-                        thread.IsBackground = true;
+                        thread = new Thread(DoWork)
+                        {
+                            IsBackground = true
+                        };
                         thread.Start();
                     }
                 }
@@ -122,12 +125,12 @@ static class Loop
                 {
                     var t = thread;
 
-                    if (t != null && t.IsAlive)
+                    if (t is {IsAlive: true})
                     {
                         thread = null;
                         completed = true;
 
-                        t.Abort();
+                        //t.Abort();
                     }
                 }
             }
@@ -143,24 +146,17 @@ static class Loop
 
             public bool Wait(int millis)
             {
+                if (thread == null) return true;
                 if (millis > 0)
                 {
                     return thread.Join(millis);
                 }
-                else
-                {
-                    thread.Join();
-                    return true;
-                }
+
+                thread.Join();
+                return true;
             }
 
-            public bool IsComplete
-            {
-                get
-                {
-                    return completed;
-                }
-            }
+            public bool IsComplete => completed;
 
             public bool IsBlocked()
             {
@@ -180,7 +176,7 @@ static class Loop
             }
         }
 
-        public event EventHandler Complete;
+        public event EventHandler? Complete;
 
         private long from, to;
         private int timeout;
@@ -188,7 +184,7 @@ static class Loop
         private Worker[] threads;
         private byte active;
         private bool abort, terminate;
-        private object result;
+        private object? result;
 
         public ParallelFor(long from, long to, byte threads, int timeout, WorkAction work)
         {
@@ -215,7 +211,7 @@ static class Loop
                 Complete(this, EventArgs.Empty);
         }
 
-        private Worker FindActive()
+        private Worker? FindActive()
         {
             if (active == 0)
                 return null;
@@ -288,7 +284,7 @@ static class Loop
             }
         }
 
-        public void Return(object o)
+        public void Return(object? o)
         {
             lock (this)
             {
@@ -299,21 +295,9 @@ static class Loop
             }
         }
 
-        public bool IsComplete
-        {
-            get
-            {
-                return active == 0;
-            }
-        }
+        public bool IsComplete => active == 0;
 
-        public object Result
-        {
-            get
-            {
-                return result;
-            }
-        }
+        public object? Result => result;
     }
 
     /// <summary>
