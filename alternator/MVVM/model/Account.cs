@@ -29,30 +29,46 @@ public class Account : ObservableObject
         set => SetProperty(ref loginFilePath, value);
     }
 
+
     private DateTime lastLogin;
     public DateTime LastLogin
     {
         get => lastLogin;
-        set => SetProperty(ref lastLogin, value);
+        set
+        {
+            if (SetProperty(ref lastLogin, value))
+            {
+                OnPropertyChanged(nameof(LoginRequired));
+            }
+        }
     }
 
     private DateTime lastCollection;
     public DateTime LastCollection
     {
         get => lastCollection;
-        set => SetProperty(ref lastCollection, value);
+        set
+        {
+            if (SetProperty(ref lastCollection, value))
+            {
+                OnPropertyChanged(nameof(CollectionRequired));
+            }
+        }
     }
 
     private DateTime createdAt;
     public DateTime CreatedAt
     {
         get => createdAt;
-        set => SetProperty(ref createdAt, value);
+        set
+        {
+            if (SetProperty(ref createdAt, value))
+            {
+                OnPropertyChanged(nameof(CollectionRequired));
+            }
+        }
     }
 
-    [field: NonSerialized]
-    [JsonIgnore] 
-    public FileInfo LoginFile { get; set; }
 
     public Account(string name, string? character, string loginFilePath)
     {
@@ -63,7 +79,7 @@ public class Account : ObservableObject
         LastLogin = DateTime.MinValue;
         LastCollection = DateTime.MinValue;
         CreatedAt = DateTime.Now;
-        LoginFile = new FileInfo(loginFilePath);
+
         Client = new Client(this);
     }
 
@@ -73,30 +89,44 @@ public class Account : ObservableObject
     [JsonIgnore]
     public Client Client { get; set; }
 
-    private void SwapLogin(FileInfo gw2LocalDat)
+    [JsonIgnore]
+    public bool LoginRequired => LastLogin < DateTime.UtcNow.Date;
+
+    [JsonIgnore]
+    public bool CollectionRequired => LastCollection < DateTime.UtcNow.Date
+                                      && DateTime.UtcNow.Date.Subtract(LastCollection).TotalDays > 30;
+
+    [JsonIgnore]
+    public bool UpdateRequired => true;
+
+    private void LinkFiles(FileInfo from, FileInfo to)
     {
-        if (gw2LocalDat.Exists)
+        if (from.Exists)
         {
-            if (gw2LocalDat.LinkTarget != null)
+            if (from.LinkTarget != null)
             {
-                gw2LocalDat.Delete();
+                from.Delete();
             }
             else
             {
-                File.Move(gw2LocalDat.FullName, $"{gw2LocalDat.FullName}.bak", true);
+                File.Move(from.FullName, $"{from.FullName}.bak", true);
             }
         }
 
         // Symbolic link creation requires process to be Admin
-        gw2LocalDat.CreateAsSymbolicLink(LoginFile.FullName);
-        Logger.Debug("{0} dat file linked to: {1}", Name, LoginFile.FullName);
+        from.CreateAsSymbolicLink(to.FullName);
+        Logger.Debug("{0} {1} file linked to: {2}", Name, to.Extension, to.FullName);
     }
 
-    public async Task SwapLoginAsync(FileInfo gw2LocalDat)
+    public async Task SwapFilesAsync(FileInfo gw2LocalDat, FileInfo gw2GfxSettings, FileInfo referenceGfxSettingsFile)
     {
         await Task.Run(() =>
         {
-            SwapLogin(gw2LocalDat);
+            LinkFiles(gw2LocalDat, new FileInfo(loginFilePath));
+        });
+        await Task.Run(() =>
+        {
+            LinkFiles(gw2GfxSettings, referenceGfxSettingsFile);
         });
         await Task.Delay(200);
     }

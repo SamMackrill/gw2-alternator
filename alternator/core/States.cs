@@ -2,14 +2,12 @@
 
 public enum LaunchType
 {
-    LaunchAll,
-    LaunchNeeded,
-    CollectAll,
-    CollectNeeded,
-    UpdateAll,
+    Login,
+    Collect,
+    Update,
 }
 
-public enum State
+public enum RunState
 {
     Unset,
     Ready,

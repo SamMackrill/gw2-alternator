@@ -30,9 +30,10 @@ public class AccountViewModel : ObservableObject
 
     public string Character => account.Character ?? "Unknown";
     public string Login => $"{account.LastLogin.ToShortDateString()} {account.LastLogin.ToShortTimeString()}";
-    public LaunchState LaunchStatus => LaunchState.UpToDate;
+    public string LoginRequired => account.LoginRequired ? "Yes" : "No";
     public string Collected => $"{account.LastCollection.ToShortDateString()} {account.LastCollection.ToShortTimeString()}";
+    public string CollectionRequired => account.CollectionRequired ? "Yes" : "No";
     public int Age => (int)Math.Floor(DateTime.UtcNow.Subtract(account.CreatedAt).TotalDays);
 
-    public State RunStatus => account.Client?.RunStatus ?? State.Unset;
+    public RunState RunStatus => account.Client?.RunStatus ?? RunState.Unset;
 }

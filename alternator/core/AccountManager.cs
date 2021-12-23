@@ -30,7 +30,6 @@ public class AccountManager
                 await JsonSerializer.SerializeAsync(stream, Accounts, new JsonSerializerOptions { AllowTrailingCommas = true, WriteIndented = true });
             }
 
-            await using var stream2 = File.OpenWrite(accountsJson);
             await Task.Delay(1000);
             Logger.Debug("Accounts saved to {0}", accountsJson);
         }
@@ -50,35 +49,26 @@ public class AccountManager
             Logger.Debug("Accounts loaded from {0}", accountsJson);
             Loaded?.Invoke(this, EventArgs.Empty);
         }
+        catch (Exception e)
+        {
+            Logger.Error(e, $"Loading accounts from {accountsJson}");
+        }
         finally
         {
             accountsSemaphore.Release();
         }
     }
 
-    public async Task Launch(int maxInstances, LaunchType launchType, ClientController clientController, CancellationToken launchCancelled)
-    {
-        await Load();
-
-        var accountsToRun = AccountsToRun(launchType);
-        if (accountsToRun == null) return;
-        await clientController.Launch(accountsToRun, maxInstances, launchCancelled);
-
-        await Save();
-    }
-
-    public List<Account>? AccountsToRun(LaunchType launchType)
+    public List<Account>? AccountsToRun(LaunchType launchType, bool all)
     {
         if (Accounts == null) return null;
+        if (all) return Accounts;
+
         return launchType switch
         {
-            LaunchType.LaunchAll => Accounts,
-            LaunchType.UpdateAll => Accounts,
-            LaunchType.CollectAll => Accounts,
-            LaunchType.LaunchNeeded => Accounts.Where(a => a.LastLogin < DateTime.UtcNow.Date).ToList(),
-            LaunchType.CollectNeeded => Accounts.Where(a => a.LastCollection < DateTime.UtcNow.Date
-                //&& DateTime.UtcNow.Date.Subtract(a.LastCollection).TotalDays > 30
-            ).ToList(),
+            LaunchType.Login => Accounts.Where(a => a.LoginRequired).ToList(),
+            LaunchType.Collect => Accounts.Where(a => a.CollectionRequired).ToList(),
+            LaunchType.Update => Accounts.Where(a => a.UpdateRequired).ToList(),
             _ => throw new ArgumentException(message: "invalid enum value", paramName: nameof(launchType))
         };
     }

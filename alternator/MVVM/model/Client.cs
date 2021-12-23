@@ -19,8 +19,8 @@ public class Client : ObservableObject
 
     public DateTime ExitTime => p?.ExitTime ?? DateTime.MinValue;
 
-    private State runStatus;
-    public State RunStatus
+    private RunState runStatus;
+    public RunState RunStatus
     {
         get => runStatus;
         set => SetProperty(ref runStatus, value);
@@ -29,30 +29,30 @@ public class Client : ObservableObject
     public Client(Account account)
     {
         this.account = account;
-        RunStatus = State.Ready;
+        RunStatus = RunState.Ready;
     }
 
     public bool Start(LaunchType launchType)
     {
         // Run gw2 exe with arguments
-        var gw2Arguments = launchType is LaunchType.UpdateAll ? "-image" : $"-autologin -windowed -nosound -shareArchive -maploadinfo -dx9"; // -dat \"{account.LoginFile}\""
-        var pi = new ProcessStartInfo(@"G:\Games\gw2\Gw2-64.exe")
+        var gw2Arguments = launchType is LaunchType.Update ? "-image" : $"-autologin -windowed -nosound -shareArchive -maploadinfo -dx9 -fps 20"; // -dat \"{account.LoginFile}\""
+        var pi = new ProcessStartInfo(Path.Combine(Launcher.Gw2Location, "Gw2-64.exe"))
         {
             CreateNoWindow = true,
             Arguments = gw2Arguments, 
             UseShellExecute = false,
-            WorkingDirectory = @"G:\Games\gw2"
+            WorkingDirectory = Launcher.Gw2Location,
         };
         p = new Process { StartInfo = pi };
         p.EnableRaisingEvents = true;
         p.Exited += Exited;
 
         _ = p.Start();
-        RunStatus = State.Running;
+        RunStatus = RunState.Running;
         startTime = p.StartTime;
         Logger.Debug("{0} Started {1}", account.Name, launchType);
 
-        if (launchType is LaunchType.UpdateAll) return true;
+        if (launchType is LaunchType.Update) return true;
 
         p.WaitForInputIdle();
         if (KillMutex()) return true;
@@ -86,11 +86,11 @@ public class Client : ObservableObject
 
         try
         {
-            if (launchType is not LaunchType.UpdateAll)
+            if (launchType is not LaunchType.Update)
             {
                 if (!await WaitForCharacterSelection(cancellationToken)) return false;
                 if (!EnterWorld()) return false;
-                if (launchType is LaunchType.LaunchAll or LaunchType.LaunchNeeded) return await WaitForEntryThenExit(cancellationToken);
+                if (launchType is LaunchType.Login) return await WaitForEntryThenExit(cancellationToken);
             }
 
             return await WaitForProcessToExit(cancellationToken);
@@ -98,11 +98,13 @@ public class Client : ObservableObject
         catch (OperationCanceledException)
         {
             Logger.Debug("{0} cancelled", account.Name);
+            RunStatus = RunState.Cancelled;
             return false;
         }
         catch (Exception e)
         {
             Logger.Error(e, "{0} Failed", account.Name);
+            RunStatus = RunState.Error;
             return false;
         }
         finally
@@ -111,6 +113,7 @@ public class Client : ObservableObject
             if (!p.HasExited)
             {
                 Logger.Error("{0} Kill runaway", account.Name);
+                RunStatus = RunState.Error;
                 await Kill(p);
             }
             LogManager.Flush();
@@ -255,7 +258,7 @@ public class Client : ObservableObject
     {
         var deadProcess = sender as Process;
         Logger.Debug("{0} GW2 process exited", account.Name);
-        RunStatus = State.Completed;
+        RunStatus = RunState.Completed;
     }
 
 }

@@ -9,22 +9,36 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
-                        <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="{TemplateBinding Background}">
-                            <TextBlock Text="{TemplateBinding Property=Content}" VerticalAlignment="Center" Margin="20,0,0,0"/>
-                        </Grid>
+                        <Border VerticalAlignment="Stretch" 
+                              HorizontalAlignment="Stretch"
+                              BorderThickness="{TemplateBinding BorderThickness}"
+                              BorderBrush="{TemplateBinding BorderBrush}"
+                              Background="{TemplateBinding Background}">
+                            <TextBlock Text="{TemplateBinding Property=Content}" 
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Left"
+                                       Margin="5"/>
+                        </Border>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
 
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Opacity" Value="0.8"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Margin" Value="15,15,0,5"/>
+            <Setter Property="BorderThickness" Value="2"/>
         </Style.Setters>
 
         <Style.Triggers>
 
             <Trigger Property="IsChecked" Value="True">
-                <Setter Property="Background" Value="#22202f"/>
+                <Setter Property="Background" Value="{StaticResource hilightBrush}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource foregroundBrush}"/>
+            </Trigger>
+
+            <Trigger Property="IsChecked" Value="False">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="BorderBrush" Value="Transparent"/>
             </Trigger>
 
             <Trigger Property="IsEnabled" Value="False">

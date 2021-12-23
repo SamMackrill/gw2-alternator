@@ -50,4 +50,15 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Page Update="theme\CheckBoxTheme.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="core\Converters\" />
+  </ItemGroup>
+
 </Project>

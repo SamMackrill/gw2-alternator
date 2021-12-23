@@ -26,11 +26,28 @@
         <DataGrid.Columns>
             <DataGridTextColumn Header="Account" Binding="{Binding Account}" />
             <DataGridTextColumn Header="Character" Binding="{Binding Character}"/>
-            <DataGridTextColumn Header="Last Login" Binding="{Binding Login}"/>
-            <DataGridTextColumn Header="Launch?" Binding="{Binding LaunchStatus}"/>
-            <DataGridTextColumn Header="Last Collected" Binding="{Binding Collected}"/>
             <DataGridTextColumn Header="Age" Binding="{Binding Age}"/>
-            <DataGridTextColumn Header="Status" Binding="{Binding RunStatus}"/>
+            <DataGridTextColumn Header="Last Login" Binding="{Binding Login}"/>
+            <DataGridTextColumn Header="Login?" Binding="{Binding LoginRequired}"/>
+            <DataGridTextColumn Header="Last Collected" Binding="{Binding Collected}"/>
+            <DataGridTextColumn Header="Collect?" Binding="{Binding CollectionRequired}"/>
+
+            <DataGridTextColumn Header="Status" Binding="{Binding RunStatus}">
+                <DataGridTextColumn.ElementStyle>
+                    <Style TargetType="{x:Type TextBlock}">
+                        <Style.Triggers>
+                            <Trigger Property="Text" Value="Running">
+                                <Setter Property="Background" Value="{StaticResource hilightBrush}"/>
+                            </Trigger>
+                            <Trigger Property="Text" Value="Error">
+                                <Setter Property="Foreground" Value="{StaticResource backgroundBrush}"/>
+                                <Setter Property="Background" Value="{StaticResource foregroundBrush}"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGridTextColumn.ElementStyle>
+            </DataGridTextColumn>
+
         </DataGrid.Columns>
 
     </DataGrid>

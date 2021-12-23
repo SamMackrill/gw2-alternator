@@ -8,7 +8,9 @@
                 <ResourceDictionary Source="theme/DefaultTheme.xaml"/>
                 <ResourceDictionary Source="theme/MenuButtonTheme.xaml"/>
                 <ResourceDictionary Source="theme/FadeOutButtonTheme.xaml"/>
+                <ResourceDictionary Source="theme/CheckBoxTheme.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
+
 </Application>

@@ -1,9 +1,13 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <SolidColorBrush x:Key="foregroundBrush" Color="#FB651D" />
+    <SolidColorBrush x:Key="backgroundBrush" Color="#242424" />
+    <SolidColorBrush x:Key="hilightBrush" Color="#FBCC8A" />
+
     <Style x:Key="DefaultStyle" TargetType="{x:Type FrameworkElement}">
-        <Setter Property="Control.Foreground" Value="#FB651D"/>
-        <Setter Property="Control.Background" Value="#242424"/>
+        <Setter Property="Control.Foreground" Value="{StaticResource foregroundBrush}"/>
+        <Setter Property="Control.Background" Value="{StaticResource backgroundBrush}"/>
     </Style>
 
     <Style TargetType="DataGridCell" BasedOn="{StaticResource DefaultStyle}">
