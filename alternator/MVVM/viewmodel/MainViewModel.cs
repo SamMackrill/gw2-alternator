@@ -48,8 +48,6 @@ public class MainViewModel : ObservableObject
     }
 
 
-
-
     public string TimeUtc => DateTime.UtcNow.ToString("HH:mm:ss");
     public string ResetCountdown => DateTime.UtcNow.AddDays(1).Date.Subtract(DateTime.UtcNow).ToString(@"hh\:mm\:ss");
 
@@ -86,8 +84,6 @@ public class MainViewModel : ObservableObject
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         var datFile = new FileInfo(Path.Combine(appData, @"Guild Wars 2\Local.dat"));
         var gfxSettingsFile = new FileInfo(Path.Combine(appData, @"Guild Wars 2\GFXSettings.Gw2-64.exe.xml"));
-
-        SetLogging();
 
         accountManager = new AccountManager(AccountsJson);
         accountManager.Loaded += OnAccountsLoaded;
@@ -183,24 +179,5 @@ public class MainViewModel : ObservableObject
 
     }
 
-    private void SetLogging()
-    {
-        var config = new NLog.Config.LoggingConfiguration();
-
-        // Targets where to log to: File and Console
-        var logfile = new NLog.Targets.FileTarget("logfile") { FileName = "alternator-log.txt", DeleteOldFileOnStartup = true };
-        var debugLogfile = new NLog.Targets.FileTarget("debuglogfile") { FileName = "alternator-debug-log.txt", DeleteOldFileOnStartup = true };
-        var errorLogfile = new NLog.Targets.FileTarget("errorlogfile") { FileName = "alternator-error-log.txt" };
-        var logConsole = new NLog.Targets.ConsoleTarget("logconsole");
-
-        // Rules for mapping loggers to targets            
-        config.AddRule(LogLevel.Trace, LogLevel.Fatal, logConsole);
-        config.AddRule(LogLevel.Trace, LogLevel.Fatal, debugLogfile);
-        config.AddRule(LogLevel.Error, LogLevel.Fatal, errorLogfile);
-        config.AddRule(LogLevel.Info, LogLevel.Info, logfile);
-
-        // Apply config           
-        LogManager.Configuration = config;
-    }
 }
 

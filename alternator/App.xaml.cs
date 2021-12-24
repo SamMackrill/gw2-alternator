@@ -37,8 +37,70 @@ namespace guildwars2.tools.alternator;
 /// </summary>
 public partial class App : Application
 {
+    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
     protected override void OnStartup(StartupEventArgs e)
     {
+        SetLogging();
+
         base.OnStartup(e);
+    }
+
+    private void SetLogging()
+    {
+        var config = new NLog.Config.LoggingConfiguration();
+
+        // Targets where to log to: File and Console
+        var logfile = new NLog.Targets.FileTarget("logfile") { FileName = "alternator-log.txt", DeleteOldFileOnStartup = true };
+        var debugLogfile = new NLog.Targets.FileTarget("debuglogfile") { FileName = "alternator-debug-log.txt", DeleteOldFileOnStartup = true };
+        var errorLogfile = new NLog.Targets.FileTarget("errorlogfile") { FileName = "alternator-error-log.txt" };
+        var logConsole = new NLog.Targets.ConsoleTarget("logconsole");
+
+        // Rules for mapping loggers to targets            
+        config.AddRule(LogLevel.Trace, LogLevel.Fatal, logConsole);
+        config.AddRule(LogLevel.Trace, LogLevel.Fatal, debugLogfile);
+        config.AddRule(LogLevel.Error, LogLevel.Fatal, errorLogfile);
+        config.AddRule(LogLevel.Info, LogLevel.Info, logfile);
+
+        // Apply config           
+        LogManager.Configuration = config;
+    }
+
+    private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+    {
+        // Process unhandled exception
+        var shutdown = true;
+
+        //// Process exception
+        //if (e.Exception is DivideByZeroException)
+        //{
+        //    // Recoverable - continue processing
+        //    shutdown = false;
+        //}
+        //else if (e.Exception is ArgumentNullException)
+        //{
+        //    // Unrecoverable - end processing
+        //    shutdown = true;
+        //}
+
+        if (shutdown)
+        {
+            // If unrecoverable, attempt to save data
+            var result = MessageBox.Show($"Application must exit:\n\n{e.Exception.Message}\n\nSave before exit?", "app",
+                                         MessageBoxButton.YesNo, 
+                                         MessageBoxImage.Error);
+            if (result == MessageBoxResult.Yes)
+            {
+                // Save data
+            }
+
+            Logger.Error(e.Exception, "Unrecoverable Exception");
+
+            // Return exit code
+            Shutdown(-1);
+        }
+
+        // Prevent default unhandled exception processing
+        e.Handled = true;
     }
 }
