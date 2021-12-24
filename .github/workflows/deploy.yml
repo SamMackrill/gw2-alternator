@@ -24,8 +24,6 @@ jobs:
 
       - run: dotnet publish ${{ env.PROJECT_PATH }} -c Release --no-self-contained -r win-x64 -p:PublishSingleFile=true --no-build -o publish
 
-      - uses: sigstore/cosign-installer@main
-
       - uses: actions/create-release@v1
         id: create_release
         env:
