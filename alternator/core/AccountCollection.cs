@@ -2,17 +2,17 @@
 
 namespace guildwars2.tools.alternator;
 
-public class AccountManager
+public class AccountCollection
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-    public List<Account>? Accounts { get; set; }
+    public List<Account>? Accounts { get; private set; }
     private readonly string accountsJson;
     private readonly SemaphoreSlim accountsSemaphore;
 
     public event EventHandler<EventArgs>? Loaded;
 
-    public AccountManager(string accountsJson)
+    public AccountCollection(string accountsJson)
     {
         this.accountsJson = accountsJson;
         accountsSemaphore = new SemaphoreSlim(1, 1);

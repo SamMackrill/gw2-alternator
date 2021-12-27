@@ -17,10 +17,10 @@
         MouseLeftButtonDown="Window_MouseLeftButtonDown"
         >
 
-    <Border BorderBrush="{StaticResource foregroundBrush}"
+    <Border BorderBrush="{StaticResource ForegroundBrush}"
             BorderThickness="2"
             CornerRadius="20"
-            Background="{StaticResource backgroundBrush}">
+            Background="{StaticResource BackgroundBrush}">
         <Grid ShowGridLines="False">
 
             <Grid.ColumnDefinitions>
@@ -40,7 +40,7 @@
 
             <DockPanel x:Name="TitleBar"
                        Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="5"
-                       Background="{StaticResource backgroundBrush}" 
+                       Background="{StaticResource BackgroundBrush}" 
                        Height="24" 
                        HorizontalAlignment="Stretch" 
                        LastChildFill="true" 

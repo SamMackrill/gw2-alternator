@@ -1,18 +1,21 @@
 ﻿global using System;
-global using System.Collections.Generic;
 global using System.IO;
 global using System.Linq;
 global using System.Text;
 global using System.Threading;
 global using System.Threading.Tasks;
+global using System.ComponentModel;
+
+global using System.Diagnostics;
+global using System.Diagnostics.CodeAnalysis;
+
+global using System.Collections.Generic;
+global using System.Collections.ObjectModel;
+global using System.Collections.Specialized;
+
 global using System.Windows;
 global using System.Windows.Data;
 global using System.Windows.Controls;
-global using System.ComponentModel;
-global using System.Diagnostics;
-global using System.Diagnostics.CodeAnalysis;
-global using System.Collections.ObjectModel;
-global using System.Collections.Specialized;
 global using System.Windows.Threading;
 
 global using System.Runtime.CompilerServices;
@@ -44,6 +47,12 @@ public partial class App : Application
         SetLogging();
 
         base.OnStartup(e);
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        LogManager.Shutdown();
+        base.OnExit(e);
     }
 
     private void SetLogging()

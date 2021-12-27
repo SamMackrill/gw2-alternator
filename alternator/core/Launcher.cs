@@ -25,18 +25,19 @@ public class Launcher
         SemaphoreSlim loginSemaphore, 
         SemaphoreSlim exeSemaphore,
         int maxRetries,
-        Func<bool> lastLaunch,
         Counter launchCount)
     {
+        var client = account.Client;
         try
         {
             int attempt = 0;
+            bool loginInProcess = false;
             
             async Task? ReleaseLogin(int attemptCount, CancellationToken cancellationToken)
             {
-                if (launchType is not LaunchType.Update)
+                if (launchType is not LaunchType.Update && client.StartTime>DateTime.MinValue)
                 {
-                    var secondsSinceLogin = (DateTime.Now - account.Client.StartTime).TotalSeconds;
+                    var secondsSinceLogin = (DateTime.Now - client.StartTime).TotalSeconds;
                     Logger.Debug("{0} secondsSinceLogin={1}s", account.Name, secondsSinceLogin);
                     Logger.Debug("{0} launchCount={1}", account.Name, launchCount.Count);
                     var delay = LaunchDelay(launchCount.Count, attemptCount);
@@ -47,71 +48,90 @@ public class Launcher
                 }
 
                 loginSemaphore.Release();
-                Logger.Debug("{0} loginSemaphore released", account.Name);
+                loginInProcess = false;
+                Logger.Info("{0} login semaphore released, count={1}", account.Name, loginSemaphore.CurrentCount);
             }
 
             while (++attempt <= maxRetries)
             {
-                Logger.Debug("{0} login semaphore={1}", account.Name, loginSemaphore.CurrentCount);
-                account.Client.RunStatus = RunState.Waiting;
+                Logger.Info("{0} login attempt={1}", account.Name, attempt);
+                Logger.Info("{0} login semaphore entry, count={1}", account.Name, loginSemaphore.CurrentCount);
+                client.RunStatus = RunState.WaitingForLoginSlot;
                 await loginSemaphore.WaitAsync(launchCancelled);
+
+                loginInProcess = true;
 
                 Logger.Debug("{0} Login Free", account.Name);
                 Task? releaseLoginTask = null;
+
+                var exeInProcess = false;
                 try
                 {
                     await account.SwapFilesAsync(loginFile, gfxSettingsFile, referenceGfxSettings);
+
                     Task<bool> waitForExitTask;
                     try
                     {
-                        Logger.Debug("{0} login semaphore={1}", account.Name, loginSemaphore.CurrentCount);
-                        account.Client.RunStatus = RunState.Waiting;
+                        Logger.Debug("{0} exe semaphore entry, count={1}", account.Name, exeSemaphore.CurrentCount);
+                        client.RunStatus = RunState.WaitingForExeSlot;
                         await exeSemaphore.WaitAsync(launchCancelled);
+                        exeInProcess = true;
                         launchCount.Increment();
-                        if (!account.Client.Start(launchType))
+                        if (!client.Start(launchType))
                         {
                             Logger.Error("{0} exe start Failed", account.Name);
-                            account.Client.RunStatus = RunState.Error;
+                            client.RunStatus = RunState.Error;
+                            client.StatusMessage = "Exe start Failed";
                             continue;
                         }
                         Logger.Debug("{0} Login Finished", account.Name);
-                        waitForExitTask = account.Client.WaitForExit(launchType, launchCancelled);
+                        releaseLoginTask = ReleaseLogin(attempt, launchCancelled);
+                        waitForExitTask = client.WaitForExit(launchType, launchCancelled);
                     }
                     finally
                     {
-                        if (releaseLoginTask != null && lastLaunch?.Invoke() != true) await releaseLoginTask;
-                        releaseLoginTask = ReleaseLogin(attempt, launchCancelled);
+                        if (loginInProcess && releaseLoginTask == null) releaseLoginTask = ReleaseLogin(attempt, launchCancelled);
                     }
 
                     if (await waitForExitTask)
                     {
+                        client.RunStatus = RunState.Completed;
                         account.LastLogin = DateTime.UtcNow;
                         if (launchType is LaunchType.Collect) account.LastCollection = DateTime.UtcNow;
                         return true;
                     }
 
-                    account.Client.RunStatus = RunState.Error;
                     Logger.Error("{0} exe Failed", account.Name);
                 }
                 finally
                 {
-                    if (releaseLoginTask != null) await releaseLoginTask;
+                    if (loginInProcess && releaseLoginTask == null) _ = ReleaseLogin(attempt, launchCancelled);
                     Logger.Debug("{0} exe terminated", account.Name);
-                    exeSemaphore.Release();
+                    if (exeInProcess)
+                    {
+                        exeSemaphore.Release();
+                        Logger.Debug("{0} exe semaphore released, count={1}", account.Name, exeSemaphore.CurrentCount);
+                    }
                 }
             }
-            account.Client.RunStatus = RunState.Error;
+            client.RunStatus = RunState.Error;
+            client.StatusMessage = "Too many attempts";
             Logger.Error("{0} too many attempts, giving up", account.Name);
         }
         catch (OperationCanceledException)
         {
-            account.Client.RunStatus = RunState.Cancelled;
+            client.RunStatus = RunState.Cancelled;
             Logger.Debug("{0} cancelled", account.Name);
         }
         catch (Exception e)
         {
-            account.Client.RunStatus = RunState.Error;
-            Logger.Error(e, "{0} launch failed", account.Name);
+            client.RunStatus = RunState.Error;
+            client.StatusMessage = "Launch crashed";
+            Logger.Error(e, "{0} launch crash", account.Name);
+        }
+        if (await client.Kill())
+        {
+            Logger.Error("{0} GW2 process killed", account.Name);
         }
         return false;
     }

@@ -32,16 +32,27 @@
             <DataGridTextColumn Header="Last Collected" Binding="{Binding Collected}"/>
             <DataGridTextColumn Header="Collect?" Binding="{Binding CollectionRequired}"/>
 
-            <DataGridTextColumn Header="Status" Binding="{Binding RunStatus}">
+            <DataGridTextColumn Header="Status" Binding="{Binding RunStatus}" >
+
+                <DataGridTextColumn.CellStyle>
+                    <Style TargetType="DataGridCell">
+                        <Setter Property="ToolTip">
+                            <Setter.Value>
+                                <ToolTip Content="{Binding TooltipText}" />
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </DataGridTextColumn.CellStyle>
+
                 <DataGridTextColumn.ElementStyle>
                     <Style TargetType="{x:Type TextBlock}">
                         <Style.Triggers>
                             <Trigger Property="Text" Value="Running">
-                                <Setter Property="Background" Value="{StaticResource hilightBrush}"/>
+                                <Setter Property="Background" Value="{StaticResource HilightBrush}"/>
                             </Trigger>
                             <Trigger Property="Text" Value="Error">
-                                <Setter Property="Foreground" Value="{StaticResource backgroundBrush}"/>
-                                <Setter Property="Background" Value="{StaticResource foregroundBrush}"/>
+                                <Setter Property="Foreground" Value="{StaticResource BackgroundBrush}"/>
+                                <Setter Property="Background" Value="{StaticResource ForegroundBrush}"/>
                             </Trigger>
                         </Style.Triggers>
                     </Style>

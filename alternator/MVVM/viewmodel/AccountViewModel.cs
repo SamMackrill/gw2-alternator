@@ -36,4 +36,7 @@ public class AccountViewModel : ObservableObject
     public int Age => (int)Math.Floor(DateTime.UtcNow.Subtract(account.CreatedAt).TotalDays);
 
     public RunState RunStatus => account.Client?.RunStatus ?? RunState.Unset;
+
+    public string? TooltipText => account.Client?.StatusMessage;
+
 }

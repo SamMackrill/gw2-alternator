@@ -99,7 +99,7 @@ public class Account : ObservableObject
     [JsonIgnore]
     public bool UpdateRequired => true;
 
-    private void LinkFiles(FileInfo from, FileInfo to)
+    private void LinkFiles(FileSystemInfo from, FileSystemInfo to)
     {
         if (from.Exists)
         {

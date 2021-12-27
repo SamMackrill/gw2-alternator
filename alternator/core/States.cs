@@ -11,7 +11,8 @@ public enum RunState
 {
     Unset,
     Ready,
-    Waiting,
+    WaitingForLoginSlot,
+    WaitingForExeSlot,
     Running,
     Error,
     Completed,

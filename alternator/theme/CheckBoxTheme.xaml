@@ -6,7 +6,7 @@
            x:Key="CheckBoxTheme">
         
         <Style.Setters>
-            <Setter Property="Background" Value="{StaticResource foregroundBrush}"/>
+            <Setter Property="Background" Value="{StaticResource ForegroundBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Margin" Value="5"/>
         </Style.Setters>

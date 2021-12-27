@@ -5,13 +5,14 @@ public class MainViewModel : ObservableObject
     public IAsyncCommand? LoginCommand { get; set; }
     public IAsyncCommand? CollectCommand { get; set; }
     public IAsyncCommand? UpdateCommand { get; set; }
-    public IAsyncCommand? StopCommand { get; set; }
-    public IAsyncCommand? ShowSettingsCommand { get; set; }
+    public ICommandExtended? StopCommand { get; set; }
+    public ICommandExtended? ShowSettingsCommand { get; }
+    public ICommandExtended? CloseCommand { get; }
 
     private const string AccountsJson = "accounts.json";
     private CancellationTokenSource? cts;
 
-    private readonly AccountManager accountManager;
+    private readonly AccountCollection accountCollection;
     public AccountsViewModel AccountsViewModel { get; set; }
 
     private bool running;
@@ -26,6 +27,7 @@ public class MainViewModel : ObservableObject
             UpdateCommand?.RaiseCanExecuteChanged();
             StopCommand?.RaiseCanExecuteChanged();
             ShowSettingsCommand?.RaiseCanExecuteChanged();
+            CloseCommand?.RaiseCanExecuteChanged();
             OnPropertyChanged(nameof(LoginText));
             OnPropertyChanged(nameof(CollectText));
             OnPropertyChanged(nameof(UpdateText));
@@ -45,6 +47,13 @@ public class MainViewModel : ObservableObject
             OnPropertyChanged(nameof(UpdateText));
             OnPropertyChanged(nameof(StopText));
         }
+    }
+
+    public event Action? RequestClose;
+
+    public void RefreshWindow()
+    {
+        CloseCommand?.RaiseCanExecuteChanged();
     }
 
 
@@ -69,7 +78,12 @@ public class MainViewModel : ObservableObject
     public bool Stopping
     {
         get => stopping;
-        set => SetProperty(ref stopping, value);
+        set
+        {
+            SetProperty(ref stopping, value);
+            OnPropertyChanged(nameof(StopText));
+            CloseCommand?.RaiseCanExecuteChanged();
+        }
     }
 
     public string LoginText => Running && ActiveLaunchType == LaunchType.Login ? "Logging in" : "Login";
@@ -85,8 +99,8 @@ public class MainViewModel : ObservableObject
         var datFile = new FileInfo(Path.Combine(appData, @"Guild Wars 2\Local.dat"));
         var gfxSettingsFile = new FileInfo(Path.Combine(appData, @"Guild Wars 2\GFXSettings.Gw2-64.exe.xml"));
 
-        accountManager = new AccountManager(AccountsJson);
-        accountManager.Loaded += OnAccountsLoaded;
+        accountCollection = new AccountCollection(AccountsJson);
+        accountCollection.Loaded += OnAccountsLoaded;
         AccountsViewModel = new AccountsViewModel();
 
         Initialise();
@@ -110,14 +124,11 @@ public class MainViewModel : ObservableObject
                 cts.Token.ThrowIfCancellationRequested();
                 var launcher = new ClientController(datFile, gfxSettingsFile, launchType);
 
-                var accountsToRun = accountManager.AccountsToRun(launchType, all);
+                var accountsToRun = accountCollection.AccountsToRun(launchType, all);
                 if (accountsToRun == null || !accountsToRun.Any()) return;
-                await launcher.Launch(accountsToRun, maxInstances, cts.Token);
+                await launcher.LaunchMultiple(accountsToRun, maxInstances, cts.Token);
 
-                await accountManager.Save();
-                await launcher.Restore();
-
-                LogManager.Shutdown();
+                await accountCollection.Save();
             }
             finally
             {
@@ -130,17 +141,18 @@ public class MainViewModel : ObservableObject
         CollectCommand = new AsyncCommand(async () => { await LaunchMultipleAccounts(LaunchType.Collect, ForceAll, ForceSerial); }, _ => !Running);
         UpdateCommand = new AsyncCommand(async () => { await LaunchMultipleAccounts(LaunchType.Update, ForceAll, ForceSerial); }, _ => !Running);
 
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-        StopCommand = new AsyncCommand(async () =>
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+        StopCommand = new RelayCommand<object>(_ =>
         {
             Stopping = true;
             cts?.Cancel();
         }, _ => Running);
 
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-        ShowSettingsCommand = new AsyncCommand(async () =>
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+        CloseCommand = new RelayCommand<object>(_ =>
+        {
+            RequestClose?.Invoke();
+        }, _ => !Running && RequestClose != null);
+
+        ShowSettingsCommand = new RelayCommand<object>(_ =>
         {
             var settingsView = new SettingsWindow
             {
@@ -162,10 +174,9 @@ public class MainViewModel : ObservableObject
         dt.Start();
     }
 
-
     private void OnAccountsLoaded(object? sender, EventArgs e)
     {
-        AccountsViewModel.Add(accountManager.Accounts);
+        AccountsViewModel.Add(accountCollection.Accounts);
     }
 
     private void Initialise()
@@ -173,7 +184,7 @@ public class MainViewModel : ObservableObject
         //Task.Run(() =>
         //{
 #pragma warning disable CS4014
-        accountManager.Load();
+        accountCollection.Load();
 #pragma warning restore CS4014
         // });
 

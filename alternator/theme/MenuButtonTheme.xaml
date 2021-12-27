@@ -32,8 +32,8 @@
         <Style.Triggers>
 
             <Trigger Property="IsChecked" Value="True">
-                <Setter Property="Background" Value="{StaticResource hilightBrush}"/>
-                <Setter Property="BorderBrush" Value="{StaticResource foregroundBrush}"/>
+                <Setter Property="Background" Value="{StaticResource HilightBrush}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource ForegroundBrush}"/>
             </Trigger>
 
             <Trigger Property="IsChecked" Value="False">

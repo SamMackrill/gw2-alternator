@@ -23,7 +23,17 @@ public class Client : ObservableObject
     public RunState RunStatus
     {
         get => runStatus;
-        set => SetProperty(ref runStatus, value);
+        set
+        {
+            if (SetProperty(ref runStatus, value) && runStatus != RunState.Error) StatusMessage = null;
+        }
+    }
+
+    private string? statusMessage;
+    public string? StatusMessage
+    {
+        get => statusMessage;
+        set => SetProperty(ref statusMessage, value);
     }
 
     public Client(Account account)
@@ -49,7 +59,7 @@ public class Client : ObservableObject
 
         _ = p.Start();
         RunStatus = RunState.Running;
-        startTime = p.StartTime;
+        StartTime = p.StartTime;
         Logger.Debug("{0} Started {1}", account.Name, launchType);
 
         if (launchType is LaunchType.Update) return true;
@@ -81,79 +91,58 @@ public class Client : ObservableObject
         if (p == null)
         {
             Logger.Error("{0} No process", account.Name);
-            return true;
-        }
-
-        try
-        {
-            if (launchType is not LaunchType.Update)
-            {
-                if (!await WaitForCharacterSelection(cancellationToken)) return false;
-                if (!EnterWorld()) return false;
-                if (launchType is LaunchType.Login) return await WaitForEntryThenExit(cancellationToken);
-            }
-
-            return await WaitForProcessToExit(cancellationToken);
-        }
-        catch (OperationCanceledException)
-        {
-            Logger.Debug("{0} cancelled", account.Name);
-            RunStatus = RunState.Cancelled;
-            return false;
-        }
-        catch (Exception e)
-        {
-            Logger.Error(e, "{0} Failed", account.Name);
             RunStatus = RunState.Error;
+            account.Client.StatusMessage = "No Process";
             return false;
         }
-        finally
+
+        if (launchType is not LaunchType.Update)
         {
-            p.Refresh();
-            if (!p.HasExited)
+            if (!await WaitForCharacterSelection(cancellationToken))
             {
-                Logger.Error("{0} Kill runaway", account.Name);
-                RunStatus = RunState.Error;
-                await Kill(p);
+                RunStatus = RunState.Cancelled;
+                return false;
             }
-            LogManager.Flush();
+
+            if (!EnterWorld())
+            {
+                return false;
+            }
+            if (launchType is LaunchType.Login) return await WaitForEntryThenExit(cancellationToken);
         }
+
+        return await WaitForProcessToExit(cancellationToken);
     }
 
-    public async Task<bool> WaitForProcessToExit(CancellationToken cancellationToken)
+    private async Task<bool> WaitForProcessToExit(CancellationToken cancellationToken)
     {
         if (p == null)
         {
             Logger.Error("{0} No process", account.Name);
             return false;
         }
+
         // TODO add timeout?
         do
         {
             await Task.Delay(200, cancellationToken);
-            p.Refresh();
-            if (!p.HasExited) continue;
-            Logger.Info("{0} GW2 Closed", account.Name);
-            return true;
-        } while (true);
+        } while (Alive);
+
+        Logger.Info("{0} GW2 Closed", account.Name);
+        return true;
     }
 
     private async Task<bool> WaitForEntryThenExit(CancellationToken cancellationToken)
     {
-        if (p == null) return false;
-        p.Refresh();
+        if (!Alive) return false;
         Logger.Debug("{0} Wait for {1} to load-in to world", account.Name, account.Character ?? "character");
         if (!await WaitForStable(2000, 900_000, 2000, 180, cancellationToken))
         {
-            Logger.Error("{0} Timed-out waiting for {1} to load-in to world", account.Name,
-                account.Character ?? "character");
-            {
-                return false;
-            }
+            Logger.Error("{0} Timed-out waiting for {1} to load into world", account.Name, account.Character ?? "character");
+            return false;
         }
 
-        p.Refresh();
-        if (p.HasExited)
+        if (!Alive)
         {
             Logger.Error("{0} Died!", account.Name);
             return false;
@@ -161,15 +150,13 @@ public class Client : ObservableObject
 
         Logger.Debug("{0} {1} loaded into world OK, kill process", account.Name, account.Character ?? "character");
         LogManager.Flush();
-        await Kill(p);
+        await Kill();
         return true;
     }
 
     private bool EnterWorld()
     {
-        if (p == null) return false;
-        p.Refresh();
-        if (p.HasExited)
+        if (!Alive)
         {
             Logger.Error("{0} Died!", account.Name);
             return false;
@@ -183,15 +170,13 @@ public class Client : ObservableObject
 
     private async Task<bool> WaitForCharacterSelection(CancellationToken cancellationToken)
     {
-        if (p == null) return false;
-        p.Refresh();
-        if (p.HasExited)
+        if (!Alive)
         {
             Logger.Error("{0} Died!", account.Name);
             return false;
         }
 
-        lastMemoryUsage = p.WorkingSet64 / 1024;
+        lastMemoryUsage = p!.WorkingSet64 / 1024;
 
         Logger.Debug("{0} Wait for Character Selection", account.Name);
         if (await WaitForStable(2000, 750_000, 200, 120, cancellationToken)) return true;
@@ -200,8 +185,7 @@ public class Client : ObservableObject
         return false;
     }
 
-    private async Task<bool> WaitForStable(int pause, long characterSelectMinMemory, long characterSelectMinDiff,
-        double timeout, CancellationToken cancellationToken)
+    private async Task<bool> WaitForStable(int pause, long characterSelectMinMemory, long characterSelectMinDiff, double timeout, CancellationToken cancellationToken)
     {
         var start = DateTime.Now;
         do
@@ -214,9 +198,7 @@ public class Client : ObservableObject
 
     private bool MemoryUsageStable(long min, long delta)
     {
-        if (p == null) return true;
-        p.Refresh();
-        if (p.HasExited) return true;
+        if (!Alive) return true;
 
         //Logger.Debug("{0} Window Title {1}", account.Name, p.MainWindowTitle);
         //Logger.Debug("{0} HandleCount {1}", account.Name, p.HandleCount);
@@ -227,6 +209,16 @@ public class Client : ObservableObject
         lastMemoryUsage = memoryUsage;
         //Logger.Debug("{0} Mem={1} Diff={2}", account.Name, memoryUsage, diff);
         return memoryUsage > min && diff < delta;
+    }
+
+    private bool Alive
+    {
+        get
+        {
+            if (p == null) return false;
+            p.Refresh();
+            return !p.HasExited;
+        }
     }
 
     private void SendEnter(Process? process)
@@ -246,19 +238,19 @@ public class Client : ObservableObject
         }
     }
 
-    private async Task Kill(Process? process)
+    public async Task<bool> Kill()
     {
-        if (process == null || process.HasExited) return;
+        if (!Alive) return false;
 
-        process.Kill(true);
+        p!.Kill(true);
         await Task.Delay(200);
+        return true;
     }
 
     private void Exited(object? sender, EventArgs e)
     {
         var deadProcess = sender as Process;
         Logger.Debug("{0} GW2 process exited", account.Name);
-        RunStatus = RunState.Completed;
     }
 
 }

@@ -15,5 +15,4 @@ public class SettingsViewModel : ObservableObject
 
     public string Title => $"GW2 alternator Settings V{main.Version?.ToString() ?? "0.0.0 (dev)"}";
 
-
 }

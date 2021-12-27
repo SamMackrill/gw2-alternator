@@ -9,7 +9,7 @@ public class ClientController
     private readonly LaunchType launchType;
     private readonly SemaphoreSlim loginSemaphore;
 
-    public event EventHandler<GenericEventArgs<bool>>? AfterLaunch;
+    public event EventHandler<GenericEventArgs<bool>>? AfterLaunchAccount;
 
     public ClientController(FileInfo loginFile, FileInfo gfxSettingsFile, LaunchType launchType)
     {
@@ -19,42 +19,50 @@ public class ClientController
         loginSemaphore = new SemaphoreSlim(0, 1);
     }
 
-    public async Task Launch(List<Account> accounts, int maxInstances, CancellationToken launchCancelled)
+    public async Task LaunchMultiple(List<Account> accounts, int maxInstances, CancellationToken launchCancelled)
     {
         if (!accounts.Any())
         {
             Logger.Debug("No accounts to run.");
             return;
         }
-        Logger.Debug("Max GW2 Instances={0}", maxInstances);
-        var exeSemaphore = new SemaphoreSlim(0, maxInstances);
-        var launchCount = new Counter();
-        bool LastLaunch() => launchCount.Count == accounts.Count;
-        var tasks = accounts.Select(account => Task.Run(async () =>
-            {
-                var launcher = new Launcher(account, launchType, launchCancelled);
-                var success = await launcher.Launch(loginFile, gfxSettingsFile, loginSemaphore, exeSemaphore, 3, LastLaunch, launchCount);
-                AfterLaunch?.Invoke(account, new GenericEventArgs<bool>(success));
-                LogManager.Flush();
-            }, launchCancelled))
-            .ToList();
-        Logger.Debug("{0} threads primed.", tasks.Count);
-        // Allow all the tasks to start and block.
-        await Task.Delay(200, launchCancelled);
-        if (launchCancelled.IsCancellationRequested) return;
 
-        // Release the hounds
-        exeSemaphore.Release(maxInstances);
-        loginSemaphore.Release(1);
+        try
+        {
+            Logger.Debug("Max GW2 Instances={0}", maxInstances);
+            var exeSemaphore = new SemaphoreSlim(0, maxInstances);
+            var launchCount = new Counter();
+            var tasks = accounts.Select(account => Task.Run(async () =>
+                {
+                    var launcher = new Launcher(account, launchType, launchCancelled);
+                    var success = await launcher.Launch(loginFile, gfxSettingsFile, loginSemaphore, exeSemaphore, 3, launchCount);
+                    AfterLaunchAccount?.Invoke(account, new GenericEventArgs<bool>(success));
+                    LogManager.Flush();
+                }, launchCancelled))
+                .ToList();
+            Logger.Debug("{0} threads primed.", tasks.Count);
+            // Allow all the tasks to start and block.
+            await Task.Delay(200, launchCancelled);
+            if (launchCancelled.IsCancellationRequested) return;
 
-        await Task.WhenAll(tasks.ToArray());
+            // Release the hounds
+            exeSemaphore.Release(maxInstances);
+            loginSemaphore.Release(1);
 
-        Logger.Debug("All thread exited.");
+            await Task.WhenAll(tasks.ToArray());
+            Logger.Info("All launch tasks finished.");
+        }
+        finally
+        {
+            await Restore();
+            Logger.Info("GW2 account files restored.");
+        }
     }
 
-    public async Task Restore()
+    private async Task Restore()
     {
-        await loginSemaphore.WaitAsync();
+        Logger.Info("{0} login semaphore={1}", nameof(Restore), loginSemaphore.CurrentCount);
+        //await loginSemaphore.WaitAsync();
         try
         {
             await Task.Run(() =>
@@ -65,7 +73,7 @@ public class ClientController
         }
         finally
         {
-            loginSemaphore.Release();
+            //loginSemaphore.Release();
         }
     }
 

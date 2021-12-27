@@ -1,5 +1,13 @@
 [
   {
+    "Name": "Main",
+    "Character": "Poxa",
+    "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\1.dat",
+    "LastLogin": "0001-01-01T00:00:00",
+    "LastCollection": "0001-01-01T00:00:00",
+    "CreatedAt": "2012-07-29T00:00:00"
+  },
+  {
     "Name": "Hugo",
     "Character": "Hugaz The Awesome",
     "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\2.dat",
@@ -19,7 +27,7 @@
     "Name": "Fish2",
     "Character": "Fishspeaker",
     "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\4.dat",
-    "LastLogin": "2021-12-22T19:54:20.8504918Z",
+    "LastLogin": "2021-12-23T15:21:50.7305328Z",
     "LastCollection": "2021-12-22T19:54:20.8505999Z",
     "CreatedAt": "2021-05-18T00:00:00"
   },
@@ -27,8 +35,8 @@
     "Name": "Fish3",
     "Character": "Fishpaeste",
     "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\5.dat",
-    "LastLogin": "2021-10-13T14:22:45.7819336Z",
-    "LastCollection": "2021-10-13T14:22:45.7819339Z",
+    "LastLogin": "2021-12-23T12:26:27.478946Z",
+    "LastCollection": "2021-12-23T12:26:27.479002Z",
     "CreatedAt": "2021-05-21T00:00:00"
   },
   {
@@ -83,8 +91,8 @@
     "Name": "Fish10",
     "Character": "Fishinesses",
     "LoginFilePath": "C:\\Users\\Sam\\AppData\\Roaming\\Gw2 Launchbuddy\\Loginfiles\\12.dat",
-    "LastLogin": "2021-12-13T14:35:34.9251281Z",
-    "LastCollection": "2021-10-13T14:35:34.9251317Z",
+    "LastLogin": "2021-12-23T12:31:26.842361Z",
+    "LastCollection": "2021-12-23T12:31:26.843038Z",
     "CreatedAt": "2021-11-02T00:00:00"
   },
   {

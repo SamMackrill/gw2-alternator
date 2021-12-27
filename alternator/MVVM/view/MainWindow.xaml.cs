@@ -1,7 +1,4 @@
-﻿using System.Windows.Input;
-using System.Windows.Shapes;
-
-namespace guildwars2.tools.alternator;
+﻿namespace guildwars2.tools.alternator;
 
 /// <summary>
 /// Interaction logic for MainWindow.xaml
@@ -13,4 +10,13 @@ public partial class MainWindow
         InitializeComponent();
     }
 
+    protected override void OnInitialized(EventArgs e)
+    {
+        if (DataContext is MainViewModel context)
+        {
+            context.RequestClose += Close;
+            context.RefreshWindow();
+        }
+        base.OnInitialized(e);
+    }
 }
