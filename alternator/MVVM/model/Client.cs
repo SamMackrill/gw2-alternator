@@ -42,16 +42,16 @@ public class Client : ObservableObject
         RunStatus = RunState.Ready;
     }
 
-    public bool Start(LaunchType launchType)
+    public bool Start(LaunchType launchType, string gw2Location)
     {
         // Run gw2 exe with arguments
         var gw2Arguments = launchType is LaunchType.Update ? "-image" : $"-autologin -windowed -nosound -shareArchive -maploadinfo -dx9 -fps 20"; // -dat \"{account.LoginFile}\""
-        var pi = new ProcessStartInfo(Path.Combine(Launcher.Gw2Location, "Gw2-64.exe"))
+        var pi = new ProcessStartInfo(Path.Combine(gw2Location, "Gw2-64.exe"))
         {
             CreateNoWindow = true,
             Arguments = gw2Arguments, 
             UseShellExecute = false,
-            WorkingDirectory = Launcher.Gw2Location,
+            WorkingDirectory = gw2Location,
         };
         p = new Process { StartInfo = pi };
         p.EnableRaisingEvents = true;

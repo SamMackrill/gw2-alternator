@@ -14,10 +14,6 @@
         AllowsTransparency="True"
         >
 
-    <Window.DataContext>
-        <viewmodel:MainViewModel/>
-    </Window.DataContext>
-
     <Window.Resources>
 
         <Style x:Key="RectBorderStyle" TargetType="Rectangle">

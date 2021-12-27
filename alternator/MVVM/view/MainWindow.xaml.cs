@@ -5,18 +5,11 @@
 /// </summary>
 public partial class MainWindow
 {
-    public MainWindow()
+    public MainWindow(MainViewModel mainViewModel)
     {
         InitializeComponent();
-    }
-
-    protected override void OnInitialized(EventArgs e)
-    {
-        if (DataContext is MainViewModel context)
-        {
-            context.RequestClose += Close;
-            context.RefreshWindow();
-        }
-        base.OnInitialized(e);
+        DataContext = mainViewModel;
+        mainViewModel.RequestClose += Close;
+        mainViewModel.RefreshWindow();
     }
 }

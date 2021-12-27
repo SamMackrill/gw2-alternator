@@ -1,21 +1,23 @@
 ﻿using System.Text.Json;
 
-namespace guildwars2.tools.alternator;
+namespace guildwars2.tools.alternator.MVVM.model;
 
 public class AccountCollection
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
+    private const string AccountsJsonFile = "accounts.json";
+
     public List<Account>? Accounts { get; private set; }
     private readonly string accountsJson;
-    private readonly SemaphoreSlim accountsSemaphore;
+    private readonly SemaphoreSlim semaphore;
 
     public event EventHandler<EventArgs>? Loaded;
 
-    public AccountCollection(string accountsJson)
+    public AccountCollection(FileSystemInfo folderPath)
     {
-        this.accountsJson = accountsJson;
-        accountsSemaphore = new SemaphoreSlim(1, 1);
+        accountsJson = Path.Combine(folderPath.FullName, AccountsJsonFile);
+        semaphore = new SemaphoreSlim(1, 1);
     }
 
     public async Task Save()
@@ -23,7 +25,7 @@ public class AccountCollection
         try
         {
             Logger.Debug("Saving Accounts to {0}", accountsJson);
-            await accountsSemaphore.WaitAsync();
+            await semaphore.WaitAsync();
 
             await using (var stream = new FileStream(accountsJson, FileMode.Create))
             {
@@ -35,7 +37,7 @@ public class AccountCollection
         }
         finally
         {
-            accountsSemaphore.Release();
+            semaphore.Release();
         }
     }
 
@@ -43,7 +45,7 @@ public class AccountCollection
     {
         try
         {
-            await accountsSemaphore.WaitAsync();
+            await semaphore.WaitAsync();
             await using var stream = File.OpenRead(accountsJson);
             Accounts = await JsonSerializer.DeserializeAsync<List<Account>>(stream);
             Logger.Debug("Accounts loaded from {0}", accountsJson);
@@ -55,7 +57,7 @@ public class AccountCollection
         }
         finally
         {
-            accountsSemaphore.Release();
+            semaphore.Release();
         }
     }
 

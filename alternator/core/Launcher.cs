@@ -4,19 +4,19 @@ public class Launcher
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-    public static string Gw2Location = @"G:\Games\gw2";
-
     private readonly Account account;
     private readonly LaunchType launchType;
+    private readonly Settings settings;
     private readonly CancellationToken launchCancelled;
     private readonly FileInfo referenceGfxSettings;
 
-    public Launcher(Account account, LaunchType launchType, CancellationToken launchCancelled)
+    public Launcher(Account account, LaunchType launchType, DirectoryInfo applicationFolder, Settings settings, CancellationToken launchCancelled)
     {
         this.account = account;
         this.launchType = launchType;
+        this.settings = settings;
         this.launchCancelled = launchCancelled;
-        referenceGfxSettings = new FileInfo(Path.Combine(Gw2Location, "GW2 Custom GFX-Fastest.xml"));
+        referenceGfxSettings = new FileInfo(Path.Combine(applicationFolder.FullName, "GW2 Custom GFX-Fastest.xml"));
     }
 
     public async Task<bool> Launch(
@@ -77,7 +77,7 @@ public class Launcher
                         await exeSemaphore.WaitAsync(launchCancelled);
                         exeInProcess = true;
                         launchCount.Increment();
-                        if (!client.Start(launchType))
+                        if (!client.Start(launchType, settings.Gw2Folder))
                         {
                             Logger.Error("{0} exe start Failed", account.Name);
                             client.RunStatus = RunState.Error;

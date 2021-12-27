@@ -1,18 +1,22 @@
-﻿using System.Windows.Forms;
-
-namespace guildwars2.tools.alternator.MVVM.viewmodel;
+﻿namespace guildwars2.tools.alternator.MVVM.viewmodel;
 
 public class SettingsViewModel : ObservableObject
 {
-    private readonly MainViewModel main;
+    private Settings Settings { get; }
+    private Func<string>? GetVersion { get; }
 
-    public SettingsViewModel(MainViewModel main)
+    public SettingsViewModel(Settings settings, Func<string>? getVersion)
     {
-        this.main = main;
+        Settings = settings;
+        GetVersion = getVersion;
     }
 
-    public string? Gw2Folder { get; set; }
+    public string Gw2Folder
+    {
+        get => Settings.Gw2Folder;
+        set => Settings.Gw2Folder = value;
+    }
 
-    public string Title => $"GW2 alternator Settings V{main.Version?.ToString() ?? "0.0.0 (dev)"}";
+    public string Title => $"GW2 alternator Settings V{GetVersion?.Invoke() ?? "?.?.?"}";
 
 }

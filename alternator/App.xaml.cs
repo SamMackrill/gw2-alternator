@@ -42,27 +42,55 @@ public partial class App : Application
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
+    public const string ApplicationName = "Gw2-Alternator";
+
+    private SettingsController? settingsController;
+    private Settings? settings;
+
     protected override void OnStartup(StartupEventArgs e)
     {
-        SetLogging();
-
         base.OnStartup(e);
+
+        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+
+        var applicationFolder = new DirectoryInfo(Path.Combine(appData, ApplicationName));
+        if (!applicationFolder.Exists) applicationFolder.Create();
+        SetLogging(applicationFolder);
+
+        settingsController = new SettingsController(applicationFolder);
+        settings = settingsController.Load().Result;
+
+        var mainView = new MainViewModel(applicationFolder, appData, settings);
+        var mainWindow = new MainWindow(mainView);
+        mainWindow.Show();
     }
 
     protected override void OnExit(ExitEventArgs e)
     {
+        settingsController?.Save(settings).Wait();
         LogManager.Shutdown();
         base.OnExit(e);
     }
 
-    private void SetLogging()
+    private void SetLogging(DirectoryInfo folder)
     {
         var config = new NLog.Config.LoggingConfiguration();
-
         // Targets where to log to: File and Console
-        var logfile = new NLog.Targets.FileTarget("logfile") { FileName = "alternator-log.txt", DeleteOldFileOnStartup = true };
-        var debugLogfile = new NLog.Targets.FileTarget("debuglogfile") { FileName = "alternator-debug-log.txt", DeleteOldFileOnStartup = true };
-        var errorLogfile = new NLog.Targets.FileTarget("errorlogfile") { FileName = "alternator-error-log.txt" };
+        var logfile = new NLog.Targets.FileTarget("logfile")
+        {
+            FileName = Path.Combine(folder.FullName, "gw2-alternator-log.txt"), 
+            DeleteOldFileOnStartup = true
+        };
+        var debugLogfile = new NLog.Targets.FileTarget("debuglogfile")
+        {
+            FileName = Path.Combine(folder.FullName, "gw2-alternator-debug-log.txt"),
+            DeleteOldFileOnStartup = true
+        };
+        var errorLogfile = new NLog.Targets.FileTarget("errorlogfile")
+        {
+            FileName = Path.Combine(folder.FullName, "gw2-alternator-error-log.txt"),
+            DeleteOldFileOnStartup = false
+        };
         var logConsole = new NLog.Targets.ConsoleTarget("logconsole");
 
         // Rules for mapping loggers to targets            
@@ -100,7 +128,7 @@ public partial class App : Application
                                          MessageBoxImage.Error);
             if (result == MessageBoxResult.Yes)
             {
-                // Save data
+                settingsController?.Save(settings).Wait();
             }
 
             Logger.Error(e.Exception, "Unrecoverable Exception");

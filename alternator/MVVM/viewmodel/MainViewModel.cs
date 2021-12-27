@@ -9,11 +9,11 @@ public class MainViewModel : ObservableObject
     public ICommandExtended? ShowSettingsCommand { get; }
     public ICommandExtended? CloseCommand { get; }
 
-    private const string AccountsJson = "accounts.json";
     private CancellationTokenSource? cts;
 
     private readonly AccountCollection accountCollection;
     public AccountsViewModel AccountsViewModel { get; set; }
+    public SettingsViewModel SettingsViewModel { get; set; }
 
     private bool running;
     private bool Running
@@ -93,15 +93,16 @@ public class MainViewModel : ObservableObject
 
     public string Version => "0.0.1";
 
-    public MainViewModel()
+    public MainViewModel(DirectoryInfo applicationFolder, string appData, Settings settings)
     {
-        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var datFile = new FileInfo(Path.Combine(appData, @"Guild Wars 2\Local.dat"));
-        var gfxSettingsFile = new FileInfo(Path.Combine(appData, @"Guild Wars 2\GFXSettings.Gw2-64.exe.xml"));
+        SettingsViewModel = new SettingsViewModel(settings, () => { return Version; });
 
-        accountCollection = new AccountCollection(AccountsJson);
+        accountCollection = new AccountCollection(applicationFolder);
         accountCollection.Loaded += OnAccountsLoaded;
         AccountsViewModel = new AccountsViewModel();
+
+        var datFile = new FileInfo(Path.Combine(appData, @"Guild Wars 2", @"Local.dat"));
+        var gfxSettingsFile = new FileInfo(Path.Combine(appData, @"Guild Wars 2", @"GFXSettings.Gw2-64.exe.xml"));
 
         Initialise();
 
@@ -122,7 +123,7 @@ public class MainViewModel : ObservableObject
 
                 cts = new CancellationTokenSource();
                 cts.Token.ThrowIfCancellationRequested();
-                var launcher = new ClientController(datFile, gfxSettingsFile, launchType);
+                var launcher = new ClientController(applicationFolder, settings, datFile, gfxSettingsFile, launchType);
 
                 var accountsToRun = accountCollection.AccountsToRun(launchType, all);
                 if (accountsToRun == null || !accountsToRun.Any()) return;
@@ -156,7 +157,7 @@ public class MainViewModel : ObservableObject
         {
             var settingsView = new SettingsWindow
             {
-                DataContext = new SettingsViewModel(this),
+                DataContext = SettingsViewModel,
                 Owner = Application.Current.MainWindow
             };
             settingsView.ShowDialog();
@@ -173,6 +174,7 @@ public class MainViewModel : ObservableObject
         };
         dt.Start();
     }
+
 
     private void OnAccountsLoaded(object? sender, EventArgs e)
     {

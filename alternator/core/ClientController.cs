@@ -1,5 +1,4 @@
-﻿
-namespace guildwars2.tools.alternator;
+﻿namespace guildwars2.tools.alternator;
 
 public class ClientController
 {
@@ -8,11 +7,16 @@ public class ClientController
     private readonly FileInfo gfxSettingsFile;
     private readonly LaunchType launchType;
     private readonly SemaphoreSlim loginSemaphore;
+    private readonly DirectoryInfo applicationFolder;
+    private readonly Settings settings;
 
     public event EventHandler<GenericEventArgs<bool>>? AfterLaunchAccount;
 
-    public ClientController(FileInfo loginFile, FileInfo gfxSettingsFile, LaunchType launchType)
+    public ClientController(DirectoryInfo applicationFolder, Settings settings, FileInfo loginFile,
+        FileInfo gfxSettingsFile, LaunchType launchType)
     {
+        this.applicationFolder = applicationFolder;
+        this.settings = settings;
         this.loginFile = loginFile;
         this.gfxSettingsFile = gfxSettingsFile;
         this.launchType = launchType;
@@ -34,7 +38,7 @@ public class ClientController
             var launchCount = new Counter();
             var tasks = accounts.Select(account => Task.Run(async () =>
                 {
-                    var launcher = new Launcher(account, launchType, launchCancelled);
+                    var launcher = new Launcher(account, launchType, applicationFolder, settings, launchCancelled);
                     var success = await launcher.Launch(loginFile, gfxSettingsFile, loginSemaphore, exeSemaphore, 3, launchCount);
                     AfterLaunchAccount?.Invoke(account, new GenericEventArgs<bool>(success));
                     LogManager.Flush();
@@ -62,7 +66,7 @@ public class ClientController
     private async Task Restore()
     {
         Logger.Info("{0} login semaphore={1}", nameof(Restore), loginSemaphore.CurrentCount);
-        //await loginSemaphore.WaitAsync();
+        await loginSemaphore.WaitAsync();
         try
         {
             await Task.Run(() =>
@@ -73,7 +77,7 @@ public class ClientController
         }
         finally
         {
-            //loginSemaphore.Release();
+            loginSemaphore.Release();
         }
     }
 

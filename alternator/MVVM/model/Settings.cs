@@ -1,12 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text.Json;
 
-namespace guildwars2.tools.alternator.MVVM.model
+namespace guildwars2.tools.alternator.MVVM.model;
+
+[Serializable]
+public class Settings : ObservableObject
 {
-    public class Settings
+
+    private string? gw2Folder;
+    public string? Gw2Folder
     {
+        get => gw2Folder;
+        set => SetProperty(ref gw2Folder, value);
     }
+
 }
