@@ -1,6 +1,4 @@
-﻿using System.Text.Json;
-
-namespace guildwars2.tools.alternator.MVVM.model;
+﻿namespace guildwars2.tools.alternator.MVVM.model;
 
 [Serializable]
 public class Settings : ObservableObject
@@ -13,4 +11,19 @@ public class Settings : ObservableObject
         set => SetProperty(ref gw2Folder, value);
     }
 
+    private int maxLoginInstances;
+    public int MaxLoginInstances
+    {
+        get => maxLoginInstances;
+        set => SetProperty(ref maxLoginInstances, value);
+    }
+
+    public Settings()
+    {
+        var gcMemoryInfo = GC.GetGCMemoryInfo();
+        var freeMemory = (int)((gcMemoryInfo.TotalAvailableMemoryBytes - gcMemoryInfo.MemoryLoadBytes) >> 20);
+        maxLoginInstances = freeMemory / 1400;
+
+        if (Directory.Exists(@"C:\Program Files (x86)\Guild Wars 2")) gw2Folder = @"C:\Program Files (x86)\Guild Wars 2";
+    }
 }

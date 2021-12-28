@@ -35,6 +35,8 @@
                 <RowDefinition Height="2"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="2"/>
             </Grid.RowDefinitions>
 
@@ -56,7 +58,6 @@
                         Style="{StaticResource FadeOutButton}"
                         Click="CloseButton_Click"
                         >
-
                     <Image Source="/images/close-window.png" Width="24" />
                 </Button>
 
@@ -81,7 +82,7 @@
                     Height="16" Width="16"
                     Background="Transparent"
                     Style="{StaticResource FadeOutButton}"
-                    Command="{Binding Path=ResetJournalLocationCommand, Mode=OneWay}" >
+                    Command="{Binding Path=ResetGw2FolderCommand, Mode=OneWay}" >
 
                 <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
             </Button>
@@ -93,12 +94,42 @@
                     Height="16" Width="16"
                     Background="Transparent"
                     Style="{StaticResource FadeOutButton}"
-                    Command="{Binding Path=ChooseJournalLocationCommand, Mode=OneWay}" >
+                    Command="{Binding Path=ChooseGw2FolderCommand, Mode=OneWay}" >
 
                 <Image Source="/images/folder.png" ToolTip="Change..." Width="16" />
             </Button>
 
+            <Label Padding="0" Grid.Row="3" Grid.Column="1"
+                   Content="Max Instances:" />
+            <TextBox Grid.Row="3" Grid.Column="2"
+                     BorderThickness="1"
+                     Margin="4,4,0,0"
+                     MinWidth="100"
+                     Text="{Binding Path=MaxLoginInstances, Mode=TwoWay, FallbackValue='4'}"/>
+            <Button Grid.Row="3" Grid.Column="3"  
+                    Margin="4,0,0,0" 
+                    Opacity="0.6"
+                    VerticalAlignment="Center" 
+                    BorderThickness="0" 
+                    Height="16" Width="16"
+                    Background="Transparent"
+                    Style="{StaticResource FadeOutButton}"
+                    Command="{Binding Path=ResetMaxLoginInstancesCommand, Mode=OneWay}" >
 
+                <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
+            </Button>
+
+            <Label Padding="0" Grid.Row="4" Grid.Column="1"
+                   Content="Import From:" />
+
+            <Button  Grid.Row="4" Grid.Column="2"
+                     Style="{StaticResource FadeOutButton}"
+                     Margin="4,4,0,4"
+                     Opacity="0.6"
+                     VerticalAlignment="Center" 
+                     Background="Transparent"
+                     Command="{Binding Path=ImportFromLaunchBuddyCommand, Mode=OneWay}" 
+                     Content="Launch Buddy"/>
         </Grid>
     </Border>
 

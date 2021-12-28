@@ -18,7 +18,28 @@ public class SettingsController
         semaphore = new SemaphoreSlim(1, 1);
     }
 
-    public async Task<Settings> Load()
+    public Settings Load()
+    {
+        try
+        {
+            semaphore.Wait();
+            using var stream = File.OpenRead(settingsJson);
+            var settings = JsonSerializer.Deserialize<Settings>(stream);
+            Logger.Debug("Settings loaded from {0}", settingsJson);
+            return settings ?? DefaultSettings;
+        }
+        catch (Exception e)
+        {
+            Logger.Error(e, $"Loading Settings from {settingsJson}");
+        }
+        finally
+        {
+            semaphore.Release();
+        }
+        return DefaultSettings;
+    }
+
+    public async Task<Settings> LoadAsync()
     {
         try
         {
@@ -30,7 +51,7 @@ public class SettingsController
         }
         catch (Exception e)
         {
-            Logger.Error(e, $"Loading accounts from {settingsJson}");
+            Logger.Error(e, $"Loading Settings from {settingsJson}");
         }
         finally
         {
@@ -39,12 +60,34 @@ public class SettingsController
         return DefaultSettings;
     }
 
-    public async Task Save(Settings? settings)
+    public void Save(Settings? settings)
     {
         if (settings == null) return;
         try
         {
-            Logger.Debug("Saving Accounts to {0}", settingsJson);
+            Logger.Debug("Saving Settings to {0}", settingsJson);
+            semaphore.Wait();
+
+            using (var stream = new FileStream(settingsJson, FileMode.Create))
+            {
+                 JsonSerializer.Serialize(stream, settings, new JsonSerializerOptions { AllowTrailingCommas = true, WriteIndented = true });
+            }
+
+            Task.Delay(1000);
+            Logger.Debug("Settings saved to {0}", settingsJson);
+        }
+        finally
+        {
+            semaphore.Release();
+        }
+    }
+
+    public async Task SaveAsync(Settings? settings)
+    {
+        if (settings == null) return;
+        try
+        {
+            Logger.Debug("Saving Settings to {0}", settingsJson);
             await semaphore.WaitAsync();
 
             await using (var stream = new FileStream(settingsJson, FileMode.Create))
@@ -53,17 +96,17 @@ public class SettingsController
             }
 
             await Task.Delay(1000);
-            Logger.Debug("Accounts saved to {0}", settingsJson);
+            Logger.Debug("Settings saved to {0}", settingsJson);
         }
         finally
         {
             semaphore.Release();
         }
     }
-    
 
     public static Settings DefaultSettings => new()
     {
-        Gw2Folder = @"G:\Games\gw2"
+        Gw2Folder = @"G:\Games\gw2",
+        MaxLoginInstances = 4,
     };
 }

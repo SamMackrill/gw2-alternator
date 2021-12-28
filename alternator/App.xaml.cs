@@ -42,14 +42,20 @@ public partial class App : Application
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-    public const string ApplicationName = "Gw2-Alternator";
+    public string ApplicationName { get; }
 
     private SettingsController? settingsController;
     private Settings? settings;
 
+    public App()
+    {
+        ApplicationName = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name ?? "gw2-alternator";
+    }
+
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+
 
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
@@ -58,7 +64,7 @@ public partial class App : Application
         SetLogging(applicationFolder);
 
         settingsController = new SettingsController(applicationFolder);
-        settings = settingsController.Load().Result;
+        settings = settingsController.Load();
 
         var mainView = new MainViewModel(applicationFolder, appData, settings);
         var mainWindow = new MainWindow(mainView);
@@ -67,7 +73,7 @@ public partial class App : Application
 
     protected override void OnExit(ExitEventArgs e)
     {
-        settingsController?.Save(settings).Wait();
+        settingsController?.Save(settings);
         LogManager.Shutdown();
         base.OnExit(e);
     }
@@ -128,7 +134,7 @@ public partial class App : Application
                                          MessageBoxImage.Error);
             if (result == MessageBoxResult.Yes)
             {
-                settingsController?.Save(settings).Wait();
+                settingsController?.Save(settings);
             }
 
             Logger.Error(e.Exception, "Unrecoverable Exception");
