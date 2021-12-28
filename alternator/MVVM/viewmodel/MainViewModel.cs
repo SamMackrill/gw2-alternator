@@ -12,7 +12,7 @@ public class MainViewModel : ObservableObject
     private CancellationTokenSource? cts;
 
     private readonly AccountCollection accountCollection;
-    public AccountsViewModel AccountsViewModel { get; set; }
+    public AccountsViewModel AccountsVM { get; set; }
     public SettingsViewModel SettingsViewModel { get; set; }
 
     private bool running;
@@ -95,11 +95,11 @@ public class MainViewModel : ObservableObject
 
     public MainViewModel(DirectoryInfo applicationFolder, string appData, Settings settings)
     {
-        SettingsViewModel = new SettingsViewModel(settings, () => { return Version; });
+        accountCollection = new AccountCollection(applicationFolder, Path.Combine(appData, "Gw2 Launchbuddy"));
+        SettingsViewModel = new SettingsViewModel(settings, accountCollection , () => { return Version; });
 
-        accountCollection = new AccountCollection(applicationFolder);
         accountCollection.Loaded += OnAccountsLoaded;
-        AccountsViewModel = new AccountsViewModel();
+        AccountsVM = new AccountsViewModel();
 
         var datFile = new FileInfo(Path.Combine(appData, @"Guild Wars 2", @"Local.dat"));
         var gfxSettingsFile = new FileInfo(Path.Combine(appData, @"Guild Wars 2", @"GFXSettings.Gw2-64.exe.xml"));
@@ -115,7 +115,7 @@ public class MainViewModel : ObservableObject
 
                 var maxInstances = serial ? 1 : launchType switch
                 {
-                    LaunchType.Login => 4,
+                    LaunchType.Login => settings.MaxLoginInstances,
                     LaunchType.Collect => 2,
                     LaunchType.Update => 1,
                     _ => 1
@@ -178,7 +178,7 @@ public class MainViewModel : ObservableObject
 
     private void OnAccountsLoaded(object? sender, EventArgs e)
     {
-        AccountsViewModel.Add(accountCollection.Accounts);
+        AccountsVM.Add(accountCollection.Accounts);
     }
 
     private void Initialise()

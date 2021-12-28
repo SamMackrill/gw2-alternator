@@ -4,18 +4,21 @@ namespace guildwars2.tools.alternator.MVVM.model;
 
 public class AccountCollection
 {
+    private readonly string launchbuddyFolder;
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
     private const string AccountsJsonFile = "accounts.json";
 
     public List<Account>? Accounts { get; private set; }
+
     private readonly string accountsJson;
     private readonly SemaphoreSlim semaphore;
 
     public event EventHandler<EventArgs>? Loaded;
 
-    public AccountCollection(FileSystemInfo folderPath)
+    public AccountCollection(FileSystemInfo folderPath, string launchbuddyFolder)
     {
+        this.launchbuddyFolder = launchbuddyFolder;
         accountsJson = Path.Combine(folderPath.FullName, AccountsJsonFile);
         semaphore = new SemaphoreSlim(1, 1);
     }
@@ -73,5 +76,27 @@ public class AccountCollection
             LaunchType.Update => Accounts.Where(a => a.UpdateRequired).ToList(),
             _ => throw new ArgumentException(message: "invalid enum value", paramName: nameof(launchType))
         };
+    }
+
+    public bool CanImportFromLaunchbuddy => Directory.Exists(launchbuddyFolder);
+
+    public void ImportFromLaunchbuddy()
+    {
+        try
+        {
+            semaphore.Wait();
+            using var stream = File.OpenRead(accountsJson);
+            Accounts = JsonSerializer.Deserialize<List<Account>>(stream);
+            Logger.Debug("Accounts loaded from {0}", accountsJson);
+            Loaded?.Invoke(this, EventArgs.Empty);
+        }
+        catch (Exception e)
+        {
+            Logger.Error(e, $"Loading accounts from {accountsJson}");
+        }
+        finally
+        {
+            semaphore.Release();
+        }
     }
 }

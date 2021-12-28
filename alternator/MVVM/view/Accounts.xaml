@@ -4,8 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewmodel="clr-namespace:guildwars2.tools.alternator.MVVM.viewmodel"
-             d:DataContext="{d:DesignInstance Type=viewmodel:MainViewModel}"
              mc:Ignorable="d" 
+             d:DataContext="{d:DesignInstance Type=viewmodel:AccountsViewModel}"
              d:DesignHeight="600" d:DesignWidth="400">
 
 
@@ -21,7 +21,9 @@
               IsReadOnly="True"
               SelectionUnit="FullRow"
               BorderThickness="0"
-              ItemsSource="{Binding AccountsViewModel}">
+              d:ItemsSource="{d:SampleData}"
+              ItemsSource="{Binding .}"
+              >
 
         <DataGrid.Columns>
             <DataGridTextColumn Header="Account" Binding="{Binding Account}" />

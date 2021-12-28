@@ -3,9 +3,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:viewmodel="clr-namespace:guildwars2.tools.alternator.MVVM.viewmodel"
         xmlns:view="clr-namespace:guildwars2.tools.alternator.MVVM.view"
+        xmlns:viewmodel="clr-namespace:guildwars2.tools.alternator.MVVM.viewmodel"
         mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=viewmodel:MainViewModel}"
         Height="450" Width="800"
         MinHeight="350" MinWidth="560"
         WindowStyle="None"
@@ -189,12 +190,13 @@
                              Style="{StaticResource MenuButtonTheme}" />
             </StackPanel>
 
-            <view:Accounts Grid.Row="2" Grid.Column="1" />
+            <view:Accounts Grid.Row="2" Grid.Column="1" 
+                           DataContext="{Binding AccountsVM}"
+                           />
 
         </Grid>
 
     </Border>
-
 
         <Rectangle x:Name="LeftSizeGrip"
                    Width="7"
