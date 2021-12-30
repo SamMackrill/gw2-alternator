@@ -24,3 +24,14 @@ public enum LaunchState
     Ready,
     UpToDate,
 }
+
+
+public enum RunStage
+{
+    NotRun,
+    Started,
+    Authenticated,
+    ReadyToPlay,
+    CharacterSelectReached,
+    WorldEntered,
+}

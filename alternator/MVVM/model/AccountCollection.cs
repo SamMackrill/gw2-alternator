@@ -1,4 +1,6 @@
 ﻿using System.Text.Json;
+using System.Xml;
+using System.Xml.XPath;
 
 namespace guildwars2.tools.alternator.MVVM.model;
 
@@ -67,13 +69,12 @@ public class AccountCollection
     public List<Account>? AccountsToRun(LaunchType launchType, bool all)
     {
         if (Accounts == null) return null;
-        if (all) return Accounts;
 
         return launchType switch
         {
-            LaunchType.Login => Accounts.Where(a => a.LoginRequired).ToList(),
-            LaunchType.Collect => Accounts.Where(a => a.CollectionRequired).ToList(),
-            LaunchType.Update => Accounts.Where(a => a.UpdateRequired).ToList(),
+            LaunchType.Login => Accounts.Where(a => all || a.LoginRequired).ToList(),
+            LaunchType.Collect => Accounts.Where(a => all || a.CollectionRequired).OrderBy(a =>a.LastCollection).ToList(),
+            LaunchType.Update => Accounts.Where(a => all || a.UpdateRequired).ToList(),
             _ => throw new ArgumentException(message: "invalid enum value", paramName: nameof(launchType))
         };
     }
@@ -85,9 +86,11 @@ public class AccountCollection
         try
         {
             semaphore.Wait();
-            using var stream = File.OpenRead(accountsJson);
-            Accounts = JsonSerializer.Deserialize<List<Account>>(stream);
-            Logger.Debug("Accounts loaded from {0}", accountsJson);
+            var accountsXml = Path.Combine(launchbuddyFolder, "Accs.xml");
+            var doc = new XPathDocument(accountsXml);
+            var navigator = doc.CreateNavigator();
+            //var LBAccounts = navigator.SelectChildren();
+            Logger.Debug("{0} Accounts loaded from {1}", 9, accountsXml);
             Loaded?.Invoke(this, EventArgs.Empty);
         }
         catch (Exception e)

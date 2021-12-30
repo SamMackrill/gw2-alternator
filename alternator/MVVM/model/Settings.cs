@@ -5,7 +5,7 @@ public class Settings : ObservableObject
 {
 
     private string? gw2Folder;
-    public string? Gw2Folder
+    public string Gw2Folder
     {
         get => gw2Folder;
         set => SetProperty(ref gw2Folder, value);
@@ -18,12 +18,18 @@ public class Settings : ObservableObject
         set => SetProperty(ref maxLoginInstances, value);
     }
 
-    public Settings()
-    {
-        var gcMemoryInfo = GC.GetGCMemoryInfo();
-        var freeMemory = (int)((gcMemoryInfo.TotalAvailableMemoryBytes - gcMemoryInfo.MemoryLoadBytes) >> 20);
-        maxLoginInstances = freeMemory / 1400;
+    public Settings() : this(false) { }
 
-        if (Directory.Exists(@"C:\Program Files (x86)\Guild Wars 2")) gw2Folder = @"C:\Program Files (x86)\Guild Wars 2";
+    public Settings(bool setDefault)
+    {
+        if (setDefault)
+        {
+
+            var gcMemoryInfo = GC.GetGCMemoryInfo();
+            var freeMemory = (int)((gcMemoryInfo.TotalAvailableMemoryBytes - gcMemoryInfo.MemoryLoadBytes) >> 20);
+            maxLoginInstances = freeMemory / 1400;
+
+            if (Directory.Exists(@"C:\Program Files (x86)\Guild Wars 2")) gw2Folder = @"C:\Program Files (x86)\Guild Wars 2";
+        }
     }
 }

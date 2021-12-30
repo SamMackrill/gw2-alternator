@@ -127,6 +127,7 @@ public class MainViewModel : ObservableObject
 
                 var accountsToRun = accountCollection.AccountsToRun(launchType, all);
                 if (accountsToRun == null || !accountsToRun.Any()) return;
+                //accountsToRun = accountsToRun.Where(a => a.Name == "Fish9").ToList();
                 await launcher.LaunchMultiple(accountsToRun, maxInstances, cts.Token);
 
                 await accountCollection.Save();

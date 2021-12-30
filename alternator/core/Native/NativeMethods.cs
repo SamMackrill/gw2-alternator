@@ -401,4 +401,14 @@ internal static class Native
 
     [DllImport(PSAPI)]
     internal static extern uint GetModuleFileNameEx(IntPtr hProcess, IntPtr hModule, [Out] StringBuilder lpBaseName, [In] [MarshalAs(UnmanagedType.U4)] int nSize);
+
+    [DllImport(KERNEL32)]
+    internal static extern IntPtr OpenThread(ThreadAccess dwDesiredAccess, bool bInheritHandle, uint dwThreadId);
+   
+    [DllImport(KERNEL32)]
+    internal static extern uint SuspendThread(IntPtr hThread);
+   
+    [DllImport(KERNEL32)]
+    internal static extern uint ResumeThread(IntPtr hThread);
+
 }

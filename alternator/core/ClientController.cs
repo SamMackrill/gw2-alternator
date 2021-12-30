@@ -23,7 +23,7 @@ public class ClientController
         loginSemaphore = new SemaphoreSlim(0, 1);
     }
 
-    public async Task LaunchMultiple(List<Account> accounts, int maxInstances, CancellationToken launchCancelled)
+    public async Task LaunchMultiple(IEnumerable<Account> accounts, int maxInstances, CancellationToken launchCancelled)
     {
         if (!accounts.Any())
         {
