@@ -1,32 +1,41 @@
 ﻿namespace guildwars2.tools.alternator.MVVM.model;
 
+public class ClientStateChangedEventArgs : EventArgs
+{
+    public ClientStateChangedEventArgs(RunStage oldState, RunStage state)
+    {
+        OldState = oldState;
+        State = state;
+    }
+
+    public RunStage OldState { get; }
+    public RunStage State { get; }
+}
+
 public class Client : ObservableObject
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private const string MutexName = "AN-Mutex-Window-Guild Wars 2";
 
     private readonly Account account;
-    private Process? p;
-    private List<string> loadedModules;
+    private readonly List<string> loadedModules;
 
-    public event EventHandler Started;
-    public event EventHandler MutexRemoved;
-    public event EventHandler Authenticated;
-    public event EventHandler AuthenticationBlocked;
-    public event EventHandler ReadyToPlay;
-    public event EventHandler ReadyToSelectCharactor;
-    public event EventHandler EnteredWorld;
-    public event EventHandler Exited;
+    private Process? p;
+    private long characterSelectMemoryUsage;
+    private bool closed;
+    private record struct EngineTuning(TimeSpan Pause, long MemoryUsage, long MinDiff);
+
+    private EngineTuning tuning;
+
+    public event EventHandler<ClientStateChangedEventArgs>? RunStatusChanged;
 
 
     private DateTime startTime;
     public DateTime StartTime
     {
         get => startTime;
-        set => SetProperty(ref startTime, value);
+        private set => SetProperty(ref startTime, value);
     }
-
-    public DateTime ExitTime => p?.ExitTime ?? DateTime.MinValue;
 
     private RunState runStatus;
     public RunState RunStatus
@@ -42,10 +51,7 @@ public class Client : ObservableObject
     public RunStage RunStage
     {
         get => runStage;
-        set
-        {
-            SetProperty(ref runStage, value);
-        }
+        private set => SetProperty(ref runStage, value);
     }
 
     private string? statusMessage;
@@ -63,27 +69,27 @@ public class Client : ObservableObject
         RunStage = RunStage.NotRun;
     }
 
-    internal record struct ClientHandler(RunStage RunStage, EventHandler? Handler) { }
-    private Dictionary<string, ClientHandler> eventsFromModules;
-
     public async Task Launch(LaunchType launchType, string gw2Location, CancellationToken cancellationToken)
     {
-        eventsFromModules = new()
+
+        Dictionary<string, RunStage> runStageFromModules = new()
         {
-            { "dpapi.dll", new ClientHandler(RunStage.Authenticated, Authenticated) },
-            { "userenv.dll", new ClientHandler(RunStage.CharacterSelectReached, ReadyToSelectCharactor) },
+            { @"winnsi.dll", RunStage.Authenticated },
+            { @"userenv.dll", RunStage.CharacterSelectReached },
+            { @"mmdevapi.dll", RunStage.Playing },
         };
+
+        tuning = new EngineTuning(new TimeSpan(0, 0, 0, 0, 200), 0L, 1L);
 
         // Run gw2 exe with arguments
         var gw2Arguments = launchType is LaunchType.Update ? "-image" : $"-windowed -nosound -shareArchive -maploadinfo -dx9 -fps 20 -autologin"; // -dat \"{account.LoginFile}\""
-        var pi = new ProcessStartInfo(Path.Combine(gw2Location, "Gw2-64.exe"))
+        p = new Process { StartInfo = new ProcessStartInfo(Path.Combine(gw2Location, "Gw2-64.exe"))
         {
             CreateNoWindow = true,
             Arguments = gw2Arguments,
             UseShellExecute = false,
             WorkingDirectory = gw2Location,
-        };
-        p = new Process { StartInfo = pi };
+        } };
         p.Exited += Gw2Exited;
 
         loadedModules.Clear();
@@ -92,111 +98,126 @@ public class Client : ObservableObject
 
         if (launchType is not LaunchType.Update) KillMutex();
 
-        var timeout = new TimeSpan(0, 5, 0);
-        var pause = new TimeSpan(0, 0, 0, 0, 100);
-        var lastMemoryUsage = 0L;
-        var minDiff = 1L;
-        while (Alive && DateTime.Now.Subtract(StartTime) < timeout)
+        // TODO add failed login detection
+        var timeout = launchType == LaunchType.Collect ? TimeSpan.MaxValue : new TimeSpan(0, 5, 0);
+        // State Engine
+        while (Alive)
         {
+            if (DateTime.Now.Subtract(StartTime) > timeout) throw new Gw2Exception("GW2 process timed-out");
+
             var memoryUsage = p.WorkingSet64 / 1024;
-            var diff = Math.Abs(memoryUsage - lastMemoryUsage);
-            if ((RunStage == RunStage.Authenticated || RunStage == RunStage.CharacterSelectReached) && diff < minDiff)
+
+            if (RunStage == RunStage.CharacterSelectReached && memoryUsage - characterSelectMemoryUsage > 100)
             {
-                Logger.Debug("{0} Memory={1} ({2}<{3})", account.Name, memoryUsage, diff, minDiff);
+                await Task.Delay(200, cancellationToken);
+                ChangeRunStage(RunStage.CharacterSelected);
+            }
+
+            var diff = Math.Abs(memoryUsage - tuning.MemoryUsage);
+            if ((RunStage == RunStage.Authenticated || RunStage >= RunStage.CharacterSelected) && diff < tuning.MinDiff)
+            {
+                Logger.Debug("{0} Memory={1} ({2}<{3})", account.Name, memoryUsage, diff, tuning.MinDiff);
                 if (RunStage == RunStage.Authenticated && memoryUsage > 120_000)
                 {
                     await Task.Delay(1800, cancellationToken);
-                    Logger.Debug("{0} Ready to Play", account.Name, account.Character);
-                    RunStage = RunStage.ReadyToPlay;
-                    ReadyToPlay?.Invoke(this, EventArgs.Empty);
+                    ChangeRunStage(RunStage.ReadyToPlay);
                 }
-                //else if ((RunStage == RunStage.ReadyToPlay || RunStage == RunStage.Authenticated) && memoryUsage > 750_000)
-                //{
-                //    if (RunStage == RunStage.Authenticated)
-                //    {
-                //        Logger.Debug("{0} Play already initiated", account.Name);
-                //    }
-                //    Logger.Debug("{0} Ready to Play", account.Name, account.Character);
-                //    runStage = RunStage.CharacterSelectReached;
-                //    ReadyToSelectCharactor?.Invoke(this, EventArgs.Empty);
-                //}
-                else if (RunStage == RunStage.CharacterSelectReached && memoryUsage > 1_400_000)
+                else if (RunStage >= RunStage.CharacterSelected && memoryUsage > 1_400_000)
                 {
                     await Task.Delay(1800, cancellationToken);
-                    Logger.Debug("{0} World Entered {1}", account.Name, account.Character);
-                    RunStage = RunStage.WorldEntered;
                     //Suspend();
-                    EnteredWorld?.Invoke(this, EventArgs.Empty);
+                    ChangeRunStage(RunStage.WorldEntered);
                     //Resume();
                 }
             }
-            lastMemoryUsage = memoryUsage;
+            tuning.MemoryUsage = memoryUsage;
 
             var newModules = UpdateProcessModules();
-            var events = eventsFromModules.Where(e => newModules.Contains(e.Key)).Select(e => e.Value).ToList();
-            foreach (var launchEvent in events)
+            var stageChanges = runStageFromModules.Where(e => newModules.Contains(e.Key))
+                                                  .OrderBy(e => e.Key)
+                                                  .Select(e => e.Value);
+            foreach (var newRunStage in stageChanges)
             {
-                Logger.Debug("{0} {1}", account.Name, launchEvent.RunStage);
-                RunStage = launchEvent.RunStage;
-                if (RunStage == RunStage.CharacterSelectReached)
-                {
-                    pause = new TimeSpan(0, 0, 0, 2, 0);
-                    minDiff = 200;
-                }
-                launchEvent.Handler?.Invoke(this, EventArgs.Empty);
+                ChangeRunStage(newRunStage);
             }
-            await Task.Delay(pause, cancellationToken);
+            await Task.Delay(tuning.Pause, cancellationToken);
         }
-        if (launchType!=LaunchType.Collect) await Kill();
+        if (!closed) throw new Gw2Exception("GW2 process crashed");
+    }
+
+    private void UpdateEngineSpeed()
+    {
+        switch (RunStage)
+        {
+            case >= RunStage.CharacterSelectReached:
+                tuning.Pause = new TimeSpan(0, 0, 0, 2, 0);
+                tuning.MinDiff = 200L;
+                break;
+        }
+    }
+
+    private void ChangeRunStage(RunStage newRunStage)
+    {
+        Logger.Debug("{0} Change State to {1}", account.Name, newRunStage);
+        var eventArgs = new ClientStateChangedEventArgs(RunStage, newRunStage);
+        RunStage = newRunStage;
+        UpdateEngineSpeed();
+        RunStatusChanged?.Invoke(this, eventArgs);
     }
 
     private void Start(LaunchType launchType)
     {
-        _ = p.Start();
+        if (!p!.Start()) throw new Gw2Exception($"{account.Name} Failed to start");
+        
         RunStatus = RunState.Running;
-        RunStage = RunStage.Started;
         StartTime = p.StartTime;
         Logger.Debug("{0} Started {1}", account.Name, launchType);
-        Started?.Invoke(this, EventArgs.Empty);
+        ChangeRunStage(RunStage.Started);
     }
 
-    public void Suspend()
+    public void SelectCharacter()
     {
-        if (!Alive) return;
-
-        foreach (ProcessThread pT in p.Threads)
-        {
-            IntPtr pOpenThread = Native.OpenThread(ThreadAccess.SUSPEND_RESUME, false, (uint)pT.Id);
-
-            if (pOpenThread == IntPtr.Zero)  continue;
-
-            Native.SuspendThread(pOpenThread);
-
-            Native.CloseHandle(pOpenThread);
-        }
+        characterSelectMemoryUsage = p!.WorkingSet64 / 1024;
+        SendEnter();
     }
 
-    public void Resume()
-    {
-        if (!Alive) return;
-        foreach (ProcessThread pT in p.Threads)
-        {
-            IntPtr pOpenThread = Native.OpenThread(ThreadAccess.SUSPEND_RESUME, false, (uint)pT.Id);
+    //public void Suspend()
+    //{
+    //    if (!Alive) return;
 
-            if (pOpenThread == IntPtr.Zero)
-            {
-                continue;
-            }
+    //    foreach (ProcessThread pT in p.Threads)
+    //    {
+    //        IntPtr pOpenThread = Native.OpenThread(ThreadAccess.SUSPEND_RESUME, false, (uint)pT.Id);
 
-            uint suspendCount = 0;
-            do
-            {
-                suspendCount = Native.ResumeThread(pOpenThread);
-            } while (suspendCount > 0);
+    //        if (pOpenThread == IntPtr.Zero)  continue;
 
-            Native.CloseHandle(pOpenThread);
-        }
-    }
+    //        Native.SuspendThread(pOpenThread);
+
+    //        Native.CloseHandle(pOpenThread);
+    //    }
+    //}
+
+    //public void Resume()
+    //{
+    //    if (!Alive) return;
+    //    foreach (ProcessThread pT in p.Threads)
+    //    {
+    //        IntPtr pOpenThread = Native.OpenThread(ThreadAccess.SUSPEND_RESUME, false, (uint)pT.Id);
+
+    //        if (pOpenThread == IntPtr.Zero)
+    //        {
+    //            continue;
+    //        }
+
+    //        uint suspendCount;
+    //        do
+    //        {
+    //            suspendCount = Native.ResumeThread(pOpenThread);
+    //        } while (suspendCount > 0);
+
+    //        Native.CloseHandle(pOpenThread);
+    //    }
+    //}
 
     private void KillMutex()
     {
@@ -219,7 +240,6 @@ public class Client : ObservableObject
         //Logger.Debug("{0} Got handle to Mutex", account.Name);
         handle.Kill();
         Logger.Debug("{0} Killed Mutex", account.Name);
-        MutexRemoved?.Invoke(this, EventArgs.Empty);
     }
 
     private List<string> UpdateProcessModules()
@@ -227,7 +247,7 @@ public class Client : ObservableObject
         var newModules = new List<string>();
         if (Alive)
         {
-            foreach (ProcessModule module in p.Modules)
+            foreach (ProcessModule module in p!.Modules)
             {
                 var moduleName = module?.ModuleName?.ToLowerInvariant();
                 if (moduleName == null || loadedModules.Contains(moduleName)) continue;
@@ -267,20 +287,20 @@ public class Client : ObservableObject
         }
     }
 
-    public async Task<bool> Kill()
+    public async Task<bool> Kill(bool done)
     {
         if (!Alive) return false;
 
         p!.Kill(true);
         await Task.Delay(200);
+        closed = done;
         return true;
     }
 
     private void Gw2Exited(object? sender, EventArgs e)
     {
-        var deadProcess = sender as Process;
+        ChangeRunStage(RunStage.Exited);
         Logger.Debug("{0} GW2 process exited", account.Name);
-        Exited?.Invoke(this, EventArgs.Empty);
     }
 
     //public async Task<bool> WaitForExit(LaunchType launchType, CancellationToken cancellationToken)
@@ -319,7 +339,6 @@ public class Client : ObservableObject
     //        return false;
     //    }
 
-    //    // TODO add timeout?
     //    do
     //    {
     //        await Task.Delay(200, cancellationToken);

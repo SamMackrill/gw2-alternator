@@ -31,7 +31,11 @@ public enum RunStage
     NotRun,
     Started,
     Authenticated,
+    LoginFailed,
     ReadyToPlay,
+    Playing,
     CharacterSelectReached,
+    CharacterSelected,
     WorldEntered,
+    Exited,
 }

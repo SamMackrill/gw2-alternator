@@ -9,8 +9,7 @@ public class Launcher
     private readonly Settings settings;
     private readonly CancellationToken launchCancelled;
     private readonly FileInfo referenceGfxSettings;
-
-    private Client? client;
+    private readonly Client? client;
 
     public Launcher(Account account, LaunchType launchType, DirectoryInfo applicationFolder, Settings settings, CancellationToken launchCancelled)
     {
@@ -22,7 +21,7 @@ public class Launcher
         client = account.Client;
     }
 
-    public async Task<bool> Launch(
+    public async Task<bool> LaunchAsync(
         FileInfo loginFile,
         FileInfo gfxSettingsFile,
         SemaphoreSlim loginSemaphore, 
@@ -32,77 +31,80 @@ public class Launcher
     {
         if (client == null) return false;
 
-        int attempt = 0;
+        var attempt = 0;
         Task? releaseLoginTask = null;
+        var loginInProcess = false;
 
-        client.Started += Client_Started;
-        client.Authenticated += Client_Authenticated;
-        client.ReadyToPlay += Client_ReadyToPlay;
-        client.EnteredWorld += Client_EnteredWorld;
-        client.ReadyToSelectCharactor += Client_ReadyToSelectCharactor;
-        client.Exited += Client_Exited;
+        client.RunStatusChanged += Client_RunStatusChanged;
 
         async Task? ReleaseLogin(int attemptCount, CancellationToken cancellationToken)
         {
-            if (launchType is not LaunchType.Update && client.StartTime > DateTime.MinValue)
+            try
             {
-                var secondsSinceLogin = (DateTime.Now - client.StartTime).TotalSeconds;
-                Logger.Debug("{0} secondsSinceLogin={1}s", account.Name, secondsSinceLogin);
-                Logger.Debug("{0} launchCount={1}", account.Name, launchCount.Count);
-                var delay = LaunchDelay(launchCount.Count, attemptCount);
-                Logger.Debug("{0} minimum delay={1}s", account.Name, delay);
-                delay -= (int)secondsSinceLogin;
-                Logger.Debug("{0} actual delay={1}s", account.Name, delay);
-                if (delay > 0) await Task.Delay(new TimeSpan(0, 0, delay), cancellationToken);
+                if (launchType is not LaunchType.Update && client.StartTime > DateTime.MinValue)
+                {
+                    var secondsSinceLogin = (DateTime.Now - client.StartTime).TotalSeconds;
+                    Logger.Debug("{0} secondsSinceLogin={1}s", account.Name, secondsSinceLogin);
+                    Logger.Debug("{0} launchCount={1}", account.Name, launchCount.Count);
+                    var delay = LaunchDelay(launchCount.Count, attemptCount);
+                    Logger.Debug("{0} minimum delay={1}s", account.Name, delay);
+                    delay -= (int)secondsSinceLogin;
+                    Logger.Debug("{0} actual delay={1}s", account.Name, delay);
+                    if (delay > 0) await Task.Delay(new TimeSpan(0, 0, delay), cancellationToken);
+                }
             }
-
-            loginSemaphore.Release();
-            Logger.Info("{0} login semaphore released, count={1}", account.Name, loginSemaphore.CurrentCount);
-        }
-
-        void Client_Started(object? sender, EventArgs e)
-        {
-            Logger.Debug("{0} Started", account.Name);
-        }
-
-        void Client_Authenticated(object? sender, EventArgs e)
-        {
-            Logger.Debug("{0} Authenticated", account.Name);
-            ReleasaeLogin();
-        }
-
-        void Client_ReadyToPlay(object? sender, EventArgs e)
-        {
-            Logger.Debug("{0} Ready to Play", account.Name);
-            ReleasaeLogin();
-            client?.SendEnter();
-        }
-
-        void Client_ReadyToSelectCharactor(object? sender, EventArgs e)
-        {     
-            Logger.Debug("{0} Ready To Select Character", account.Name);
-            client?.SendEnter();
-        }
-
-        void Client_EnteredWorld(object? sender, EventArgs e)
-        {
-            Logger.Debug("{0} Entered World", account.Name);
-            if (launchType == LaunchType.Login) client?.Kill();
-        }
-
-        void Client_Exited(object? sender, EventArgs e)
-        {
-            Logger.Debug("{0} Exited", account.Name);
-            if (client.RunStage == RunStage.WorldEntered)
+            finally
             {
-                client.RunStatus = RunState.Completed;
-                account.LastLogin = DateTime.UtcNow;
-                if (launchType is LaunchType.Collect) account.LastCollection = DateTime.UtcNow;
+                loginSemaphore.Release();
+                Logger.Info("{0} login semaphore released, count={1}", account.Name, loginSemaphore.CurrentCount);
             }
         }
 
-        void ReleasaeLogin()
+
+        void Client_RunStatusChanged(object? sender, ClientStateChangedEventArgs e)
         {
+            Logger.Debug("{0} From {1} To {2}", account.Name, e.OldState, e.State);
+            switch (e.State)
+            {
+                case RunStage.NotRun:
+                    break;
+                case RunStage.Started:
+                    break;
+                case RunStage.Authenticated:
+                    ReleaseLoginIfRequired();
+                    break;
+                case RunStage.LoginFailed:
+                    ReleaseLoginIfRequired();
+                    break;
+                case RunStage.ReadyToPlay:
+                    ReleaseLoginIfRequired();
+                    client?.SendEnter();
+                    break;
+                case RunStage.Playing:
+                    break;
+                case RunStage.CharacterSelectReached:
+                    client?.SelectCharacter();
+                    break;
+                case RunStage.CharacterSelected:
+                    if (launchType == LaunchType.Login) client?.Kill(true);
+                    break;
+                case RunStage.WorldEntered:
+                    if (launchType == LaunchType.Login) client?.Kill(true);
+                    break;
+                case RunStage.Exited:
+                    if (client.RunStage < RunStage.CharacterSelectReached) break;
+                    client.RunStatus = RunState.Completed;
+                    account.LastLogin = DateTime.UtcNow;
+                    if (launchType is LaunchType.Collect) account.LastCollection = DateTime.UtcNow;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException($"Unhandled RunStage: {e.State}");
+            }
+        }
+
+        void ReleaseLoginIfRequired()
+        {
+            if (!loginInProcess) return;
             releaseLoginTask ??= ReleaseLogin(attempt, launchCancelled);
         }
 
@@ -111,7 +113,8 @@ public class Launcher
 
             while (++attempt <= maxRetries)
             {
-                bool exeInProcess = false;
+                loginInProcess = false;
+                var exeInProcess = false;
 
                 try
                 {
@@ -120,6 +123,7 @@ public class Launcher
                     client.RunStatus = RunState.WaitingForLoginSlot;
                     Logger.Info("{0} login semaphore entry, count={1}", account.Name, loginSemaphore.CurrentCount);
                     await loginSemaphore.WaitAsync(launchCancelled);
+                    loginInProcess = true;
                     Logger.Debug("{0} Login slot Free", account.Name);
 
                     await account.SwapFilesAsync(loginFile, gfxSettingsFile, referenceGfxSettings);
@@ -155,7 +159,7 @@ public class Launcher
                 }
                 finally
                 {
-                    ReleasaeLogin();
+                    ReleaseLoginIfRequired();
                     if (exeInProcess)
                     {
                         exeSemaphore.Release();
@@ -163,7 +167,7 @@ public class Launcher
                     }
                 }
 
-                if (await client.Kill())
+                if (await client.Kill(false))
                 {
                     Logger.Debug("{0} GW2 process killed", account.Name);
                 }
@@ -183,20 +187,21 @@ public class Launcher
             client.StatusMessage = "Launch crashed";
             Logger.Error(e, "{0} launch crash", account.Name);
         }
-        if (await client.Kill())
+        if (await client.Kill(false))
         {
             Logger.Debug("{0} GW2 process killed", account.Name);
         }
         return false;
     }
 
+
     private int LaunchDelay(int count, int attempt)
     {
         if (attempt > 1) return 120 + 30 * (1 << (attempt - 1));
 
-        if (count < 20) return 5;
+        if (count < 16) return 5;
         //if (count < 20) return 5 + (1 << (count - 2)) * 5;
-        return 45;
+        return 60;
         //return Math.Min(800, (300 + 10 * (count - 5)));
 
         // 0 | 5

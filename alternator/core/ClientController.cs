@@ -23,8 +23,9 @@ public class ClientController
         loginSemaphore = new SemaphoreSlim(0, 1);
     }
 
-    public async Task LaunchMultiple(IEnumerable<Account> accounts, int maxInstances, CancellationToken launchCancelled)
+    public async Task LaunchMultiple(IEnumerable<Account> accountsToLaunch, int maxInstances, CancellationToken launchCancelled)
     {
+        var accounts = accountsToLaunch as Account[] ?? accountsToLaunch.ToArray();
         if (!accounts.Any())
         {
             Logger.Debug("No accounts to run.");
@@ -39,7 +40,7 @@ public class ClientController
             var tasks = accounts.Select(account => Task.Run(async () =>
                 {
                     var launcher = new Launcher(account, launchType, applicationFolder, settings, launchCancelled);
-                    var success = await launcher.Launch(loginFile, gfxSettingsFile, loginSemaphore, exeSemaphore, 3, launchCount);
+                    var success = await launcher.LaunchAsync(loginFile, gfxSettingsFile, loginSemaphore, exeSemaphore, 3, launchCount);
                     AfterLaunchAccount?.Invoke(account, new GenericEventArgs<bool>(success));
                     LogManager.Flush();
                 }, launchCancelled))
@@ -66,7 +67,8 @@ public class ClientController
     private async Task Restore()
     {
         Logger.Info("{0} login semaphore={1}", nameof(Restore), loginSemaphore.CurrentCount);
-        await loginSemaphore.WaitAsync();
+        var obtainedLoginLock = await loginSemaphore.WaitAsync(new TimeSpan(0, 2, 0));
+        if (!obtainedLoginLock) Logger.Error("{0} login semaphore wait timed-out", nameof(Restore));
         try
         {
             await Task.Run(() =>
@@ -77,7 +79,7 @@ public class ClientController
         }
         finally
         {
-            loginSemaphore.Release();
+            if (obtainedLoginLock) loginSemaphore.Release();
         }
     }
 

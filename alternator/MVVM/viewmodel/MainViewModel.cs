@@ -7,13 +7,13 @@ public class MainViewModel : ObservableObject
     public IAsyncCommand? UpdateCommand { get; set; }
     public ICommandExtended? StopCommand { get; set; }
     public ICommandExtended? ShowSettingsCommand { get; }
-    public ICommandExtended? CloseCommand { get; }
+    public IAsyncCommand? CloseCommand { get; }
 
     private CancellationTokenSource? cts;
 
     private readonly AccountCollection accountCollection;
     public AccountsViewModel AccountsVM { get; set; }
-    public SettingsViewModel SettingsViewModel { get; set; }
+    public SettingsViewModel SettingsVM { get; set; }
 
     private bool running;
     private bool Running
@@ -96,7 +96,7 @@ public class MainViewModel : ObservableObject
     public MainViewModel(DirectoryInfo applicationFolder, string appData, Settings settings)
     {
         accountCollection = new AccountCollection(applicationFolder, Path.Combine(appData, "Gw2 Launchbuddy"));
-        SettingsViewModel = new SettingsViewModel(settings, accountCollection , () => { return Version; });
+        SettingsVM = new SettingsViewModel(settings, accountCollection , () => { return Version; });
 
         accountCollection.Loaded += OnAccountsLoaded;
         AccountsVM = new AccountsViewModel();
@@ -127,7 +127,7 @@ public class MainViewModel : ObservableObject
 
                 var accountsToRun = accountCollection.AccountsToRun(launchType, all);
                 if (accountsToRun == null || !accountsToRun.Any()) return;
-                //accountsToRun = accountsToRun.Where(a => a.Name == "Fish9").ToList();
+                //accountsToRun = accountsToRun.Where(a => a.Name == "Fish2").ToList();
                 await launcher.LaunchMultiple(accountsToRun, maxInstances, cts.Token);
 
                 await accountCollection.Save();
@@ -149,8 +149,9 @@ public class MainViewModel : ObservableObject
             cts?.Cancel();
         }, _ => Running);
 
-        CloseCommand = new RelayCommand<object>(_ =>
+        CloseCommand = new AsyncCommand(async () =>
         {
+            await accountCollection.Save();
             RequestClose?.Invoke();
         }, _ => !Running && RequestClose != null);
 
@@ -158,7 +159,7 @@ public class MainViewModel : ObservableObject
         {
             var settingsView = new SettingsWindow
             {
-                DataContext = SettingsViewModel,
+                DataContext = SettingsVM,
                 Owner = Application.Current.MainWindow
             };
             settingsView.ShowDialog();
@@ -179,6 +180,7 @@ public class MainViewModel : ObservableObject
 
     private void OnAccountsLoaded(object? sender, EventArgs e)
     {
+        AccountsVM.Clear();
         AccountsVM.Add(accountCollection.Accounts);
     }
 
