@@ -2,11 +2,11 @@
 
 public class AccountViewModel : ObservableObject
 {
-    private readonly Account account;
+    public Account Account { get;}
 
     public AccountViewModel(Account account)
     {
-        this.account = account;
+        this.Account = account;
         account.PropertyChanged += ModelPropertyChanged;
         account.Client.PropertyChanged += ModelPropertyChanged;
     }
@@ -26,17 +26,18 @@ public class AccountViewModel : ObservableObject
         OnPropertyChanged(propertyName);
     }
 
-    public string Account => account.Name ?? "Unknown";
+    public string AccountName => Account.Name ?? "Unknown";
 
-    public string Character => account.Character ?? "Unknown";
-    public string Login => $"{account.LastLogin.ToShortDateString()} {account.LastLogin.ToShortTimeString()}";
-    public string LoginRequired => account.LoginRequired ? "Yes" : "No";
-    public string Collected => $"{account.LastCollection.ToShortDateString()} {account.LastCollection.ToShortTimeString()}";
-    public string CollectionRequired => account.CollectionRequired ? "Yes" : "No";
-    public int Age => (int)Math.Floor(DateTime.UtcNow.Subtract(account.CreatedAt).TotalDays);
+    public string Character => Account.Character ?? "Unknown";
+    public string Login => $"{Account.LastLogin.ToShortDateString()} {Account.LastLogin.ToShortTimeString()}";
+    public string LoginRequired => Account.LoginRequired ? "Yes" : "No";
+    public string Collected => $"{Account.LastCollection.ToShortDateString()} {Account.LastCollection.ToShortTimeString()}";
+    public string CollectionRequired => Account.CollectionRequired ? "Yes" : "No";
+    public int Age => (int)Math.Floor(DateTime.UtcNow.Subtract(Account.CreatedAt).TotalDays);
 
-    public RunState RunStatus => account.Client?.RunStatus ?? RunState.Unset;
+    public RunState RunStatus => Account.Client?.RunStatus ?? RunState.Unset;
 
-    public string? TooltipText => account.Client?.StatusMessage;
+    public string? TooltipText => Account.Client?.StatusMessage;
 
+    public bool IsSelected { get; set; }
 }

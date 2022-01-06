@@ -23,10 +23,17 @@
               BorderThickness="0"
               d:ItemsSource="{d:SampleData}"
               ItemsSource="{Binding .}"
-              >
+    >
+
+
+        <DataGrid.Resources>
+            <Style TargetType="DataGridRow" BasedOn="{StaticResource DefaultStyle}">
+                <Setter Property="IsSelected" Value="{Binding IsSelected}" />
+            </Style>
+        </DataGrid.Resources>
 
         <DataGrid.Columns>
-            <DataGridTextColumn Header="Account" Binding="{Binding Account}" />
+            <DataGridTextColumn Header="Account" Binding="{Binding AccountName}" />
             <DataGridTextColumn Header="Character" Binding="{Binding Character}"/>
             <DataGridTextColumn Header="Age" Binding="{Binding Age}"/>
             <DataGridTextColumn Header="Last Login" Binding="{Binding Login}"/>

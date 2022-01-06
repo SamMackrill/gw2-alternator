@@ -19,10 +19,12 @@
 
     <Style TargetType="DataGridRow" BasedOn="{StaticResource DefaultStyle}">
         <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="IsSelected" Value="{Binding IsSelected}" />
     </Style>
 
     <Style TargetType="ScrollBar">
         <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
     </Style>
 
     <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource DefaultStyle}">

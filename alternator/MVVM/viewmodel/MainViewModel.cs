@@ -125,7 +125,10 @@ public class MainViewModel : ObservableObject
                 cts.Token.ThrowIfCancellationRequested();
                 var launcher = new ClientController(applicationFolder, settings, datFile, gfxSettingsFile, launchType);
 
-                var accountsToRun = accountCollection.AccountsToRun(launchType, all);
+                var selectedAccounts = AccountsVM.SelectedAccounts.ToList();
+
+                var accountsToRun = selectedAccounts.Any() ? selectedAccounts : accountCollection.AccountsToRun(launchType, all);
+
                 if (accountsToRun == null || !accountsToRun.Any()) return;
                 //accountsToRun = accountsToRun.Where(a => a.Name == "Fish2").ToList();
                 await launcher.LaunchMultiple(accountsToRun, maxInstances, cts.Token);
@@ -181,7 +184,7 @@ public class MainViewModel : ObservableObject
     private void OnAccountsLoaded(object? sender, EventArgs e)
     {
         AccountsVM.Clear();
-        AccountsVM.Add(accountCollection.Accounts);
+        AccountsVM.Add(accountCollection);
     }
 
     private void Initialise()
