@@ -58,4 +58,9 @@ public class SettingsViewModel : ObservableObject
     {
         accountCollection.ImportFromLaunchbuddy();
     }, _ => accountCollection.CanImportFromLaunchbuddy);
+
+    public RelayCommand<object> ImportFromLauncherCommand => new(_ =>
+    {
+        accountCollection.ImportFromLauncher();
+    }, _ => accountCollection.CanImportFromLauncher);
 }

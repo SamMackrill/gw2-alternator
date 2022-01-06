@@ -122,14 +122,47 @@
             <Label Padding="0" Grid.Row="4" Grid.Column="1"
                    Content="Import From:" />
 
-            <Button  Grid.Row="4" Grid.Column="2"
-                     Style="{StaticResource FadeOutButton}"
-                     Margin="4,4,0,4"
-                     Opacity="0.6"
-                     VerticalAlignment="Center" 
-                     Background="Transparent"
-                     Command="{Binding Path=ImportFromLaunchBuddyCommand, Mode=OneWay}" 
-                     Content="Launch Buddy"/>
+            <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,4">
+                <Border
+                     HorizontalAlignment="Left"
+                     BorderBrush="{StaticResource ForegroundBrush}"
+                     BorderThickness="2"
+                     CornerRadius="6"
+                     Background="{StaticResource BackgroundBrush}">
+
+                    <Button 
+                         Style="{StaticResource FadeOutButton}"
+                         Margin="4"
+                         Opacity="0.6"
+                         VerticalAlignment="Center" 
+                         Background="Transparent"
+                         Command="{Binding Path=ImportFromLaunchBuddyCommand, Mode=OneWay}" 
+                         Content="Launch Buddy"
+                         />
+                </Border>
+
+                <Border
+                    HorizontalAlignment="Left"
+                    Margin="4,0,0,0"
+                    BorderBrush="{StaticResource ForegroundBrush}"
+                    BorderThickness="2"
+                    CornerRadius="6"
+                    Background="{StaticResource BackgroundBrush}">
+
+                    <Button 
+                        Style="{StaticResource FadeOutButton}"
+                        Margin="4"
+                        Opacity="0.6"
+                        VerticalAlignment="Center" 
+                        Background="Transparent"
+                        Command="{Binding Path=ImportFromLauncherCommand, Mode=OneWay}" 
+                        Content="GW2 Launcher"
+                    />
+                </Border>
+
+            </StackPanel>
+
+
         </Grid>
     </Border>
 

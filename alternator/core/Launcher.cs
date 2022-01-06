@@ -208,8 +208,11 @@ public class Launcher
         if (attempt > 1) return 120 + 30 * (1 << (attempt - 1));
 
         if (count < 12) return 5;
+        if (count < 24) return 10;
+        return 30;
+
+
         //if (count < 20) return 5 + (1 << (count - 2)) * 5;
-        return 45;
         //return Math.Min(800, (300 + 10 * (count - 5)));
 
         // 0 | 5

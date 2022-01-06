@@ -91,12 +91,20 @@ public class MainViewModel : ObservableObject
     public string UpdateText => Running && ActiveLaunchType == LaunchType.Update ? "Updating" : "Update";
     public string StopText => Running && Stopping ? "Stopping" : "Stop!";
 
-    public string Version => "0.0.1";
+    public string Version
+    {
+        get
+        {
+            var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+            var fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
+            return fvi.FileVersion ?? "dev";
+        }
+    }
 
     public MainViewModel(DirectoryInfo applicationFolder, string appData, Settings settings)
     {
-        accountCollection = new AccountCollection(applicationFolder, Path.Combine(appData, "Gw2 Launchbuddy"));
-        SettingsVM = new SettingsViewModel(settings, accountCollection , () => { return Version; });
+        accountCollection = new AccountCollection(applicationFolder, Path.Combine(appData, @"Gw2 Launchbuddy"), Path.Combine(appData, @"Gw2Launcher"));
+        SettingsVM = new SettingsViewModel(settings, accountCollection , () => Version);
 
         accountCollection.Loaded += OnAccountsLoaded;
         AccountsVM = new AccountsViewModel();
@@ -133,6 +141,7 @@ public class MainViewModel : ObservableObject
                 //accountsToRun = accountsToRun.Where(a => a.Name == "Fish2").ToList();
                 await launcher.LaunchMultiple(accountsToRun, maxInstances, cts.Token);
 
+                cts.Cancel();
                 await accountCollection.Save();
             }
             finally

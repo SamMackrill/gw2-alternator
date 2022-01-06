@@ -238,13 +238,10 @@ public class Client : ObservableObject
 
         if (handle == null)
         {
-            if (p.MainWindowHandle == IntPtr.Zero)
-            {
-                Logger.Error("{0} Mutex will not die, give up", account.Name);
-                p.Kill(true);
-                throw new Gw2Exception($"{account.Name} Mutex will not die, give up");
-            }
-            return;
+            if (p.MainWindowHandle != IntPtr.Zero) return;
+            Logger.Error("{0} Mutex will not die, give up", account.Name);
+            p.Kill(true);
+            throw new Gw2Exception($"{account.Name} Mutex will not die, give up");
         }
 
         //Logger.Debug("{0} Got handle to Mutex", account.Name);
@@ -282,7 +279,7 @@ public class Client : ObservableObject
 
     public void SendEnter()
     {
-        if (p == null) return;
+        if (!Alive) return;
 
         Logger.Debug("{0} Send ENTER", account.Name);
         var currentFocus = Native.GetForegroundWindow();
@@ -299,11 +296,11 @@ public class Client : ObservableObject
 
     public async Task<bool> Kill(bool done)
     {
+        closed = done;
         if (!Alive) return false;
 
         p!.Kill(true);
         await Task.Delay(200);
-        closed = done;
         return true;
     }
 
@@ -312,133 +309,6 @@ public class Client : ObservableObject
         ChangeRunStage(RunStage.Exited);
         Logger.Debug("{0} GW2 process exited", account.Name);
     }
-
-    //public async Task<bool> WaitForExit(LaunchType launchType, CancellationToken cancellationToken)
-    //{
-    //    if (p == null)
-    //    {
-    //        Logger.Error("{0} No process", account.Name);
-    //        RunStatus = RunState.Error;
-    //        account.Client.StatusMessage = "No Process";
-    //        return false;
-    //    }
-
-    //    if (launchType is not LaunchType.Update)
-    //    {
-    //        if (!await WaitForCharacterSelection(cancellationToken))
-    //        {
-    //            RunStatus = RunState.Cancelled;
-    //            return false;
-    //        }
-
-    //        if (!EnterWorld())
-    //        {
-    //            return false;
-    //        }
-    //        if (launchType is LaunchType.Login) return await WaitForEntryThenExit(cancellationToken);
-    //    }
-
-    //    return await WaitForProcessToExit(cancellationToken);
-    //}
-
-    //private async Task<bool> WaitForProcessToExit(CancellationToken cancellationToken)
-    //{
-    //    if (p == null)
-    //    {
-    //        Logger.Error("{0} No process", account.Name);
-    //        return false;
-    //    }
-
-    //    do
-    //    {
-    //        await Task.Delay(200, cancellationToken);
-    //    } while (Alive);
-
-    //    Logger.Info("{0} GW2 Closed", account.Name);
-    //    return true;
-    //}
-
-    //private async Task<bool> WaitForEntryThenExit(CancellationToken cancellationToken)
-    //{
-    //    if (!Alive) return false;
-    //    Logger.Debug("{0} Wait for {1} to load-in to world", account.Name, account.Character ?? "character");
-    //    if (!await WaitForStable(2000, 900_000, 2000, 180, cancellationToken))
-    //    {
-    //        Logger.Error("{0} Timed-out waiting for {1} to load into world", account.Name, account.Character ?? "character");
-    //        return false;
-    //    }
-
-    //    if (!Alive)
-    //    {
-    //        Logger.Error("{0} Died!", account.Name);
-    //        return false;
-    //    }
-
-    //    Logger.Debug("{0} {1} loaded into world OK, kill process", account.Name, account.Character ?? "character");
-    //    LogManager.Flush();
-    //    await Kill();
-    //    return true;
-    //}
-
-    //private bool EnterWorld()
-    //{
-    //    if (!Alive)
-    //    {
-    //        Logger.Error("{0} Died!", account.Name);
-    //        return false;
-    //    }
-
-    //    Logger.Debug("{0} got to Character Selection", account.Name);
-    //    LogManager.Flush();
-    //    SendEnter(p);
-    //    return true;
-    //}
-
-    //private async Task<bool> WaitForCharacterSelection(CancellationToken cancellationToken)
-    //{
-    //    if (!Alive)
-    //    {
-    //        Logger.Error("{0} Died!", account.Name);
-    //        return false;
-    //    }
-
-    //    lastMemoryUsage = p!.WorkingSet64 / 1024;
-
-    //    Logger.Debug("{0} Wait for Character Selection", account.Name);
-    //    if (await WaitForStable(200, 750_000, 200, 120, cancellationToken)) return true;
-
-    //    Logger.Error("{0} Timed-out waiting for Character Selection", account.Name);
-    //    return false;
-    //}
-
-    //private async Task<bool> WaitForStable(int pause, long characterSelectMinMemory, long characterSelectMinDiff, double timeout, CancellationToken cancellationToken)
-    //{
-    //    var start = DateTime.Now;
-    //    do
-    //    {
-    //        UpdateProcessModules();
-    //        await Task.Delay(pause, cancellationToken);
-    //        if (MemoryUsageStable(characterSelectMinMemory, characterSelectMinDiff)) return true;
-    //    } while (DateTime.Now.Subtract(start).TotalSeconds < timeout) ;
-    //    return false;
-    //}
-
-
-    //private bool MemoryUsageStable(long min, long delta)
-    //{
-    //    if (!Alive) return true;
-
-    //    //Logger.Debug("{0} Window Title {1}", account.Name, p.MainWindowTitle);
-    //    //Logger.Debug("{0} HandleCount {1}", account.Name, p.HandleCount);
-    //    //Logger.Debug("{0} ThreadCount {1}", account.Name, p.Threads.Count);
-
-    //    var memoryUsage = p.WorkingSet64 / 1024;
-    //    var diff = Math.Abs(memoryUsage - lastMemoryUsage);
-    //    lastMemoryUsage = memoryUsage;
-    //    //Logger.Debug("{0} Mem={1} Diff={2}", account.Name, memoryUsage, diff);
-    //    return memoryUsage > min && diff < delta;
-    //}
-
 
 }
 
