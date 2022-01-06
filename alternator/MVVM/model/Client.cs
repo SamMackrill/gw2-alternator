@@ -21,7 +21,8 @@ public class Client : ObservableObject
     private readonly List<string> loadedModules;
 
     private Process? p;
-    private long characterSelectMemoryUsage;
+    private long lastStageMemoryUsage;
+    private DateTime lastStageSwitchTime;
     private bool closed;
     private record struct EngineTuning(TimeSpan Pause, long MemoryUsage, long MinDiff);
 
@@ -65,7 +66,7 @@ public class Client : ObservableObject
     {
         this.account = account;
         RunStatus = RunState.Ready;
-        loadedModules = new();
+        loadedModules = new List<string>();
         RunStage = RunStage.NotRun;
     }
 
@@ -94,12 +95,12 @@ public class Client : ObservableObject
 
         loadedModules.Clear();
 
-        Start(launchType);
+        await Start(launchType, cancellationToken);
 
         if (launchType is not LaunchType.Update) KillMutex();
 
-        // TODO add failed login detection
         var timeout = launchType == LaunchType.Collect ? TimeSpan.MaxValue : new TimeSpan(0, 5, 0);
+        var stuckDelay = new TimeSpan(0, 0, 20);
         // State Engine
         while (Alive)
         {
@@ -107,26 +108,28 @@ public class Client : ObservableObject
 
             var memoryUsage = p.WorkingSet64 / 1024;
 
-            if (RunStage == RunStage.CharacterSelectReached && memoryUsage - characterSelectMemoryUsage > 100)
+            if (RunStage == RunStage.ReadyToPlay && memoryUsage - lastStageMemoryUsage < 100 && DateTime.Now.Subtract(lastStageSwitchTime) > stuckDelay)
             {
-                await Task.Delay(200, cancellationToken);
-                ChangeRunStage(RunStage.CharacterSelected);
+                await ChangeRunStage(RunStage.LoginFailed, 200, cancellationToken);
+            }
+
+            if (RunStage == RunStage.CharacterSelectReached && memoryUsage - lastStageMemoryUsage > 100)
+            {
+                await ChangeRunStage(RunStage.CharacterSelected, 200, cancellationToken);
             }
 
             var diff = Math.Abs(memoryUsage - tuning.MemoryUsage);
-            if ((RunStage == RunStage.Authenticated || RunStage >= RunStage.CharacterSelected) && diff < tuning.MinDiff)
+            if (RunStage is RunStage.Authenticated or >= RunStage.CharacterSelected && diff < tuning.MinDiff)
             {
                 Logger.Debug("{0} Memory={1} ({2}<{3})", account.Name, memoryUsage, diff, tuning.MinDiff);
                 if (RunStage == RunStage.Authenticated && memoryUsage > 120_000)
                 {
-                    await Task.Delay(1800, cancellationToken);
-                    ChangeRunStage(RunStage.ReadyToPlay);
+                    await ChangeRunStage(RunStage.ReadyToPlay, 1800, cancellationToken);
                 }
                 else if (RunStage >= RunStage.CharacterSelected && memoryUsage > 1_400_000)
                 {
-                    await Task.Delay(1800, cancellationToken);
                     //Suspend();
-                    ChangeRunStage(RunStage.WorldEntered);
+                    await ChangeRunStage(RunStage.WorldEntered, 1800, cancellationToken);
                     //Resume();
                 }
             }
@@ -138,7 +141,7 @@ public class Client : ObservableObject
                                                   .Select(e => e.Value);
             foreach (var newRunStage in stageChanges)
             {
-                ChangeRunStage(newRunStage);
+                await ChangeRunStage(newRunStage, 200, cancellationToken);
             }
             await Task.Delay(tuning.Pause, cancellationToken);
         }
@@ -156,28 +159,35 @@ public class Client : ObservableObject
         }
     }
 
+    private async Task ChangeRunStage(RunStage newRunStage, int delay, CancellationToken cancellationToken)
+    {
+        await Task.Delay(delay, cancellationToken);
+        ChangeRunStage(newRunStage);
+    }
+
     private void ChangeRunStage(RunStage newRunStage)
     {
         Logger.Debug("{0} Change State to {1}", account.Name, newRunStage);
         var eventArgs = new ClientStateChangedEventArgs(RunStage, newRunStage);
         RunStage = newRunStage;
+        if (!p!.HasExited) lastStageMemoryUsage = p!.WorkingSet64 / 1024;
+        lastStageSwitchTime = DateTime.Now;
         UpdateEngineSpeed();
         RunStatusChanged?.Invoke(this, eventArgs);
     }
 
-    private void Start(LaunchType launchType)
+    private async Task Start(LaunchType launchType, CancellationToken cancellationToken)
     {
         if (!p!.Start()) throw new Gw2Exception($"{account.Name} Failed to start");
         
         RunStatus = RunState.Running;
         StartTime = p.StartTime;
         Logger.Debug("{0} Started {1}", account.Name, launchType);
-        ChangeRunStage(RunStage.Started);
+        ChangeRunStage(RunStage.Started, 200, cancellationToken);
     }
 
     public void SelectCharacter()
     {
-        characterSelectMemoryUsage = p!.WorkingSet64 / 1024;
         SendEnter();
     }
 

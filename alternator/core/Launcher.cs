@@ -74,7 +74,9 @@ public class Launcher
                     ReleaseLoginIfRequired();
                     break;
                 case RunStage.LoginFailed:
+                    Logger.Info("{0} login failed, giving up to try again", account.Name);
                     ReleaseLoginIfRequired();
+                    client?.Kill(false);
                     break;
                 case RunStage.ReadyToPlay:
                     ReleaseLoginIfRequired();
@@ -121,6 +123,12 @@ public class Launcher
                     Logger.Info("{0} login attempt={1}", account.Name, attempt);
 
                     client.RunStatus = RunState.WaitingForLoginSlot;
+                    if (releaseLoginTask != null)
+                    {
+                        Logger.Info("{0} login semaphore release, count={1}", account.Name, loginSemaphore.CurrentCount);
+                        await releaseLoginTask.WaitAsync(launchCancelled);
+                        releaseLoginTask = null;
+                    }
                     Logger.Info("{0} login semaphore entry, count={1}", account.Name, loginSemaphore.CurrentCount);
                     await loginSemaphore.WaitAsync(launchCancelled);
                     loginInProcess = true;
@@ -199,9 +207,9 @@ public class Launcher
     {
         if (attempt > 1) return 120 + 30 * (1 << (attempt - 1));
 
-        if (count < 16) return 5;
+        if (count < 12) return 5;
         //if (count < 20) return 5 + (1 << (count - 2)) * 5;
-        return 60;
+        return 45;
         //return Math.Min(800, (300 + 10 * (count - 5)));
 
         // 0 | 5
