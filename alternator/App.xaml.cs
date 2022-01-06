@@ -30,7 +30,7 @@ global using guildwars2.tools.alternator.MVVM.viewmodel;
 global using AsyncAwaitBestPractices.MVVM;
 
 global using NLog;
-
+using System.Xaml;
 
 
 namespace guildwars2.tools.alternator;
@@ -111,9 +111,15 @@ public partial class App : Application
 
     private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
-        // Process unhandled exception
-        var shutdown = true;
 
+
+        // Process unhandled exception
+        var shutdown = e.Exception is not XamlParseException;
+        shutdown = !e.Exception.GetType().IsAssignableFrom(typeof(XamlParseException));
+        var name = e.Exception.GetType().Name;
+        shutdown = name != "XamlParseException" && name != "ResourceReferenceKeyNotFoundException";
+
+        var tt = e.Exception.GetType();
         //// Process exception
         //if (e.Exception is DivideByZeroException)
         //{

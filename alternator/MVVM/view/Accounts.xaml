@@ -25,13 +25,6 @@
               ItemsSource="{Binding .}"
     >
 
-
-        <DataGrid.Resources>
-            <Style TargetType="DataGridRow" BasedOn="{StaticResource DefaultStyle}">
-                <Setter Property="IsSelected" Value="{Binding IsSelected}" />
-            </Style>
-        </DataGrid.Resources>
-
         <DataGrid.Columns>
             <DataGridTextColumn Header="Account" Binding="{Binding AccountName}" />
             <DataGridTextColumn Header="Character" Binding="{Binding Character}"/>
@@ -57,7 +50,7 @@
                     <Style TargetType="{x:Type TextBlock}">
                         <Style.Triggers>
                             <Trigger Property="Text" Value="Running">
-                                <Setter Property="Background" Value="{StaticResource HilightBrush}"/>
+                                <Setter Property="Background" Value="{StaticResource HighlightBrush}"/>
                             </Trigger>
                             <Trigger Property="Text" Value="Error">
                                 <Setter Property="Foreground" Value="{StaticResource BackgroundBrush}"/>

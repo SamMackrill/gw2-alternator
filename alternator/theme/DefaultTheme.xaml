@@ -2,51 +2,89 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
 
-    <SolidColorBrush x:Key="ForegroundBrush" Color="#FB651D" />
-    <SolidColorBrush x:Key="BackgroundBrush" Color="#242424" />
-    <SolidColorBrush x:Key="HilightBrush" Color="#FBCC8A" />
+    <Color x:Key="ForegroundColor">#FFFB651D</Color>
+    <SolidColorBrush x:Key="ForegroundBrush" Color="{DynamicResource ForegroundColor}" />
+    <Color x:Key="BackgroundColor">#FF242424</Color>
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{DynamicResource BackgroundColor}" />
+    <Color x:Key="HighlightColor">#FFFBCC8A</Color>
+    <SolidColorBrush x:Key="HighlightBrush" Color="{DynamicResource HighlightColor}" />
+
+
+    <!--Control colors.-->
+    <Color x:Key="WindowColor">#FF242424</Color>
+    <Color x:Key="ContentAreaColorLight">#FFFB651D</Color>
+    <Color x:Key="ContentAreaColorDark">#FFFB651D</Color>
+
+    <Color x:Key="DisabledControlLightColor">#FF242424</Color>
+    <Color x:Key="DisabledControlDarkColor">#FF242424</Color>
+    <Color x:Key="DisabledForegroundColor">#FF242424</Color>
+
+    <Color x:Key="SelectedBackgroundColor">#FF242424</Color>
+    <Color x:Key="SelectedUnfocusedColor">#FF242424</Color>
+
+    <Color x:Key="ControlLightColor">#FFFB651D</Color>
+    <Color x:Key="ControlMediumColor">#FFFB651D</Color>
+    <Color x:Key="ControlDarkColor">#FFFB651D</Color>
+
+    <Color x:Key="ControlMouseOverColor">#FF3843C4</Color>
+    <Color x:Key="ControlPressedColor">#FF211AA9</Color>
+
+    <Color x:Key="GlyphColor">#FF444444</Color>
+    <Color x:Key="GlyphMouseOver">sc#1, 0.004391443, 0.002428215, 0.242281124</Color>
+
+    <!--Border colors-->
+    <Color x:Key="BorderLightColor">#FFFB651D</Color>
+    <Color x:Key="BorderMediumColor">#FFFB651D</Color>
+    <Color x:Key="BorderDarkColor">#FFFB651D</Color>
+
+    <Color x:Key="PressedBorderLightColor">#FFFB651D</Color>
+    <Color x:Key="PressedBorderDarkColor">#FFFB651D</Color>
+
+    <Color x:Key="DisabledBorderLightColor">#FFFB651D</Color>
+    <Color x:Key="DisabledBorderDarkColor">#FFFB651D</Color>
+
+    <Color x:Key="DefaultBorderBrushDarkColor">#FFFB651D</Color>
+
+    <!--Control-specific resources.-->
+    <Color x:Key="HeaderTopColor">#FF242424</Color>
+    <Color x:Key="DataGridCurrentCellBorderColor">Transparent</Color>
+    <Color x:Key="SliderTrackDarkColor">#FF242424</Color>
+
+    <Color x:Key="NavButtonFrameColor">#FF3843C4</Color>
+
+    <LinearGradientBrush x:Key="MenuPopupBrush" EndPoint="0.5,1" StartPoint="0.5,0">
+        <GradientStop Color="{DynamicResource ControlLightColor}" Offset="0" />
+        <GradientStop Color="{DynamicResource ControlMediumColor}" Offset="0.5" />
+        <GradientStop Color="{DynamicResource ControlLightColor}" Offset="1" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="ProgressBarIndicatorAnimatedFill" StartPoint="0,0" EndPoint="1,0">
+        <LinearGradientBrush.GradientStops>
+            <GradientStopCollection>
+                <GradientStop Color="#000000FF" Offset="0" />
+                <GradientStop Color="#600000FF" Offset="0.4" />
+                <GradientStop Color="#600000FF" Offset="0.6" />
+                <GradientStop Color="#000000FF" Offset="1" />
+            </GradientStopCollection>
+        </LinearGradientBrush.GradientStops>
+    </LinearGradientBrush>
 
     <Style x:Key="DefaultStyle" TargetType="{x:Type FrameworkElement}">
         <Setter Property="Control.Foreground" Value="{StaticResource ForegroundBrush}"/>
         <Setter Property="Control.Background" Value="{StaticResource BackgroundBrush}"/>
     </Style>
 
-    <Style TargetType="DataGridCell" BasedOn="{StaticResource DefaultStyle}">
-        <Setter Property="HorizontalAlignment" Value="Left" />
-        <Setter Property="VerticalAlignment" Value="Center" />
-        <Setter Property="Background" Value="Transparent"/>
-    </Style>
-
-    <Style TargetType="DataGridRow" BasedOn="{StaticResource DefaultStyle}">
-        <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="IsSelected" Value="{Binding IsSelected}" />
-    </Style>
-
-    <Style TargetType="ScrollBar">
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
-    </Style>
-
-    <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource DefaultStyle}">
-        <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="FontWeight" Value="ExtraBold"/>
-        <!--<Setter Property="FontSize" Value="18"/>-->
-        <Setter Property="HorizontalAlignment" Value="Left" />
-        <Setter Property="VerticalAlignment" Value="Center" />
-        <Setter Property="Margin" Value="5,0,0,0" />
-    </Style>
-
-    <Style TargetType="Label" BasedOn="{StaticResource DefaultStyle}">
+    <Style TargetType="{x:Type Label}" BasedOn="{StaticResource DefaultStyle}">
         <Setter Property="HorizontalAlignment" Value="Left" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
-    <Style TargetType="TextBlock" BasedOn="{StaticResource DefaultStyle}">
+    <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource DefaultStyle}">
         <Setter Property="HorizontalAlignment" Value="Left" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
-    <Style TargetType="ToolTip">
+    <Style TargetType="{x:Type ToolTip}">
         <Style.Triggers>
             <Trigger Property="Content"
                      Value="{x:Static sys:String.Empty}">
