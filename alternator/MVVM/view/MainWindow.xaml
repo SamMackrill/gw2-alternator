@@ -79,7 +79,7 @@
                                    Margin="20,0,0,0"
                                    FontWeight="DemiBold"
                                    FontFamily="Consolas"
-                                   Text="{Binding TimeUtc, FallbackValue='00:00:00'}" />
+                                   Text="{Binding TimeUtc, FallbackValue='00:00'}" />
                     <TextBlock FontSize="22" 
                                Padding="0"
                                Margin="3,0,0,0"
@@ -92,7 +92,13 @@
                                Margin="20,0,0,0"
                                FontWeight="DemiBold"
                                FontFamily="Consolas"
-                               Text="{Binding ResetCountdown, FallbackValue='00:00:00'}" />
+                               Text="Reset In:" />
+                    <TextBlock FontSize="22" 
+                               Padding="0"
+                               Margin="4,0,0,0"
+                               FontWeight="DemiBold"
+                               FontFamily="Consolas"
+                               Text="{Binding ResetCountdown, FallbackValue='8hr 12min'}" />
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" 
@@ -177,15 +183,19 @@
                 </Border>
                 <RadioButton Command="{Binding LoginCommand}"
                              d:IsChecked="True"
+                             IsChecked="{Binding LoginChecked}"
                              Content="{Binding LoginText, FallbackValue=Login}"
                              Style="{StaticResource MenuButtonTheme}" />
                 <RadioButton Command="{Binding CollectCommand}"
+                             IsChecked="{Binding CollectChecked}"
                              Content="{Binding CollectText, FallbackValue=Collect}"
                              Style="{StaticResource MenuButtonTheme}" />
                 <RadioButton Command="{Binding UpdateCommand}"
+                             IsChecked="{Binding UpdateChecked}"
                              Content="{Binding UpdateText, FallbackValue=Update}"
                              Style="{StaticResource MenuButtonTheme}" />
                 <RadioButton Command="{Binding StopCommand}"
+                             IsChecked="{Binding StopChecked}"
                              Content="{Binding StopText, FallbackValue=Stop!}"
                              Style="{StaticResource MenuButtonTheme}" />
             </StackPanel>

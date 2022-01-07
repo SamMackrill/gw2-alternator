@@ -6,7 +6,7 @@
              xmlns:viewmodel="clr-namespace:guildwars2.tools.alternator.MVVM.viewmodel"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance Type=viewmodel:AccountsViewModel}"
-             d:DesignHeight="600" d:DesignWidth="400">
+             d:DesignHeight="300" >
 
 
     <DataGrid Background="Transparent"
@@ -33,6 +33,8 @@
             <DataGridTextColumn Header="Login?" Binding="{Binding LoginRequired}"/>
             <DataGridTextColumn Header="Last Collected" Binding="{Binding Collected}"/>
             <DataGridTextColumn Header="Collect?" Binding="{Binding CollectionRequired}"/>
+            <DataGridTextColumn Header="Laurels" Binding="{Binding LaurelCount, FallbackValue=?}"/>
+            <DataGridTextColumn Header="MC" Binding="{Binding MysticCoinCount, FallbackValue=?}"/>
 
             <DataGridTextColumn Header="Status" Binding="{Binding RunStatus}" >
 

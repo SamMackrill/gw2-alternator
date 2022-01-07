@@ -84,6 +84,13 @@
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
+    <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource DefaultStyle}">
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Background" Value="{StaticResource HighlightBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource BackgroundBrush}" />
+    </Style>
+
     <Style TargetType="{x:Type ToolTip}">
         <Style.Triggers>
             <Trigger Property="Content"

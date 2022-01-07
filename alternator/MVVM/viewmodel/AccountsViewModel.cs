@@ -2,8 +2,6 @@
 
 public class AccountsViewModel : ObservableCollectionEx<AccountViewModel>
 {
-    public static readonly DependencyProperty IsSelectedProperty = DependencyProperty.Register("IsSelected", typeof(object), typeof(AccountsViewModel), new PropertyMetadata(default(object)));
-
     public void Add(IEnumerable<Account>? accounts)
     {
         if (accounts == null) return;

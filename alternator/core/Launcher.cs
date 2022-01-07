@@ -90,11 +90,16 @@ public class Launcher
                 case RunStage.CharacterSelected:
                     if (launchType == LaunchType.Login) client?.Kill(true);
                     break;
+                case RunStage.EntryFailed:
+                    Logger.Info("{0} entry failed, giving up to try again", account.Name);
+                    ReleaseLoginIfRequired();
+                    client?.Kill(false);
+                    break;
                 case RunStage.WorldEntered:
                     if (launchType == LaunchType.Login) client?.Kill(true);
                     break;
                 case RunStage.Exited:
-                    if (client.RunStage < RunStage.CharacterSelectReached) break;
+                    if (e.OldState != RunStage.CharacterSelected) break;
                     client.RunStatus = RunState.Completed;
                     account.LastLogin = DateTime.UtcNow;
                     if (launchType is LaunchType.Collect) account.LastCollection = DateTime.UtcNow;

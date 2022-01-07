@@ -6,7 +6,7 @@ public class AccountViewModel : ObservableObject
 
     public AccountViewModel(Account account)
     {
-        this.Account = account;
+        Account = account;
         account.PropertyChanged += ModelPropertyChanged;
         account.Client.PropertyChanged += ModelPropertyChanged;
     }
@@ -34,6 +34,8 @@ public class AccountViewModel : ObservableObject
     public string Collected => $"{Account.LastCollection.ToShortDateString()} {Account.LastCollection.ToShortTimeString()}";
     public string CollectionRequired => Account.CollectionRequired ? "Yes" : "No";
     public int Age => (int)Math.Floor(DateTime.UtcNow.Subtract(Account.CreatedAt).TotalDays);
+    public string LaurelCount => Account.GetCurrency("Laurel")?.ToString() ?? "?";
+    public string MysticCoinCount => Account.GetCurrency("MysticCoin")?.ToString() ?? "?";
 
     public RunState RunStatus => Account.Client?.RunStatus ?? RunState.Unset;
 

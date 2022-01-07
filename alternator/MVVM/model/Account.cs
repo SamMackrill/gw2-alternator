@@ -15,7 +15,16 @@ public class Account : ObservableObject
         set => SetProperty(ref name, value);
     }
 
+    private string? displayName;
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? DisplayName
+    {
+        get => displayName;
+        set => SetProperty(ref displayName, value);
+    }
+
     private string? character;
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Character
     {
         get => character;
@@ -28,6 +37,17 @@ public class Account : ObservableObject
         get => loginFilePath;
         set => SetProperty(ref loginFilePath, value);
     }
+
+    private string? apiKey;
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ApiKey
+    {
+        get => apiKey;
+        set => SetProperty(ref apiKey, value);
+    }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ObservableCollectionEx<Currency>? Counts { get; set; }
 
 
     private DateTime lastLogin;
@@ -129,5 +149,30 @@ public class Account : ObservableObject
             LinkFiles(gw2GfxSettings, referenceGfxSettingsFile);
         });
         await Task.Delay(200);
+    }
+
+    public int? GetCurrency(string currencyName)
+    {
+        return Counts?.FirstOrDefault(c => c.Name.Equals(currencyName, StringComparison.InvariantCultureIgnoreCase))?.Count;
+    }
+
+    public void SetCount(string countName, int value)
+    {
+        Counts ??= new ObservableCollectionEx<Currency>();
+
+        var count = Counts.FirstOrDefault(c => string.Equals(c.Name, countName, StringComparison.OrdinalIgnoreCase));
+        if (count != null)
+        {
+            if (count.Count != value)
+            {
+                count.Count = value;
+                OnPropertyChanged($"{count.Name}Count");
+            }
+        }
+        else
+        {
+            Counts.Add(new Currency(countName, value));
+            OnPropertyChanged($"{countName}Count");
+        }
     }
 }

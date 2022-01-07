@@ -73,7 +73,8 @@
                      BorderThickness="1"
                      Margin="4,4,0,0"
                      MinWidth="100"
-                     Text="{Binding Path=Gw2Folder, Mode=TwoWay, FallbackValue='c:/a/b'}"/>
+                     HorizontalAlignment="Stretch"
+                     Text="{Binding Path=Gw2Folder, Mode=TwoWay, FallbackValue='c:/a/b'}" />
             <Button Grid.Row="2" Grid.Column="3"  
                     Margin="4,0,0,0" 
                     Opacity="0.6"
@@ -104,7 +105,7 @@
             <TextBox Grid.Row="3" Grid.Column="2"
                      BorderThickness="1"
                      Margin="4,4,0,0"
-                     MinWidth="100"
+                     MinWidth="50"
                      Text="{Binding Path=MaxLoginInstances, Mode=TwoWay, FallbackValue='4'}"/>
             <Button Grid.Row="3" Grid.Column="3"  
                     Margin="4,0,0,0" 

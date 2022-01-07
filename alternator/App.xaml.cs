@@ -5,6 +5,7 @@ global using System.Text;
 global using System.Threading;
 global using System.Threading.Tasks;
 global using System.ComponentModel;
+global using System.Xaml;
 
 global using System.Diagnostics;
 global using System.Diagnostics.CodeAnalysis;
@@ -30,7 +31,6 @@ global using guildwars2.tools.alternator.MVVM.viewmodel;
 global using AsyncAwaitBestPractices.MVVM;
 
 global using NLog;
-using System.Xaml;
 
 
 namespace guildwars2.tools.alternator;

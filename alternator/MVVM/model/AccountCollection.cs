@@ -88,15 +88,15 @@ public class AccountCollection
         try
         {
             semaphore.Wait();
-            var accountsXmlPath = Path.Combine(launchbuddyFolder, "Accs.xml");
+            var accountsXmlPath = Path.Combine(launchbuddyFolder, @"Accs.xml");
             var doc = XDocument.Load(accountsXmlPath);
             if (doc.Root == null) return;
-            var LBAccounts = doc.Root.Elements().ToArray();
-            Logger.Debug("{0} Accounts loaded from {1}", LBAccounts.Length, accountsXmlPath);
-            if (!LBAccounts.Any()) return;
+            var lbAccounts = doc.Root.Elements().ToArray();
+            Logger.Debug("{0} Accounts loaded from {1}", lbAccounts.Length, accountsXmlPath);
+            if (!lbAccounts.Any()) return;
 
             Accounts ??= new List<Account>();
-            foreach (var lbAccount in LBAccounts)
+            foreach (var lbAccount in lbAccounts)
             {
                 var nickname = lbAccount.Element("Nickname")?.Value;
                 if (nickname == null) continue;
@@ -184,7 +184,7 @@ public class AccountCollection
             var s = reader.ReadUInt16();
             if (s != ushort.MaxValue) return s;
 
-            return reader.ReadInt32(); ;
+            return reader.ReadInt32();
         }
 
         Accounts ??= new List<Account>();
@@ -400,12 +400,12 @@ public class AccountCollection
 
                 // Dat
                 var datCount = reader.ReadUInt16();
-                var datPaths = new Dictionary<UInt32, string>();
+                var datPaths = new Dictionary<uint, string>();
                 for (var i = 0; i < datCount; i++)
                 {
                     var id = reader.ReadUInt16();
                     var path = reader.ReadString();
-                    var flags = reader.ReadByte();
+                    _ = reader.ReadByte();
                     datPaths.Add(id, path);
                 }
 
@@ -413,18 +413,18 @@ public class AccountCollection
                 var gfxCount = reader.ReadUInt16();
                 for (var i = 0; i < gfxCount; i++)
                 {
-                    var id = reader.ReadUInt16();
-                    var path = reader.ReadString();
-                    var flags = reader.ReadByte();
+                    _ = reader.ReadUInt16();
+                    _ = reader.ReadString();
+                    _ = reader.ReadByte();
                 }
 
                 // Dat2
                 var dat2Count = reader.ReadUInt16();
                 for (var i = 0; i < dat2Count; i++)
                 {
-                    var id = reader.ReadUInt16();
-                    var path = reader.ReadString();
-                    var flags = reader.ReadByte();
+                    _ = reader.ReadUInt16();
+                    _ = reader.ReadString();
+                    _ = reader.ReadByte();
                 }
 
                 // Accounts

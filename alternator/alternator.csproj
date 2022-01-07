@@ -37,6 +37,7 @@
 
   <ItemGroup>
     <PackageReference Include="AsyncAwaitBestPractices.MVVM" Version="6.0.4" />
+    <PackageReference Include="GW2SDK" Version="1.0.0-CI-20210905-182452" />
     <PackageReference Include="NLog" Version="5.0.0-rc1" />
   </ItemGroup>
 

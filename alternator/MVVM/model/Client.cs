@@ -101,6 +101,7 @@ public class Client : ObservableObject
 
         var timeout = launchType == LaunchType.Collect ? TimeSpan.MaxValue : new TimeSpan(0, 5, 0);
         var stuckDelay = new TimeSpan(0, 0, 20);
+        var stuckTolerance = 100;
         // State Engine
         while (Alive)
         {
@@ -108,11 +109,21 @@ public class Client : ObservableObject
 
             var memoryUsage = p.WorkingSet64 / 1024;
 
-            if (RunStage == RunStage.ReadyToPlay && memoryUsage - lastStageMemoryUsage < 100 && DateTime.Now.Subtract(lastStageSwitchTime) > stuckDelay)
+            // Check if Stuck
+            if (memoryUsage - lastStageMemoryUsage < stuckTolerance && DateTime.Now.Subtract(lastStageSwitchTime) > stuckDelay)
             {
-                await ChangeRunStage(RunStage.LoginFailed, 200, cancellationToken);
+                switch (RunStage)
+                {
+                    case RunStage.ReadyToPlay:
+                        await ChangeRunStage(RunStage.LoginFailed, 200, cancellationToken);
+                        break;
+                    case RunStage.CharacterSelected:
+                        await ChangeRunStage(RunStage.EntryFailed, 200, cancellationToken);
+                        break;
+                }
             }
 
+            // Check if moved on
             if (RunStage == RunStage.CharacterSelectReached && memoryUsage - lastStageMemoryUsage > 100)
             {
                 await ChangeRunStage(RunStage.CharacterSelected, 200, cancellationToken);
@@ -145,7 +156,7 @@ public class Client : ObservableObject
             }
             await Task.Delay(tuning.Pause, cancellationToken);
         }
-        if (!closed) throw new Gw2Exception("GW2 process crashed");
+        if (!closed && launchType != LaunchType.Collect) throw new Gw2Exception("GW2 process crashed");
     }
 
     private void UpdateEngineSpeed()
@@ -183,7 +194,7 @@ public class Client : ObservableObject
         RunStatus = RunState.Running;
         StartTime = p.StartTime;
         Logger.Debug("{0} Started {1}", account.Name, launchType);
-        ChangeRunStage(RunStage.Started, 200, cancellationToken);
+        await ChangeRunStage(RunStage.Started, 200, cancellationToken);
     }
 
     public void SelectCharacter()
@@ -285,7 +296,7 @@ public class Client : ObservableObject
         var currentFocus = Native.GetForegroundWindow();
         try
         {
-            _ = Native.SetForegroundWindow(p.MainWindowHandle);
+            _ = Native.SetForegroundWindow(p!.MainWindowHandle);
             InputSender.ClickKey(0x1c); // Enter
         }
         finally
