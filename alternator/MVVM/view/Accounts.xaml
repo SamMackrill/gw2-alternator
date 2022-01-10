@@ -63,6 +63,9 @@
                 </DataGridTextColumn.ElementStyle>
             </DataGridTextColumn>
 
+            <DataGridTextColumn Header="Attempt" Binding="{Binding Attempt, FallbackValue=0}"/>
+
+
         </DataGrid.Columns>
 
     </DataGrid>

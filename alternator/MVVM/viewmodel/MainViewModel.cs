@@ -6,6 +6,8 @@ using GW2SDK.Characters;
 using GW2SDK.Accounts;
 using GW2SDK.Http;
 using GW2SDK.Json;
+using Gw2Sharp.WebApi.V2;
+using Gw2Sharp.WebApi.V2.Models;
 
 namespace guildwars2.tools.alternator.MVVM.viewmodel;
 
@@ -196,9 +198,8 @@ public class MainViewModel : ObservableObject
 
                 if (accountsToRun == null || !accountsToRun.Any()) return;
                 //accountsToRun = accountsToRun.Where(a => a.Name == "Fish2").ToList();
-                await launcher.LaunchMultiple(accountsToRun, maxInstances, cts.Token);
+                await launcher.LaunchMultiple(accountsToRun, maxInstances, cts);
 
-                cts.Cancel();
                 await accountCollection.Save();
             }
             finally
@@ -281,6 +282,81 @@ public class MainViewModel : ObservableObject
     {
         if (accounts == null) return;
 
+        var apiConnection = new Gw2Sharp.Connection();
+        using var apiClient = new Gw2Sharp.Gw2Client(apiConnection);
+        var webApiClient = apiClient.WebApi.V2;
+
+        var build = await webApiClient.Build.GetAsync();
+
+        var fetchTasks = accounts
+            .Where(a => !string.IsNullOrEmpty(a.ApiKey))
+            .Select(FetchAccountDetails)
+            .ToList();
+
+        await Task.WhenAll(fetchTasks);
+    }
+    private async Task FetchAccountDetails(model.Account account)
+    {
+        try
+        {
+            var apiConnection = new Gw2Sharp.Connection(account.ApiKey!);
+            using var apiClient = new Gw2Sharp.Gw2Client(apiConnection);
+            var webApiClient = apiClient.WebApi.V2;
+
+            var accountReturnTask = webApiClient.Account.GetAsync();
+            var charactersReturnTask = webApiClient.Characters.AllAsync();
+            var walletReturnTask = webApiClient.Account.Wallet.GetAsync();
+
+            var accountReturn = await accountReturnTask;
+            account.CreatedAt = accountReturn.Created.UtcDateTime;
+            account.DisplayName = accountReturn.Name;
+
+            var wallet = await walletReturnTask;
+
+            var laurelCount = wallet.FirstOrDefault(c => c.Id == LaurelId)?.Value;
+
+            var characters = await charactersReturnTask;
+            var prime = characters.FirstOrDefault();
+            int mysticCoinCount = 0;
+            if (prime != null)
+            {
+                account.Character = prime.Name;
+
+                var allSlots = prime.Bags?
+                    .SelectMany(bag => bag?.Inventory ?? Array.Empty<AccountItem>())
+                    .Where(i => i != null).ToList();
+
+                mysticCoinCount += (allSlots?.Where(i => i!.Id == MysticCoinId).Sum(i => i!.Count)).GetValueOrDefault(0);
+                // Bags of Mystic Coins
+                mysticCoinCount += (allSlots?.Where(i => i!.Id == 68332).Sum(i => i!.Count)).GetValueOrDefault(0) * 2;
+                mysticCoinCount += (allSlots?.Where(i => i!.Id == 68318).Sum(i => i!.Count)).GetValueOrDefault(0) * 4;
+                mysticCoinCount += (allSlots?.Where(i => i!.Id == 68330).Sum(i => i!.Count)).GetValueOrDefault(0) * 6;
+                mysticCoinCount += (allSlots?.Where(i => i!.Id == 68333).Sum(i => i!.Count)).GetValueOrDefault(0) * 8;
+
+                // Bags of Laurels
+                laurelCount += (allSlots?.Where(i => i!.Id == 68314).Sum(i => i!.Count)).GetValueOrDefault(0);
+                laurelCount += (allSlots?.Where(i => i!.Id == 68339).Sum(i => i!.Count)).GetValueOrDefault(0) * 2;
+                laurelCount += (allSlots?.Where(i => i!.Id == 68327).Sum(i => i!.Count)).GetValueOrDefault(0) * 3;
+                laurelCount += (allSlots?.Where(i => i!.Id == 68336).Sum(i => i!.Count)).GetValueOrDefault(0) * 4;
+                laurelCount += (allSlots?.Where(i => i!.Id == 68328).Sum(i => i!.Count)).GetValueOrDefault(0) * 10;
+                laurelCount += (allSlots?.Where(i => i!.Id == 68334).Sum(i => i!.Count)).GetValueOrDefault(0) * 15;
+                laurelCount += (allSlots?.Where(i => i!.Id == 68351).Sum(i => i!.Count)).GetValueOrDefault(0) * 20;
+            }
+
+            account.SetCount("MysticCoin", mysticCoinCount);
+            account.SetCount("Laurel", laurelCount.GetValueOrDefault(0));
+
+        }
+        catch (Exception e)
+        {
+        }
+
+    }
+
+    private async Task FetchApiDataGw2SDK(List<model.Account>? accounts)
+    {
+        if (accounts == null) return;
+
         using var http = new HttpClient(new SocketsHttpHandler(), true);
         http.UseGuildWars2();
         http.UseLanguage(Language.English);
@@ -294,7 +370,7 @@ public class MainViewModel : ObservableObject
 
         var fetchTasks = accounts
             .Where(a => !string.IsNullOrEmpty(a.ApiKey))
-            .Select(a => FetchAccountDetails(a, accountService, characterService))
+            .Select(a => FetchAccountDetailsGw2SDK(a, accountService, characterService))
             .ToList();
 
         await Task.WhenAll(fetchTasks);
@@ -303,7 +379,7 @@ public class MainViewModel : ObservableObject
     public const int MysticCoinId = 19976;
     public const int LaurelId = 3;
 
-    private async Task FetchAccountDetails(model.Account account,
+    private async Task FetchAccountDetailsGw2SDK(model.Account account,
         AccountService accountService,
         CharacterService characterService)
     {

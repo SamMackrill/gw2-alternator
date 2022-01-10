@@ -107,7 +107,7 @@ public class Account : ObservableObject
 
     [field: NonSerialized]
     [JsonIgnore]
-    public Client Client { get; set; }
+    public Client? Client { get; set; }
 
     [JsonIgnore]
     public bool LoginRequired => LastLogin < DateTime.UtcNow.Date;

@@ -23,7 +23,7 @@ public class ClientController
         loginSemaphore = new SemaphoreSlim(0, 1);
     }
 
-    public async Task LaunchMultiple(IEnumerable<Account> accountsToLaunch, int maxInstances, CancellationToken launchCancelled)
+    public async Task LaunchMultiple(IEnumerable<Account> accountsToLaunch, int maxInstances, CancellationTokenSource cancellationTokenSource)
     {
         var accounts = accountsToLaunch as Account[] ?? accountsToLaunch.ToArray();
         if (!accounts.Any())
@@ -39,16 +39,16 @@ public class ClientController
             var launchCount = new Counter();
             var tasks = accounts.Select(account => Task.Run(async () =>
                 {
-                    var launcher = new Launcher(account, launchType, applicationFolder, settings, launchCancelled);
+                    var launcher = new Launcher(account, launchType, applicationFolder, settings, cancellationTokenSource.Token);
                     var success = await launcher.LaunchAsync(loginFile, gfxSettingsFile, loginSemaphore, exeSemaphore, 3, launchCount);
                     AfterLaunchAccount?.Invoke(account, new GenericEventArgs<bool>(success));
                     LogManager.Flush();
-                }, launchCancelled))
+                }, cancellationTokenSource.Token))
                 .ToList();
-            Logger.Debug("{0} threads primed.", tasks.Count);
+            Logger.Debug("{0} launch tasks primed.", tasks.Count);
             // Allow all the tasks to start and block.
-            await Task.Delay(200, launchCancelled);
-            if (launchCancelled.IsCancellationRequested) return;
+            await Task.Delay(200, cancellationTokenSource.Token);
+            if (cancellationTokenSource.IsCancellationRequested) return;
 
             // Release the hounds
             exeSemaphore.Release(maxInstances);
@@ -59,6 +59,7 @@ public class ClientController
         }
         finally
         {
+            cancellationTokenSource.Cancel(true);
             await Restore();
             Logger.Info("GW2 account files restored.");
         }

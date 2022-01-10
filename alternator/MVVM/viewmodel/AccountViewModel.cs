@@ -37,8 +37,8 @@ public class AccountViewModel : ObservableObject
     public string LaurelCount => Account.GetCurrency("Laurel")?.ToString() ?? "?";
     public string MysticCoinCount => Account.GetCurrency("MysticCoin")?.ToString() ?? "?";
 
+    public int Attempt => Account.Client?.Attempt ?? 0;
     public RunState RunStatus => Account.Client?.RunStatus ?? RunState.Unset;
-
     public string? TooltipText => Account.Client?.StatusMessage;
 
     public bool IsSelected { get; set; }

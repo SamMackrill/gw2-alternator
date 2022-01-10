@@ -30,6 +30,11 @@ public class Client : ObservableObject
 
     public event EventHandler<ClientStateChangedEventArgs>? RunStatusChanged;
 
+    public int Attempt
+    {
+        get => attempt;
+        private set => SetProperty(ref attempt, value);
+    }
 
     private DateTime startTime;
     public DateTime StartTime
@@ -56,6 +61,8 @@ public class Client : ObservableObject
     }
 
     private string? statusMessage;
+    private int attempt;
+
     public string? StatusMessage
     {
         get => statusMessage;
@@ -72,6 +79,8 @@ public class Client : ObservableObject
 
     public async Task Launch(LaunchType launchType, string gw2Location, CancellationToken cancellationToken)
     {
+
+        Attempt++;
 
         Dictionary<string, RunStage> runStageFromModules = new()
         {
@@ -135,7 +144,7 @@ public class Client : ObservableObject
                 Logger.Debug("{0} Memory={1} ({2}<{3})", account.Name, memoryUsage, diff, tuning.MinDiff);
                 if (RunStage == RunStage.Authenticated && memoryUsage > 120_000)
                 {
-                    await ChangeRunStage(RunStage.ReadyToPlay, 1800, cancellationToken);
+                    await ChangeRunStage(RunStage.ReadyToPlay, 3000, cancellationToken);
                 }
                 else if (RunStage >= RunStage.CharacterSelected && memoryUsage > 1_400_000)
                 {

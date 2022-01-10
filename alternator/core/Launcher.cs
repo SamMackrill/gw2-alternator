@@ -31,13 +31,12 @@ public class Launcher
     {
         if (client == null) return false;
 
-        var attempt = 0;
         Task? releaseLoginTask = null;
         var loginInProcess = false;
 
         client.RunStatusChanged += Client_RunStatusChanged;
 
-        async Task? ReleaseLogin(int attemptCount, CancellationToken cancellationToken)
+        async Task? ReleaseLogin(CancellationToken cancellationToken)
         {
             try
             {
@@ -46,7 +45,7 @@ public class Launcher
                     var secondsSinceLogin = (DateTime.Now - client.StartTime).TotalSeconds;
                     Logger.Debug("{0} secondsSinceLogin={1}s", account.Name, secondsSinceLogin);
                     Logger.Debug("{0} launchCount={1}", account.Name, launchCount.Count);
-                    var delay = LaunchDelay(launchCount.Count, attemptCount);
+                    var delay = LaunchDelay(launchCount.Count, client.Attempt);
                     Logger.Debug("{0} minimum delay={1}s", account.Name, delay);
                     delay -= (int)secondsSinceLogin;
                     Logger.Debug("{0} actual delay={1}s", account.Name, delay);
@@ -112,20 +111,20 @@ public class Launcher
         void ReleaseLoginIfRequired()
         {
             if (!loginInProcess) return;
-            releaseLoginTask ??= ReleaseLogin(attempt, launchCancelled);
+            releaseLoginTask ??= ReleaseLogin(launchCancelled);
         }
 
         try
         {
 
-            while (++attempt <= maxRetries)
+            while (client.Attempt <= maxRetries)
             {
                 loginInProcess = false;
                 var exeInProcess = false;
 
                 try
                 {
-                    Logger.Info("{0} login attempt={1}", account.Name, attempt);
+                    Logger.Info("{0} login attempt={1}", account.Name, client.Attempt);
 
                     client.RunStatus = RunState.WaitingForLoginSlot;
                     if (releaseLoginTask != null)
@@ -210,11 +209,11 @@ public class Launcher
 
     private int LaunchDelay(int count, int attempt)
     {
-        if (attempt > 1) return 120 + 30 * (1 << (attempt - 1));
+        if (attempt > 1) return 60 + 30 * (1 << (attempt - 1));
 
-        if (count < 12) return 5;
-        if (count < 24) return 10;
-        return 30;
+        if (count < 10) return 5;
+        if (count < 24) return 20;
+        return 45;
 
 
         //if (count < 20) return 5 + (1 << (count - 2)) * 5;
