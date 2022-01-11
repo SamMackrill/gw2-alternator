@@ -29,7 +29,7 @@ jobs:
         run: dotnet test --no-restore --verbosity normal
 
       - name: Publish
-        run: dotnet publish ${{ env.PROJECT_PATH }} -c Release --no-self-contained -f net6.0 -r win-x64 -p:PublishSingleFile=true --no-build -o publish
+        run: dotnet publish ${{ env.PROJECT_PATH }} -c Release --no-self-contained -f net6.0-windows -r win-x64 -p:PublishSingleFile=true --no-build -o publish
 
       - uses: ncipollo/release-action@v1
         with:
