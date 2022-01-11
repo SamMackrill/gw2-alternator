@@ -6,7 +6,7 @@ Features:
  * Import account details from GW2Launcher and/or GW2Launchbuddy
  * Automatically login to accounts with no user input
  * Assist with collection of rewards every few days
- * Application has no access to your authentication details
+ * Application has no access to your GW2 authentication details
 
 Getting Started
  * On application launch you will be asked to confirm admin access
@@ -16,7 +16,9 @@ Getting Started
   * Only accounts not logged-in that day will launch (unless you clock Force all or make a selection)
   * If you have > 20 accounts expect that some fail (they will retry automatically)
   * The first character on the account will be automatically selected, this will be the one that logged in most recently
- * You can select accounts if you just want to launch a subset
+  * Only accounts that have not logged-in since reset will launch
+ * You can select accounts if you just want to launch a subset, this will ignore the filtering
+ * To harvest it is best not to run the Login step that day as this will trigger the login throttling
 
  Working with Multiple Accounts
  * The anti-botting measures tend to make dealing with more than 10 accounts difficult
