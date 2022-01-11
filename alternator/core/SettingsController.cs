@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Xml.Linq;
 
 namespace guildwars2.tools.alternator;
 
@@ -11,6 +12,10 @@ public class SettingsController
     private readonly string settingsJson;
     private readonly SemaphoreSlim semaphore;
 
+    public FileInfo? DatFile { get; set; }
+    public FileInfo? GfxSettingsFile { get; set; }
+    public Settings? Settings { get; private set; }
+
 
     public SettingsController(FileSystemInfo folderPath)
     {
@@ -18,7 +23,7 @@ public class SettingsController
         semaphore = new SemaphoreSlim(1, 1);
     }
 
-    public Settings Load()
+    public void Load()
     {
         try
         {
@@ -26,7 +31,7 @@ public class SettingsController
             using var stream = File.OpenRead(settingsJson);
             var settings = JsonSerializer.Deserialize<Settings>(stream);
             Logger.Debug("Settings loaded from {0}", settingsJson);
-            return settings ?? DefaultSettings;
+            Settings = settings ?? DefaultSettings;
         }
         catch (Exception e)
         {
@@ -36,10 +41,10 @@ public class SettingsController
         {
             semaphore.Release();
         }
-        return DefaultSettings;
+        Settings = DefaultSettings;
     }
 
-    public async Task<Settings> LoadAsync()
+    public async Task LoadAsync()
     {
         try
         {
@@ -47,7 +52,7 @@ public class SettingsController
             await using var stream = File.OpenRead(settingsJson);
             var settings = await JsonSerializer.DeserializeAsync<Settings>(stream);
             Logger.Debug("Settings loaded from {0}", settingsJson);
-            return settings ?? DefaultSettings;
+            Settings = settings ?? DefaultSettings;
         }
         catch (Exception e)
         {
@@ -57,12 +62,12 @@ public class SettingsController
         {
             semaphore.Release();
         }
-        return DefaultSettings;
+        Settings = DefaultSettings;
     }
 
-    public void Save(Settings? settings)
+    public void Save()
     {
-        if (settings == null) return;
+        if (Settings == null) return;
         try
         {
             Logger.Debug("Saving Settings to {0}", settingsJson);
@@ -70,7 +75,7 @@ public class SettingsController
 
             using (var stream = new FileStream(settingsJson, FileMode.Create))
             {
-                 JsonSerializer.Serialize(stream, settings, new JsonSerializerOptions { AllowTrailingCommas = true, WriteIndented = true });
+                 JsonSerializer.Serialize(stream, Settings, new JsonSerializerOptions { AllowTrailingCommas = true, WriteIndented = true });
             }
 
             Task.Delay(1000);
@@ -82,9 +87,9 @@ public class SettingsController
         }
     }
 
-    public async Task SaveAsync(Settings? settings)
+    public async Task SaveAsync()
     {
-        if (settings == null) return;
+        if (Settings == null) return;
         try
         {
             Logger.Debug("Saving Settings to {0}", settingsJson);
@@ -92,7 +97,7 @@ public class SettingsController
 
             await using (var stream = new FileStream(settingsJson, FileMode.Create))
             {
-                await JsonSerializer.SerializeAsync(stream, settings, new JsonSerializerOptions { AllowTrailingCommas = true, WriteIndented = true });
+                await JsonSerializer.SerializeAsync(stream, Settings, new JsonSerializerOptions { AllowTrailingCommas = true, WriteIndented = true });
             }
 
             await Task.Delay(1000);
@@ -104,9 +109,30 @@ public class SettingsController
         }
     }
 
-    public static Settings DefaultSettings => new()
+    public static Settings DefaultSettings =>
+        new()
+        {
+            Gw2Folder = null,
+            MaxLoginInstances = 4,
+            AccountBand1 = 10,
+            AccountBand1Delay = 5,
+            AccountBand2 = 24,
+            AccountBand2Delay = 20,
+            AccountBand3 = 40,
+            AccountBand3Delay = 45,
+        };
+
+
+    public void DiscoverGw2ExeLocation( )
     {
-        Gw2Folder = @"G:\Games\gw2",
-        MaxLoginInstances = 4,
-    };
+        if (Settings==null || GfxSettingsFile is not {Exists: true} || Directory.Exists(Settings.Gw2Folder)) return;
+
+        var doc = XDocument.Load(GfxSettingsFile.FullName);
+        var installPath = doc.Descendants("INSTALLPATH").FirstOrDefault();
+
+        var valueAttribute = installPath?.Attribute("Value");
+        if (valueAttribute != null && Directory.Exists(valueAttribute.Value)) Settings.Gw2Folder = valueAttribute.Value;
+        if (Directory.Exists(@"C:\Program Files (x86)\Guild Wars 2")) Settings.Gw2Folder = @"C:\Program Files (x86)\Guild Wars 2";
+
+    }
 }

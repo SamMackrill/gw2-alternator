@@ -37,6 +37,10 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="2"/>
             </Grid.RowDefinitions>
 
@@ -101,13 +105,17 @@
             </Button>
 
             <Label Padding="0" Grid.Row="3" Grid.Column="1"
+                   FontWeight="DemiBold"
+                   Content="Tuning:" />
+
+            <Label Padding="0" Grid.Row="4" Grid.Column="1"
                    Content="Max Instances:" />
-            <TextBox Grid.Row="3" Grid.Column="2"
+            <TextBox Grid.Row="4" Grid.Column="2"
                      BorderThickness="1"
                      Margin="4,4,0,0"
                      MinWidth="50"
                      Text="{Binding Path=MaxLoginInstances, Mode=TwoWay, FallbackValue='4'}"/>
-            <Button Grid.Row="3" Grid.Column="3"  
+            <Button Grid.Row="4" Grid.Column="3"  
                     Margin="4,0,0,0" 
                     Opacity="0.6"
                     VerticalAlignment="Center" 
@@ -120,10 +128,87 @@
                 <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
             </Button>
 
-            <Label Padding="0" Grid.Row="4" Grid.Column="1"
+            <Label Padding="0" Grid.Row="5" Grid.Column="1"
+                   Content="Band 1" />
+            <StackPanel Grid.Row="5" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,4">
+                <TextBox BorderThickness="1"
+                         Margin="4,4,0,0"
+                         MinWidth="50"
+                         Text="{Binding Path=AccountBand1, Mode=TwoWay, FallbackValue='10'}"/>
+                <TextBox BorderThickness="1"
+                         Margin="4,4,0,0"
+                         MinWidth="50"
+                         Text="{Binding Path=AccountBand1Delay, Mode=TwoWay, FallbackValue='5'}"/>
+                <Label Padding="0" Content="s" />
+            </StackPanel>
+            <Button Grid.Row="5" Grid.Column="3"  
+                    Margin="4,0,0,0" 
+                    Opacity="0.6"
+                    VerticalAlignment="Center" 
+                    BorderThickness="0" 
+                    Height="16" Width="16"
+                    Background="Transparent"
+                    Style="{StaticResource FadeOutButton}"
+                    Command="{Binding Path=ResetBand1Command, Mode=OneWay}" >
+
+                <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
+            </Button>
+
+            <Label Padding="0" Grid.Row="6" Grid.Column="1"
+                   Content="Band 2" />
+            <StackPanel Grid.Row="6" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,4">
+                <TextBox BorderThickness="1"
+                         Margin="4,4,0,0"
+                         MinWidth="50"
+                         Text="{Binding Path=AccountBand2, Mode=TwoWay, FallbackValue='24'}"/>
+                <TextBox BorderThickness="1"
+                         Margin="4,4,0,0"
+                         MinWidth="50"
+                         Text="{Binding Path=AccountBand2Delay, Mode=TwoWay, FallbackValue='20'}"/>
+                <Label Padding="0" Content="s" />
+            </StackPanel>
+            <Button Grid.Row="6" Grid.Column="3"  
+                    Margin="4,0,0,0" 
+                    Opacity="0.6"
+                    VerticalAlignment="Center" 
+                    BorderThickness="0" 
+                    Height="16" Width="16"
+                    Background="Transparent"
+                    Style="{StaticResource FadeOutButton}"
+                    Command="{Binding Path=ResetBand2Command, Mode=OneWay}" >
+
+                <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
+            </Button>
+
+            <Label Padding="0" Grid.Row="7" Grid.Column="1"
+                   Content="Band 3" />
+            <StackPanel Grid.Row="7" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,4">
+                <TextBox BorderThickness="1"
+                         Margin="4,4,0,0"
+                         MinWidth="50"
+                         Text="{Binding Path=AccountBand3, Mode=TwoWay, FallbackValue='40'}"/>
+                <TextBox BorderThickness="1"
+                         Margin="4,4,0,0"
+                         MinWidth="50"
+                         Text="{Binding Path=AccountBand3Delay, Mode=TwoWay, FallbackValue='45'}"/>
+                <Label Padding="0" Content="s" />
+            </StackPanel>
+            <Button Grid.Row="7" Grid.Column="3"  
+                    Margin="4,0,0,0" 
+                    Opacity="0.6"
+                    VerticalAlignment="Center" 
+                    BorderThickness="0" 
+                    Height="16" Width="16"
+                    Background="Transparent"
+                    Style="{StaticResource FadeOutButton}"
+                    Command="{Binding Path=ResetBand3Command, Mode=OneWay}" >
+
+                <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
+            </Button>
+            <Label Padding="0" Grid.Row="8" Grid.Column="1"
                    Content="Import From:" />
 
-            <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,4">
+            <StackPanel Grid.Row="8" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,4">
                 <Border
                      HorizontalAlignment="Left"
                      BorderBrush="{StaticResource ForegroundBrush}"

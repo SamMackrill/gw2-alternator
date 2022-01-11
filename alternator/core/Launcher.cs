@@ -211,19 +211,9 @@ public class Launcher
     {
         if (attempt > 1) return 60 + 30 * (1 << (attempt - 1));
 
-        if (count < 10) return 5;
-        if (count < 24) return 20;
-        return 45;
-
-
-        //if (count < 20) return 5 + (1 << (count - 2)) * 5;
-        //return Math.Min(800, (300 + 10 * (count - 5)));
-
-        // 0 | 5
-        // 1 | 5
-        // 2 | 10
-        // 3 | 15
-        // 4 | 25
-        // 5 | 60
+        if (count < settings.AccountBand1) return settings.AccountBand1Delay;
+        if (count < settings.AccountBand2) return settings.AccountBand2Delay;
+        if (count < settings.AccountBand3) return settings.AccountBand3Delay;
+        return settings.AccountBand3Delay + 60;
     }
 }

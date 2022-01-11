@@ -5,7 +5,7 @@ public class Settings : ObservableObject
 {
 
     private string? gw2Folder;
-    public string Gw2Folder
+    public string? Gw2Folder
     {
         get => gw2Folder;
         set => SetProperty(ref gw2Folder, value);
@@ -18,18 +18,43 @@ public class Settings : ObservableObject
         set => SetProperty(ref maxLoginInstances, value);
     }
 
-    public Settings() : this(false) { }
-
-    public Settings(bool setDefault)
+    private int accountBand1;
+    public int AccountBand1
     {
-        if (setDefault)
-        {
-
-            var gcMemoryInfo = GC.GetGCMemoryInfo();
-            var freeMemory = (int)((gcMemoryInfo.TotalAvailableMemoryBytes - gcMemoryInfo.MemoryLoadBytes) >> 20);
-            maxLoginInstances = freeMemory / 1400;
-
-            if (Directory.Exists(@"C:\Program Files (x86)\Guild Wars 2")) gw2Folder = @"C:\Program Files (x86)\Guild Wars 2";
-        }
+        get => accountBand1;
+        set => SetProperty(ref accountBand1, value);
     }
+    private int accountBand1Delay;
+    public int AccountBand1Delay
+    {
+        get => accountBand1;
+        set => SetProperty(ref accountBand1Delay, value);
+    }
+
+    private int accountBand2;
+    public int AccountBand2
+    {
+        get => accountBand2;
+        set => SetProperty(ref accountBand2, value);
+    }
+    private int accountBand2Delay;
+    public int AccountBand2Delay
+    {
+        get => accountBand2Delay;
+        set => SetProperty(ref accountBand2Delay, value);
+    }
+
+    private int accountBand3;
+    public int AccountBand3
+    {
+        get => accountBand3;
+        set => SetProperty(ref accountBand3, value);
+    }
+    private int accountBand3Delay;
+    public int AccountBand3Delay
+    {
+        get => accountBand3Delay;
+        set => SetProperty(ref accountBand3Delay, value);
+    }
+
 }

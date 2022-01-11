@@ -64,16 +64,16 @@ public partial class App : Application
         SetLogging(applicationFolder);
 
         settingsController = new SettingsController(applicationFolder);
-        settings = settingsController.Load();
+        settingsController.Load();
 
-        var mainView = new MainViewModel(applicationFolder, appData, settings);
+        var mainView = new MainViewModel(applicationFolder, appData, settingsController);
         var mainWindow = new MainWindow(mainView);
         mainWindow.Show();
     }
 
     protected override void OnExit(ExitEventArgs e)
     {
-        settingsController?.Save(settings);
+        settingsController?.Save();
         LogManager.Shutdown();
         base.OnExit(e);
     }
@@ -140,7 +140,7 @@ public partial class App : Application
                                          MessageBoxImage.Error);
             if (result == MessageBoxResult.Yes)
             {
-                settingsController?.Save(settings);
+                settingsController?.Save();
             }
 
             Logger.Error(e.Exception, "Unrecoverable Exception");

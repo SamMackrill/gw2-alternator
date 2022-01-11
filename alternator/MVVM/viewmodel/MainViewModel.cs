@@ -149,7 +149,7 @@ public class MainViewModel : ObservableObject
     }
 
 
-    public MainViewModel(DirectoryInfo applicationFolder, string appData, Settings settings)
+    public MainViewModel(DirectoryInfo applicationFolder, string appData, SettingsController settingsController)
     {
         var apiConnection = new Gw2Sharp.Connection();
         using var apiClient = new Gw2Sharp.Gw2Client(apiConnection);
@@ -158,13 +158,15 @@ public class MainViewModel : ObservableObject
         var buildFetch = webApiClient.Build.GetAsync();
 
 
-        var datFile = new FileInfo(Path.Combine(appData, @"Guild Wars 2", @"Local.dat"));
-        var gfxSettingsFile = new FileInfo(Path.Combine(appData, @"Guild Wars 2", @"GFXSettings.Gw2-64.exe.xml"));
+        settingsController.DatFile = new FileInfo(Path.Combine(appData, @"Guild Wars 2", @"Local.dat"));
+        settingsController.GfxSettingsFile = new FileInfo(Path.Combine(appData, @"Guild Wars 2", @"GFXSettings.Gw2-64.exe.xml"));
 
-        DiscoverGw2ExeLocation(settings, gfxSettingsFile);
+        settingsController.DiscoverGw2ExeLocation();
+
+        var settings = settingsController.Settings;
 
         accountCollection = new AccountCollection(applicationFolder, Path.Combine(appData, @"Gw2 Launchbuddy"), Path.Combine(appData, @"Gw2Launcher"));
-        SettingsVM = new SettingsViewModel(settings, accountCollection , () => Version);
+        SettingsVM = new SettingsViewModel(settingsController, accountCollection , () => Version);
 
         accountCollection.Loaded += OnAccountsLoaded;
         AccountsVM = new AccountsViewModel();
@@ -188,7 +190,7 @@ public class MainViewModel : ObservableObject
 
                 cts = new CancellationTokenSource();
                 cts.Token.ThrowIfCancellationRequested();
-                var launcher = new ClientController(applicationFolder, settings, datFile, gfxSettingsFile, launchType);
+                var launcher = new ClientController(applicationFolder, settingsController, launchType);
 
                 var selectedAccounts = AccountsVM.SelectedAccounts.ToList();
 
@@ -255,17 +257,6 @@ public class MainViewModel : ObservableObject
             OnPropertyChanged(nameof(ResetCountdown));
         };
         dt.Start();
-    }
-
-    private static void DiscoverGw2ExeLocation(Settings settings, FileInfo gfxSettingsFile)
-    {
-        if (!gfxSettingsFile.Exists || Directory.Exists(settings.Gw2Folder)) return;
-
-        var doc = XDocument.Load(gfxSettingsFile.FullName);
-        var installPath = doc.Descendants("INSTALLPATH").FirstOrDefault();
-
-        var valueAttribute = installPath?.Attribute("Value");
-        if (valueAttribute != null && Directory.Exists(valueAttribute.Value)) settings.Gw2Folder = valueAttribute.Value;
     }
 
 

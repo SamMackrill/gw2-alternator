@@ -4,18 +4,27 @@ namespace guildwars2.tools.alternator.MVVM.viewmodel;
 
 public class SettingsViewModel : ObservableObject
 {
+    private readonly SettingsController settingsController;
     private readonly AccountCollection accountCollection;
-    private Settings Settings { get; }
     private Func<string>? GetVersion { get; }
 
-    public SettingsViewModel(Settings settings, AccountCollection accountCollection, Func<string>? getVersion)
+    private Settings Settings => settingsController.Settings!;
+
+    public SettingsViewModel(SettingsController settingsController, AccountCollection accountCollection, Func<string>? getVersion)
     {
+        this.settingsController = settingsController;
         this.accountCollection = accountCollection;
-        Settings = settings;
         GetVersion = getVersion;
+        if (settingsController.Settings != null) settingsController.Settings.PropertyChanged += ModelPropertyChanged;
     }
 
-    public string Gw2Folder
+    private void ModelPropertyChanged(object? sender, PropertyChangedEventArgs args)
+    {
+        if (args.PropertyName == null) return;
+        OnPropertyChanged(args.PropertyName);
+    }
+
+    public string? Gw2Folder
     {
         get => Settings.Gw2Folder;
         set => Settings.Gw2Folder = value;
@@ -25,6 +34,39 @@ public class SettingsViewModel : ObservableObject
     {
         get => Settings.MaxLoginInstances;
         set => Settings.MaxLoginInstances = value;
+    }
+
+    public int AccountBand1
+    {
+        get => Settings.AccountBand1;
+        set => Settings.AccountBand1 = value;
+    }
+    public int AccountBand1Delay
+    {
+        get => Settings.AccountBand1Delay;
+        set => Settings.AccountBand1Delay = value;
+    }
+
+    public int AccountBand2
+    {
+        get => Settings.AccountBand2;
+        set => Settings.AccountBand2 = value;
+    }
+    public int AccountBand2Delay
+    {
+        get => Settings.AccountBand2Delay;
+        set => Settings.AccountBand2Delay = value;
+    }
+
+    public int AccountBand3
+    {
+        get => Settings.AccountBand3;
+        set => Settings.AccountBand3 = value;
+    }
+    public int AccountBand3Delay
+    {
+        get => Settings.AccountBand3Delay;
+        set => Settings.AccountBand3Delay = value;
     }
 
     public string Title => $"GW2 alternator Settings V{GetVersion?.Invoke() ?? "?.?.?"}";
@@ -45,7 +87,7 @@ public class SettingsViewModel : ObservableObject
 
     public RelayCommand<object> ResetGw2FolderCommand => new(_ =>
     {
-        Settings.Gw2Folder = SettingsController.DefaultSettings.Gw2Folder;
+        settingsController.DiscoverGw2ExeLocation();
     });
 
     public RelayCommand<object> ResetMaxLoginInstancesCommand => new(_ =>
@@ -53,6 +95,26 @@ public class SettingsViewModel : ObservableObject
         Settings.MaxLoginInstances = SettingsController.DefaultSettings.MaxLoginInstances;
     });
 
+    public RelayCommand<object> ResetBand1Command => new(_ =>
+    {
+        var defaultSettings = SettingsController.DefaultSettings;
+        Settings.AccountBand1 = defaultSettings.AccountBand1;
+        Settings.AccountBand1Delay = defaultSettings.AccountBand1Delay;
+    });
+
+    public RelayCommand<object> ResetBand2Command => new(_ =>
+    {
+        var defaultSettings = SettingsController.DefaultSettings;
+        Settings.AccountBand2 = defaultSettings.AccountBand2;
+        Settings.AccountBand2Delay = defaultSettings.AccountBand2Delay;
+    });
+
+    public RelayCommand<object> ResetBand3Command => new(_ =>
+    {
+        var defaultSettings = SettingsController.DefaultSettings;
+        Settings.AccountBand3 = defaultSettings.AccountBand3;
+        Settings.AccountBand3Delay = defaultSettings.AccountBand3Delay;
+    });
 
     public RelayCommand<object> ImportFromLaunchBuddyCommand => new(_ =>
     {

@@ -12,13 +12,12 @@ public class ClientController
 
     public event EventHandler<GenericEventArgs<bool>>? AfterLaunchAccount;
 
-    public ClientController(DirectoryInfo applicationFolder, Settings settings, FileInfo loginFile,
-        FileInfo gfxSettingsFile, LaunchType launchType)
+    public ClientController(DirectoryInfo applicationFolder, SettingsController settingsController, LaunchType launchType)
     {
         this.applicationFolder = applicationFolder;
-        this.settings = settings;
-        this.loginFile = loginFile;
-        this.gfxSettingsFile = gfxSettingsFile;
+        settings = settingsController.Settings!;
+        loginFile = settingsController.DatFile!;
+        gfxSettingsFile = settingsController.GfxSettingsFile!;
         this.launchType = launchType;
         loginSemaphore = new SemaphoreSlim(0, 1);
     }
@@ -90,7 +89,7 @@ public class ClientController
         if (!backup.Exists) return;
         try
         {
-            file.Delete(); // Symbolic links need to be specifically delete
+            file.Delete(); // Symbolic links need to be specifically deleted
             backup.MoveTo(file.FullName);
         }
         catch (Exception e)
