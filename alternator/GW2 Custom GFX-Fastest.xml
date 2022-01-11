@@ -10,7 +10,7 @@
     </APPLICATION>
     <GAMESETTINGS>
         <RESOLUTION Width="1920" Height="1200" RefreshRate="0"/>
-        <OPTION Name="frameLimit" Registered="True" Type="Enum" Value="unlimited">
+        <OPTION Name="frameLimit" Registered="True" Type="Enum" Value="30">
             <ENUM EnumValue="unlimited"/>
             <ENUM EnumValue="60"/>
             <ENUM EnumValue="30"/>
