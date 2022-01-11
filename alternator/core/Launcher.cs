@@ -18,6 +18,7 @@ public class Launcher
         this.settings = settings;
         this.launchCancelled = launchCancelled;
         referenceGfxSettings = new FileInfo(Path.Combine(applicationFolder.FullName, "GW2 Custom GFX-Fastest.xml"));
+        // TODO the client should not live on the account!
         client = account.Client;
     }
 
@@ -116,7 +117,7 @@ public class Launcher
 
         try
         {
-
+            client.Attempt = 0;
             while (client.Attempt <= maxRetries)
             {
                 loginInProcess = false;

@@ -33,7 +33,7 @@ public class Client : ObservableObject
     public int Attempt
     {
         get => attempt;
-        private set => SetProperty(ref attempt, value);
+        set => SetProperty(ref attempt, value);
     }
 
     private DateTime startTime;
@@ -75,6 +75,7 @@ public class Client : ObservableObject
         RunStatus = RunState.Ready;
         loadedModules = new List<string>();
         RunStage = RunStage.NotRun;
+        Attempt = 0;
     }
 
     public async Task Launch(LaunchType launchType, string gw2Location, CancellationToken cancellationToken)
@@ -144,7 +145,7 @@ public class Client : ObservableObject
                 Logger.Debug("{0} Memory={1} ({2}<{3})", account.Name, memoryUsage, diff, tuning.MinDiff);
                 if (RunStage == RunStage.Authenticated && memoryUsage > 120_000)
                 {
-                    await ChangeRunStage(RunStage.ReadyToPlay, 3000, cancellationToken);
+                    await ChangeRunStage(RunStage.ReadyToPlay, 4000, cancellationToken);
                 }
                 else if (RunStage >= RunStage.CharacterSelected && memoryUsage > 1_400_000)
                 {

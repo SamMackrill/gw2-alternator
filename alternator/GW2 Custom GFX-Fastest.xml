@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GSA_SDK Version="2.1.18431650.0">
+    <APPLICATION>
+        <DISPLAYNAME Value="Guild Wars 2"/>
+        <VERSIONNAME Value="Build 123138"/>
+        <INSTALLPATH Value="G:\Games\gw2\"/>
+        <CONFIGPATH Value="C:\Users\Sam\AppData\Roaming\Guild Wars 2"/>
+        <EXECUTABLE Value="Gw2-64.exe"/>
+        <EXECCMD Value="&quot;G:\Games\gw2\Gw2-64.exe&quot; -windowed -nosound -shareArchive -maploadinfo -dx9 -fps 20 -autologin"/>
+    </APPLICATION>
+    <GAMESETTINGS>
+        <RESOLUTION Width="1920" Height="1200" RefreshRate="0"/>
+        <OPTION Name="frameLimit" Registered="True" Type="Enum" Value="unlimited">
+            <ENUM EnumValue="unlimited"/>
+            <ENUM EnumValue="60"/>
+            <ENUM EnumValue="30"/>
+        </OPTION>
+        <OPTION Name="shadows" Registered="True" Type="Enum" Value="off">
+            <ENUM EnumValue="off"/>
+            <ENUM EnumValue="low"/>
+            <ENUM EnumValue="medium"/>
+            <ENUM EnumValue="high"/>
+            <ENUM EnumValue="ultra"/>
+        </OPTION>
+        <OPTION Name="reflections" Registered="True" Type="Enum" Value="none">
+            <ENUM EnumValue="none"/>
+            <ENUM EnumValue="terrain"/>
+            <ENUM EnumValue="all"/>
+        </OPTION>
+        <OPTION Name="charModelLimit" Registered="True" Type="Enum" Value="lowest">
+            <ENUM EnumValue="lowest"/>
+            <ENUM EnumValue="low"/>
+            <ENUM EnumValue="medium"/>
+            <ENUM EnumValue="high"/>
+            <ENUM EnumValue="highest"/>
+        </OPTION>
+        <OPTION Name="screenMode" Registered="True" Type="Enum" Value="windowed">
+            <ENUM EnumValue="windowed"/>
+            <ENUM EnumValue="fullscreen"/>
+            <ENUM EnumValue="windowed_fullscreen"/>
+        </OPTION>
+        <OPTION Name="antiAliasing" Registered="True" Type="Enum" Value="none">
+            <ENUM EnumValue="none"/>
+            <ENUM EnumValue="fxaa"/>
+            <ENUM EnumValue="smaa_low"/>
+            <ENUM EnumValue="smaa_high"/>
+        </OPTION>
+        <OPTION Name="textureDetail" Registered="True" Type="Enum" Value="low">
+            <ENUM EnumValue="low"/>
+            <ENUM EnumValue="medium"/>
+            <ENUM EnumValue="high"/>
+        </OPTION>
+        <OPTION Name="animation" Registered="True" Type="Enum" Value="low">
+            <ENUM EnumValue="low"/>
+            <ENUM EnumValue="medium"/>
+            <ENUM EnumValue="high"/>
+        </OPTION>
+        <OPTION Name="charModelQuality" Registered="True" Type="Enum" Value="low">
+            <ENUM EnumValue="lowest"/>
+            <ENUM EnumValue="low"/>
+            <ENUM EnumValue="medium"/>
+            <ENUM EnumValue="high"/>
+            <ENUM EnumValue="highest"/>
+        </OPTION>
+        <OPTION Name="environment" Registered="True" Type="Enum" Value="low">
+            <ENUM EnumValue="low"/>
+            <ENUM EnumValue="medium"/>
+            <ENUM EnumValue="high"/>
+        </OPTION>
+        <OPTION Name="lodDistance" Registered="True" Type="Enum" Value="low">
+            <ENUM EnumValue="low"/>
+            <ENUM EnumValue="medium"/>
+            <ENUM EnumValue="high"/>
+            <ENUM EnumValue="ultra"/>
+        </OPTION>
+        <OPTION Name="postProc" Registered="True" Type="Enum" Value="low">
+            <ENUM EnumValue="low"/>
+            <ENUM EnumValue="medium"/>
+            <ENUM EnumValue="high"/>
+        </OPTION>
+        <OPTION Name="sampling" Registered="True" Type="Enum" Value="subsample">
+            <ENUM EnumValue="subsample"/>
+            <ENUM EnumValue="native"/>
+            <ENUM EnumValue="supersample"/>
+        </OPTION>
+        <OPTION Name="shaders" Registered="True" Type="Enum" Value="low">
+            <ENUM EnumValue="low"/>
+            <ENUM EnumValue="medium"/>
+            <ENUM EnumValue="high"/>
+        </OPTION>
+        <OPTION Name="gamma" Registered="True" Type="Float" Value="1">
+            <RANGE MinValue="0.5" MaxValue="3.5" NumSteps="0"/>
+        </OPTION>
+        <OPTION Name="effectLod" Registered="True" Type="Bool" Value="true"/>
+        <OPTION Name="highResCharacter" Registered="True" Type="Bool" Value="false"/>
+        <OPTION Name="bestTextureFiltering" Registered="True" Type="Bool" Value="false"/>
+        <OPTION Name="depthBlur" Registered="True" Type="Bool" Value="false"/>
+        <OPTION Name="verticalSync" Registered="True" Type="Bool" Value="false"/>
+        <OPTION Name="dpiScaling" Registered="True" Type="Bool" Value="true"/>
+    </GAMESETTINGS>
+</GSA_SDK>

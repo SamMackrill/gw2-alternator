@@ -17,7 +17,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="accounts.json" />
     <None Remove="images\alternate.png" />
     <None Remove="images\alternate_orange-wide.png" />
     <None Remove="images\alternate_orange.png" />
@@ -29,9 +28,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="accounts.json">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Content>
     <Content Include="images\alternate_orange.ico" />
   </ItemGroup>
 

@@ -27,7 +27,7 @@ public class Settings : ObservableObject
     private int accountBand1Delay;
     public int AccountBand1Delay
     {
-        get => accountBand1;
+        get => accountBand1Delay;
         set => SetProperty(ref accountBand1Delay, value);
     }
 
