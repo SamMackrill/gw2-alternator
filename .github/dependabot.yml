@@ -5,12 +5,12 @@
 
 version: 2
 updates:
-  - package-ecosystem: "NuGet"
+  - package-ecosystem: "nuget"
     directory: "/alternator"
     schedule:
       interval: "daily"
   
-  - package-ecosystem: "NuGet"
+  - package-ecosystem: "nuget"
     directory: "/alternator.tests"
     schedule:
       interval: "daily"
