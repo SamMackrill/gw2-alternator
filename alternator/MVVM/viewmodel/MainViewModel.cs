@@ -1,9 +1,9 @@
-﻿using System.Xml.Linq;
-
-namespace guildwars2.tools.alternator.MVVM.viewmodel;
+﻿namespace guildwars2.tools.alternator.MVVM.viewmodel;
 
 public class MainViewModel : ObservableObject
 {
+    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
     public IAsyncCommand? LoginCommand { get; set; }
     public IAsyncCommand? CollectCommand { get; set; }
     public IAsyncCommand? UpdateCommand { get; set; }
@@ -57,7 +57,6 @@ public class MainViewModel : ObservableObject
     {
         CloseCommand?.RaiseCanExecuteChanged();
     }
-
 
     public string TimeUtc => DateTime.UtcNow.ToString("HH:mm");
     public string ResetCountdown => DateTime.UtcNow.AddDays(1).Date.Subtract(DateTime.UtcNow).ToString(@"h'hr 'm'min'");
@@ -151,6 +150,11 @@ public class MainViewModel : ObservableObject
 
     public MainViewModel(DirectoryInfo applicationFolder, string appData, SettingsController settingsController)
     {
+        bool CanRun()
+        {
+            return !Running && settingsController.Settings != null;
+        }
+
         var apiConnection = new Gw2Sharp.Connection();
         using var apiClient = new Gw2Sharp.Gw2Client(apiConnection);
         var webApiClient = apiClient.WebApi.V2;
@@ -162,8 +166,6 @@ public class MainViewModel : ObservableObject
         settingsController.GfxSettingsFile = new FileInfo(Path.Combine(appData, @"Guild Wars 2", @"GFXSettings.Gw2-64.exe.xml"));
 
         settingsController.DiscoverGw2ExeLocation();
-
-        var settings = settingsController.Settings;
 
         accountCollection = new AccountCollection(applicationFolder, Path.Combine(appData, @"Gw2 Launchbuddy"), Path.Combine(appData, @"Gw2Launcher"));
         SettingsVM = new SettingsViewModel(settingsController, accountCollection , () => Version);
@@ -182,7 +184,7 @@ public class MainViewModel : ObservableObject
 
                 var maxInstances = serial ? 1 : launchType switch
                 {
-                    LaunchType.Login => settings.MaxLoginInstances,
+                    LaunchType.Login => settingsController.Settings!.MaxLoginInstances,
                     LaunchType.Collect => 2,
                     LaunchType.Update => 1,
                     _ => 1
@@ -213,23 +215,23 @@ public class MainViewModel : ObservableObject
         {
             await LaunchMultipleAccounts(LaunchType.Login, ForceAll, ForceSerial);
             LoginChecked = false;
-        }, _ => !Running);
+        }, _ => CanRun());
         CollectCommand = new AsyncCommand(async () =>
         {
             await LaunchMultipleAccounts(LaunchType.Collect, ForceAll, ForceSerial);
             CollectChecked = false;
-        }, _ => !Running);
+        }, _ => CanRun());
         UpdateCommand = new AsyncCommand(async () =>
         {
             await LaunchMultipleAccounts(LaunchType.Update, ForceAll, ForceSerial);
             UpdateChecked = false;
-        }, _ => !Running);
+        }, _ => CanRun());
 
         StopCommand = new RelayCommand<object>(_ =>
         {
             Stopping = true;
             cts?.Cancel();
-        }, _ => Running);
+        }, _ => CanRun());
 
         CloseCommand = new AsyncCommand(async () =>
         {
@@ -346,6 +348,7 @@ public class MainViewModel : ObservableObject
         }
         catch (Exception e)
         {
+            Logger.Error(e, "GW2 API Query");
         }
 
     }

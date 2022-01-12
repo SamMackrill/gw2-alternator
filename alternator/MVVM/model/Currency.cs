@@ -4,7 +4,7 @@
 [DebuggerDisplay("{" + nameof(DebugDisplay) + ",nq}")]
 public class Currency : ObservableObject
 {
-    private string name;
+    private string name = null!;
     public string Name
     {
         get => name;
@@ -21,9 +21,7 @@ public class Currency : ObservableObject
 
     public Currency(string name, int count)
     {
-        if (string.IsNullOrEmpty(name)) throw new ArgumentNullException(nameof(name));
-
-        Name = name;
+        Name = name ?? throw new ArgumentNullException(nameof(name));
         Count = count;
     }
 

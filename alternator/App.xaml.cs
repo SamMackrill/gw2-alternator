@@ -45,7 +45,6 @@ public partial class App : Application
     public string ApplicationName { get; }
 
     private SettingsController? settingsController;
-    private Settings? settings;
 
     public App()
     {

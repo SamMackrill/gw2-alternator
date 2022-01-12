@@ -16,15 +16,16 @@ public interface ICommandExtended : ICommand
 public class RelayCommand<T> : ICommandExtended
 {
 
-    private readonly Predicate<T> canExecute;
-    private readonly Action<T> execute;
-    readonly WeakEventManager _weakEventManager = new();
+    private readonly Predicate<T?> canExecute;
+    private readonly Action<T?> execute;
+    private readonly WeakEventManager weakEventManager = new();
 
     /// <summary>
     /// Initializes BaseCommand
     /// </summary>
+    /// <param name="execute"></param>
     /// <param name="canExecute"></param>
-    public RelayCommand(Action<T> execute, Predicate<T>? canExecute = null)
+    public RelayCommand(Action<T?>? execute, Predicate<T?>? canExecute = null)
     {
         this.execute = execute ?? throw new ArgumentNullException(nameof(execute));
         this.canExecute = canExecute ?? (_ => true) ;
@@ -34,8 +35,8 @@ public class RelayCommand<T> : ICommandExtended
     /// </summary>
     public event EventHandler? CanExecuteChanged
     {
-        add => _weakEventManager.AddEventHandler(value);
-        remove => _weakEventManager.RemoveEventHandler(value);
+        add => weakEventManager.AddEventHandler(value);
+        remove => weakEventManager.RemoveEventHandler(value);
     }
 
     /// <summary>
@@ -43,7 +44,7 @@ public class RelayCommand<T> : ICommandExtended
     /// </summary>
     /// <returns><c>true</c>, if this command can be executed; otherwise, <c>false</c>.</returns>
     /// <param name="parameter">Data used by the command. If the command does not require data to be passed, this object can be set to null.</param>
-    bool ICommand.CanExecute(object parameter) => parameter switch
+    bool ICommand.CanExecute(object? parameter) => parameter switch
     {
         T validParameter => CanExecute(validParameter),
         null when IsNullable<T>() => CanExecute((T?)parameter),
@@ -51,6 +52,11 @@ public class RelayCommand<T> : ICommandExtended
         _ => throw new InvalidCommandParameterException(typeof(T), parameter.GetType()),
     };
 
+    /// <summary>
+    /// Determines whether the command can execute in its current state
+    /// </summary>
+    /// <param name="parameter"></param>
+    /// <returns></returns>
     public bool CanExecute(T? parameter) => canExecute(parameter);
 
     void ICommand.Execute(object? parameter)
@@ -73,12 +79,16 @@ public class RelayCommand<T> : ICommandExtended
         }
     }
 
+    /// <summary>
+    /// Execute
+    /// </summary>
+    /// <param name="parameter"></param>
     public void Execute(T? parameter) => execute(parameter);
 
     /// <summary>
     /// Raises the CanExecuteChanged event.
     /// </summary>
-    public void RaiseCanExecuteChanged() => _weakEventManager.RaiseEvent(this, EventArgs.Empty, nameof(CanExecuteChanged));
+    public void RaiseCanExecuteChanged() => weakEventManager.RaiseEvent(this, EventArgs.Empty, nameof(CanExecuteChanged));
 
     /// <summary>
     /// Determine if TN is Nullable

@@ -3,7 +3,7 @@ using System.Xml.Linq;
 
 namespace guildwars2.tools.alternator;
 
-public class SettingsController
+public class SettingsController : ObservableObject
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
