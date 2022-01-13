@@ -16,7 +16,9 @@ public class AccountCollection
     private readonly string accountsJson;
     private readonly SemaphoreSlim semaphore;
 
-    public event EventHandler<EventArgs>? Loaded;
+    public delegate Task AsyncEventHandler<in TEventArgs>(object? sender, TEventArgs e);
+
+    public event AsyncEventHandler<EventArgs>? Loaded;
 
     public AccountCollection(FileSystemInfo folderPath, string launchbuddyFolder, string launcherFolder)
     {

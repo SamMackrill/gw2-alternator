@@ -100,7 +100,6 @@ public class Launcher
                     break;
                 case RunStage.Exited:
                     if (e.OldState != RunStage.CharacterSelected) break;
-                    client.RunStatus = RunState.Completed;
                     account.LastLogin = DateTime.UtcNow;
                     if (launchType is LaunchType.Collect) account.LastCollection = DateTime.UtcNow;
                     break;
@@ -149,7 +148,9 @@ public class Launcher
 
                     launchCount.Increment();
 
-                    await client.Launch(launchType, settings.Gw2Folder, launchCancelled);
+                    await client.Launch(launchType, settings.Gw2Folder!, launchCancelled);
+
+                    client.RunStatus = RunState.Completed;
                     return true;
                 }
                 catch (OperationCanceledException)

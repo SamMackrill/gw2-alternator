@@ -92,7 +92,7 @@
                                Margin="20,0,0,0"
                                FontWeight="DemiBold"
                                FontFamily="Consolas"
-                               Text="Reset In:" />
+                               Text="Reset in:" />
                     <TextBlock FontSize="22" 
                                Padding="0"
                                Margin="4,0,0,0"

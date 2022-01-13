@@ -57,7 +57,10 @@ public class Client : ObservableObject
     public RunStage RunStage
     {
         get => runStage;
-        private set => SetProperty(ref runStage, value);
+        private set
+        {
+            if (SetProperty(ref runStage, value) && runStatus != RunState.Error) StatusMessage = $"Stage: {runStage}";
+        }
     }
 
     private string? statusMessage;
@@ -80,8 +83,7 @@ public class Client : ObservableObject
 
     public async Task Launch(LaunchType launchType, string gw2Location, CancellationToken cancellationToken)
     {
-
-        Attempt++;
+        bool DetectCrash() => !closed && launchType != LaunchType.Collect && launchType != LaunchType.Update;
 
         Dictionary<string, RunStage> runStageFromModules = new()
         {
@@ -89,6 +91,65 @@ public class Client : ObservableObject
             { @"userenv.dll", RunStage.CharacterSelectReached },
             { @"mmdevapi.dll", RunStage.Playing },
         };
+
+        var stuckDelay = new TimeSpan(0, 0, 20);
+        var stuckTolerance = 100;
+
+        async Task StageUpdate()
+        {
+            if (launchType == LaunchType.Update) return;
+
+            var memoryUsage = p.WorkingSet64 / 1024;
+
+            // Check if Stuck
+            if (memoryUsage - lastStageMemoryUsage < stuckTolerance &&
+                DateTime.Now.Subtract(lastStageSwitchTime) > stuckDelay)
+            {
+                switch (RunStage)
+                {
+                    case RunStage.ReadyToPlay:
+                        await ChangeRunStage(RunStage.LoginFailed, 200, cancellationToken);
+                        break;
+                    case RunStage.CharacterSelected:
+                        await ChangeRunStage(RunStage.EntryFailed, 200, cancellationToken);
+                        break;
+                }
+            }
+
+            // Check if moved on
+            if (RunStage == RunStage.CharacterSelectReached && memoryUsage - lastStageMemoryUsage > 100)
+            {
+                await ChangeRunStage(RunStage.CharacterSelected, 200, cancellationToken);
+            }
+
+            var diff = Math.Abs(memoryUsage - tuning.MemoryUsage);
+            if (RunStage is RunStage.Authenticated or RunStage.CharacterSelected && diff < tuning.MinDiff)
+            {
+                Logger.Debug("{0} Memory={1} ({2}<{3})", account.Name, memoryUsage, diff, tuning.MinDiff);
+                switch (RunStage)
+                {
+                    case RunStage.Authenticated when memoryUsage > 120_000:
+                        await ChangeRunStage(RunStage.ReadyToPlay, 4000, cancellationToken);
+                        break;
+                    case RunStage.CharacterSelected when memoryUsage > 1_400_000:
+                        await ChangeRunStage(RunStage.WorldEntered, 1800, cancellationToken);
+                        break;
+                }
+            }
+
+            tuning.MemoryUsage = memoryUsage;
+
+            var newModules = UpdateProcessModules();
+            var stageChanges = runStageFromModules.Where(e => newModules.Contains(e.Key))
+                .OrderBy(e => e.Key)
+                .Select(e => e.Value);
+            foreach (var newRunStage in stageChanges)
+            {
+                await ChangeRunStage(newRunStage, 200, cancellationToken);
+            }
+        }
+
+        Attempt++;
 
         tuning = new EngineTuning(new TimeSpan(0, 0, 0, 0, 200), 0L, 1L);
 
@@ -110,63 +171,16 @@ public class Client : ObservableObject
         if (launchType is not LaunchType.Update) KillMutex();
 
         var timeout = launchType == LaunchType.Collect ? TimeSpan.MaxValue : new TimeSpan(0, 5, 0);
-        var stuckDelay = new TimeSpan(0, 0, 20);
-        var stuckTolerance = 100;
         // State Engine
         while (Alive)
         {
             if (DateTime.Now.Subtract(StartTime) > timeout) throw new Gw2Exception("GW2 process timed-out");
 
-            var memoryUsage = p.WorkingSet64 / 1024;
+            await StageUpdate();
 
-            // Check if Stuck
-            if (memoryUsage - lastStageMemoryUsage < stuckTolerance && DateTime.Now.Subtract(lastStageSwitchTime) > stuckDelay)
-            {
-                switch (RunStage)
-                {
-                    case RunStage.ReadyToPlay:
-                        await ChangeRunStage(RunStage.LoginFailed, 200, cancellationToken);
-                        break;
-                    case RunStage.CharacterSelected:
-                        await ChangeRunStage(RunStage.EntryFailed, 200, cancellationToken);
-                        break;
-                }
-            }
-
-            // Check if moved on
-            if (RunStage == RunStage.CharacterSelectReached && memoryUsage - lastStageMemoryUsage > 100)
-            {
-                await ChangeRunStage(RunStage.CharacterSelected, 200, cancellationToken);
-            }
-
-            var diff = Math.Abs(memoryUsage - tuning.MemoryUsage);
-            if (RunStage is RunStage.Authenticated or >= RunStage.CharacterSelected && diff < tuning.MinDiff)
-            {
-                Logger.Debug("{0} Memory={1} ({2}<{3})", account.Name, memoryUsage, diff, tuning.MinDiff);
-                if (RunStage == RunStage.Authenticated && memoryUsage > 120_000)
-                {
-                    await ChangeRunStage(RunStage.ReadyToPlay, 4000, cancellationToken);
-                }
-                else if (RunStage >= RunStage.CharacterSelected && memoryUsage > 1_400_000)
-                {
-                    //Suspend();
-                    await ChangeRunStage(RunStage.WorldEntered, 1800, cancellationToken);
-                    //Resume();
-                }
-            }
-            tuning.MemoryUsage = memoryUsage;
-
-            var newModules = UpdateProcessModules();
-            var stageChanges = runStageFromModules.Where(e => newModules.Contains(e.Key))
-                                                  .OrderBy(e => e.Key)
-                                                  .Select(e => e.Value);
-            foreach (var newRunStage in stageChanges)
-            {
-                await ChangeRunStage(newRunStage, 200, cancellationToken);
-            }
             await Task.Delay(tuning.Pause, cancellationToken);
         }
-        if (!closed && launchType != LaunchType.Collect) throw new Gw2Exception("GW2 process crashed");
+        if (DetectCrash()) throw new Gw2Exception("GW2 process crashed");
     }
 
     private void UpdateEngineSpeed()
@@ -212,44 +226,6 @@ public class Client : ObservableObject
         SendEnter();
     }
 
-    //public void Suspend()
-    //{
-    //    if (!Alive) return;
-
-    //    foreach (ProcessThread pT in p.Threads)
-    //    {
-    //        IntPtr pOpenThread = Native.OpenThread(ThreadAccess.SUSPEND_RESUME, false, (uint)pT.Id);
-
-    //        if (pOpenThread == IntPtr.Zero)  continue;
-
-    //        Native.SuspendThread(pOpenThread);
-
-    //        Native.CloseHandle(pOpenThread);
-    //    }
-    //}
-
-    //public void Resume()
-    //{
-    //    if (!Alive) return;
-    //    foreach (ProcessThread pT in p.Threads)
-    //    {
-    //        IntPtr pOpenThread = Native.OpenThread(ThreadAccess.SUSPEND_RESUME, false, (uint)pT.Id);
-
-    //        if (pOpenThread == IntPtr.Zero)
-    //        {
-    //            continue;
-    //        }
-
-    //        uint suspendCount;
-    //        do
-    //        {
-    //            suspendCount = Native.ResumeThread(pOpenThread);
-    //        } while (suspendCount > 0);
-
-    //        Native.CloseHandle(pOpenThread);
-    //    }
-    //}
-
     private void KillMutex()
     {
         if (p == null) return;
@@ -273,16 +249,15 @@ public class Client : ObservableObject
     private List<string> UpdateProcessModules()
     {
         var newModules = new List<string>();
-        if (Alive)
+        if (!Alive) return newModules;
+
+        foreach (ProcessModule module in p!.Modules)
         {
-            foreach (ProcessModule module in p!.Modules)
-            {
-                var moduleName = module?.ModuleName?.ToLowerInvariant();
-                if (moduleName == null || loadedModules.Contains(moduleName)) continue;
-                Logger.Debug("{0} Module: {1}", account.Name, moduleName);
-                loadedModules.Add(moduleName);
-                newModules.Add(moduleName);
-            }
+            var moduleName = module?.ModuleName?.ToLowerInvariant();
+            if (moduleName == null || loadedModules.Contains(moduleName)) continue;
+            //Logger.Debug("{0} Module: {1}", account.Name, moduleName);
+            loadedModules.Add(moduleName);
+            newModules.Add(moduleName);
         }
 
         return newModules;

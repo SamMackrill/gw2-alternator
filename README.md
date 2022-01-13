@@ -37,7 +37,7 @@ Getting Started
 Advanced
  * Settings, Account details and logs are found here: %AppData%\gw2-alternator
  * Given a GW2 API key then Laurels and Mystic Coins will be counted
-   * Account/
+   * Account/Inventories/Characters/Wallet
 
 If anybody wants to help I would be delighted!
 
