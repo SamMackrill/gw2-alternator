@@ -81,7 +81,7 @@ public class Client : ObservableObject
         Attempt = 0;
     }
 
-    public async Task Launch(LaunchType launchType, string gw2Location, CancellationToken cancellationToken)
+    public async Task Launch(LaunchType launchType, string gw2Location, DirectoryInfo applicationFolder, CancellationToken cancellationToken)
     {
         bool DetectCrash() => !closed && launchType != LaunchType.Collect && launchType != LaunchType.Update;
 
@@ -102,24 +102,29 @@ public class Client : ObservableObject
             var memoryUsage = p.WorkingSet64 / 1024;
 
             // Check if Stuck
-            if (memoryUsage - lastStageMemoryUsage < stuckTolerance &&
-                DateTime.Now.Subtract(lastStageSwitchTime) > stuckDelay)
+            var stuckDiff = Math.Abs(memoryUsage - lastStageMemoryUsage);
+            if (stuckDiff < stuckTolerance && DateTime.Now.Subtract(lastStageSwitchTime) > stuckDelay)
             {
                 switch (RunStage)
                 {
                     case RunStage.ReadyToPlay:
-                        await ChangeRunStage(RunStage.LoginFailed, 200, cancellationToken);
+                        Logger.Debug("{0} Stuck awaiting login, diff={1} after {2}s)", account.Name, stuckDiff, stuckDelay.TotalSeconds);
+                        CaptureWindow(RunStage.EntryFailed, applicationFolder);
+                        await ChangeRunStage(RunStage.EntryFailed, 200, "Stuck", cancellationToken);
                         break;
                     case RunStage.CharacterSelected:
-                        await ChangeRunStage(RunStage.EntryFailed, 200, cancellationToken);
+                        Logger.Debug("{0} Stuck awaiting entry, diff={1} after {2}s)", account.Name, stuckDiff, stuckDelay.TotalSeconds);
+                        CaptureWindow(RunStage.EntryFailed, applicationFolder);
+                        await ChangeRunStage(RunStage.EntryFailed, 200, "Stuck", cancellationToken);
                         break;
                 }
             }
 
             // Check if moved on
-            if (RunStage == RunStage.CharacterSelectReached && memoryUsage - lastStageMemoryUsage > 100)
+            var stageDiff = Math.Abs(memoryUsage - lastStageMemoryUsage);
+            if (RunStage == RunStage.CharacterSelectReached && stageDiff > 100)
             {
-                await ChangeRunStage(RunStage.CharacterSelected, 200, cancellationToken);
+                await ChangeRunStage(RunStage.CharacterSelected, 200, "Memory increased", cancellationToken);
             }
 
             var diff = Math.Abs(memoryUsage - tuning.MemoryUsage);
@@ -129,10 +134,10 @@ public class Client : ObservableObject
                 switch (RunStage)
                 {
                     case RunStage.Authenticated when memoryUsage > 120_000:
-                        await ChangeRunStage(RunStage.ReadyToPlay, 4000, cancellationToken);
+                        await ChangeRunStage(RunStage.ReadyToPlay, 4000, "Memory threshold", cancellationToken);
                         break;
                     case RunStage.CharacterSelected when memoryUsage > 1_400_000:
-                        await ChangeRunStage(RunStage.WorldEntered, 1800, cancellationToken);
+                        await ChangeRunStage(RunStage.WorldEntered, 1800, "Memory threshold", cancellationToken);
                         break;
                 }
             }
@@ -141,11 +146,10 @@ public class Client : ObservableObject
 
             var newModules = UpdateProcessModules();
             var stageChanges = runStageFromModules.Where(e => newModules.Contains(e.Key))
-                .OrderBy(e => e.Key)
-                .Select(e => e.Value);
-            foreach (var newRunStage in stageChanges)
+                .OrderBy(e => e.Key);
+            foreach (var (key, value) in stageChanges)
             {
-                await ChangeRunStage(newRunStage, 200, cancellationToken);
+                await ChangeRunStage(value, 200, $"Module {key} loaded", cancellationToken);
             }
         }
 
@@ -174,13 +178,37 @@ public class Client : ObservableObject
         // State Engine
         while (Alive)
         {
-            if (DateTime.Now.Subtract(StartTime) > timeout) throw new Gw2Exception("GW2 process timed-out");
+            if (DateTime.Now.Subtract(StartTime) > timeout)
+            {
+                Logger.Debug("{0} Timed-out after {1}s, giving up)", account.Name, timeout.TotalSeconds);
+                await Kill(true);
+                throw new Gw2Exception("GW2 process timed-out");
+            }
 
             await StageUpdate();
 
             await Task.Delay(tuning.Pause, cancellationToken);
         }
         if (DetectCrash()) throw new Gw2Exception("GW2 process crashed");
+    }
+
+    private void CaptureWindow(RunStage stage, DirectoryInfo applicationFolder)
+    {
+        if (!Alive) return;
+
+        try
+        {
+            var shot = Native.PrintWindow(p!.MainWindowHandle);
+            if (shot == null) throw new Exception("PrintWindow failed");
+            var shotFile = Path.Combine(applicationFolder.FullName, $"shot_{stage}_{Guid.NewGuid()}.png");
+            shot.Save(shotFile, ImageFormat.Png);
+
+            var pixel = shot.GetPixel(10, 10);
+        }
+        catch (Exception e)
+        {
+            Logger.Error(e, "{0} CaptureWindow failed", account.Name);
+        }
     }
 
     private void UpdateEngineSpeed()
@@ -194,15 +222,15 @@ public class Client : ObservableObject
         }
     }
 
-    private async Task ChangeRunStage(RunStage newRunStage, int delay, CancellationToken cancellationToken)
+    private async Task ChangeRunStage(RunStage newRunStage, int delay, string reason, CancellationToken cancellationToken)
     {
         await Task.Delay(delay, cancellationToken);
-        ChangeRunStage(newRunStage);
+        ChangeRunStage(newRunStage, reason);
     }
 
-    private void ChangeRunStage(RunStage newRunStage)
+    private void ChangeRunStage(RunStage newRunStage, string reason)
     {
-        Logger.Debug("{0} Change State to {1}", account.Name, newRunStage);
+        Logger.Debug("{0} Change State to {1} because {2}", account.Name, newRunStage, reason);
         var eventArgs = new ClientStateChangedEventArgs(RunStage, newRunStage);
         RunStage = newRunStage;
         if (!p!.HasExited) lastStageMemoryUsage = p!.WorkingSet64 / 1024;
@@ -218,7 +246,7 @@ public class Client : ObservableObject
         RunStatus = RunState.Running;
         StartTime = p.StartTime;
         Logger.Debug("{0} Started {1}", account.Name, launchType);
-        await ChangeRunStage(RunStage.Started, 200, cancellationToken);
+        await ChangeRunStage(RunStage.Started, 200, "Normal start", cancellationToken);
     }
 
     public void SelectCharacter()
@@ -302,7 +330,7 @@ public class Client : ObservableObject
 
     private void Gw2Exited(object? sender, EventArgs e)
     {
-        ChangeRunStage(RunStage.Exited);
+        ChangeRunStage(RunStage.Exited, "Process.Exit event");
         Logger.Debug("{0} GW2 process exited", account.Name);
     }
 

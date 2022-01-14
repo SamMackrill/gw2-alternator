@@ -32,6 +32,7 @@ public enum SetWindowPosFlags
     SWP_ASYNCWINDOWPOS = 0x4000,
 }
 
+[StructLayout(LayoutKind.Sequential)]
 public struct RECT
 {
     public int left;
@@ -63,6 +64,9 @@ public struct RECT
         r.bottom = rect.Bottom;
         return r;
     }
+    public int Height => bottom - top;
+
+    public int Width => right - left;
 }
 
 public struct WINDOWPLACEMENT

@@ -411,4 +411,22 @@ internal static class Native
     [DllImport(KERNEL32)]
     internal static extern uint ResumeThread(IntPtr hThread);
 
+    [DllImport(USER32)]
+    public static extern bool PrintWindow(IntPtr hWnd, IntPtr hdcBlt, int nFlags);
+
+    public static Bitmap? PrintWindow(IntPtr hWnd)
+    {
+        GetWindowRect(hWnd, out var rc);
+
+        var bmp = new Bitmap(rc.Width, rc.Height, PixelFormat.Format32bppArgb);
+        var gfxBmp = Graphics.FromImage(bmp);
+        var hdcBitmap = gfxBmp.GetHdc();
+
+        if (!PrintWindow(hWnd, hdcBitmap, 0)) return null;
+
+        gfxBmp.ReleaseHdc(hdcBitmap);
+        gfxBmp.Dispose();
+
+        return bmp;
+    }
 }

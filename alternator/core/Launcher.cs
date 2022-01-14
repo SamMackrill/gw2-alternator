@@ -24,6 +24,7 @@ public class Launcher
 
     public async Task<bool> LaunchAsync(
         FileInfo loginFile,
+        DirectoryInfo applicationFolder,
         FileInfo gfxSettingsFile,
         SemaphoreSlim loginSemaphore, 
         SemaphoreSlim exeSemaphore,
@@ -63,7 +64,7 @@ public class Launcher
 
         void Client_RunStatusChanged(object? sender, ClientStateChangedEventArgs e)
         {
-            Logger.Debug("{0} From {1} To {2}", account.Name, e.OldState, e.State);
+            Logger.Debug("{0} Status changed from {1} to {2}", account.Name, e.OldState, e.State);
             switch (e.State)
             {
                 case RunStage.NotRun:
@@ -148,7 +149,7 @@ public class Launcher
 
                     launchCount.Increment();
 
-                    await client.Launch(launchType, settings.Gw2Folder!, launchCancelled);
+                    await client.Launch(launchType, settings.Gw2Folder!, applicationFolder, launchCancelled);
 
                     client.RunStatus = RunState.Completed;
                     return true;

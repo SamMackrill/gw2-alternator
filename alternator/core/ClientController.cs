@@ -39,7 +39,7 @@ public class ClientController
             var tasks = accounts.Select(account => Task.Run(async () =>
                 {
                     var launcher = new Launcher(account, launchType, applicationFolder, settings, cancellationTokenSource.Token);
-                    var success = await launcher.LaunchAsync(loginFile, gfxSettingsFile, loginSemaphore, exeSemaphore, 3, launchCount);
+                    var success = await launcher.LaunchAsync(loginFile, applicationFolder, gfxSettingsFile, loginSemaphore, exeSemaphore, 3, launchCount);
                     AfterLaunchAccount?.Invoke(account, new GenericEventArgs<bool>(success));
                     LogManager.Flush();
                 }, cancellationTokenSource.Token))
