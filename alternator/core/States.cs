@@ -13,6 +13,7 @@ public enum RunState
     Ready,
     WaitingForLoginSlot,
     WaitingForExeSlot,
+    WaitingForAuthenticationThrottle,
     Running,
     Error,
     Completed,

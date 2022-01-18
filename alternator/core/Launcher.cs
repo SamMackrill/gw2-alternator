@@ -4,14 +4,14 @@ public class Launcher
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-    private readonly Account account;
+    private readonly IAccount account;
     private readonly LaunchType launchType;
     private readonly Settings settings;
     private readonly CancellationToken launchCancelled;
     private readonly FileInfo referenceGfxSettings;
     private readonly Client? client;
 
-    public Launcher(Account account, LaunchType launchType, DirectoryInfo applicationFolder, Settings settings, CancellationToken launchCancelled)
+    public Launcher(IAccount account, LaunchType launchType, DirectoryInfo applicationFolder, Settings settings, CancellationToken launchCancelled)
     {
         this.account = account;
         this.launchType = launchType;
@@ -22,14 +22,15 @@ public class Launcher
         client = account.Client;
     }
 
+
     public async Task<bool> LaunchAsync(
         FileInfo loginFile,
         DirectoryInfo applicationFolder,
         FileInfo gfxSettingsFile,
-        SemaphoreSlim loginSemaphore, 
+        AuthenticationThrottle authenticationThrottle,
+        SemaphoreSlim loginSemaphore,
         SemaphoreSlim exeSemaphore,
-        int maxRetries,
-        Counter launchCount)
+        int maxRetries)
     {
         if (client == null) return false;
 
@@ -42,17 +43,7 @@ public class Launcher
         {
             try
             {
-                if (launchType is not LaunchType.Update && client.StartTime > DateTime.MinValue)
-                {
-                    var secondsSinceLogin = (DateTime.Now - client.StartTime).TotalSeconds;
-                    Logger.Debug("{0} secondsSinceLogin={1}s", account.Name, secondsSinceLogin);
-                    Logger.Debug("{0} launchCount={1}", account.Name, launchCount.Count);
-                    var delay = LaunchDelay(launchCount.Count, client.Attempt);
-                    Logger.Debug("{0} minimum delay={1}s", account.Name, delay);
-                    delay -= (int)secondsSinceLogin;
-                    Logger.Debug("{0} actual delay={1}s", account.Name, delay);
-                    if (delay > 0) await Task.Delay(new TimeSpan(0, 0, delay), cancellationToken);
-                }
+                await authenticationThrottle.LoginDone(client, launchType, cancellationToken);
             }
             finally
             {
@@ -72,18 +63,20 @@ public class Launcher
                 case RunStage.Started:
                     break;
                 case RunStage.Authenticated:
-                    ReleaseLoginIfRequired();
+                    ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
                     break;
                 case RunStage.LoginFailed:
                     Logger.Info("{0} login failed, giving up to try again", account.Name);
-                    ReleaseLoginIfRequired();
+                    authenticationThrottle.LoginFailed(client, launchType, launchCancelled);
+                    ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
                     client?.Kill(false);
                     break;
                 case RunStage.ReadyToPlay:
-                    ReleaseLoginIfRequired();
+                    ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
                     client?.SendEnter();
                     break;
                 case RunStage.Playing:
+                    authenticationThrottle.LoginSucceeded(client, launchType, launchCancelled);
                     break;
                 case RunStage.CharacterSelectReached:
                     client?.SelectCharacter();
@@ -93,7 +86,7 @@ public class Launcher
                     break;
                 case RunStage.EntryFailed:
                     Logger.Info("{0} entry failed, giving up to try again", account.Name);
-                    ReleaseLoginIfRequired();
+                    ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
                     client?.Kill(false);
                     break;
                 case RunStage.WorldEntered:
@@ -109,15 +102,15 @@ public class Launcher
             }
         }
 
-        void ReleaseLoginIfRequired()
+        void ReleaseLoginIfRequired(bool logininprocess, ref Task? releaselogintask, CancellationToken launchcancelled)
         {
-            if (!loginInProcess) return;
-            releaseLoginTask ??= ReleaseLogin(launchCancelled);
+            if (!logininprocess) return;
+            releaselogintask ??= ReleaseLogin(launchcancelled);
         }
 
         try
         {
-            client.Attempt = 0;
+            client.Reset();
             while (client.Attempt <= maxRetries)
             {
                 loginInProcess = false;
@@ -147,7 +140,9 @@ public class Launcher
                     exeInProcess = true;
                     Logger.Debug("{0} Exe slot Free", account.Name);
 
-                    launchCount.Increment();
+                    // Ready to roll have login and exe slot
+                    client.RunStatus = RunState.WaitingForAuthenticationThrottle;
+                    await authenticationThrottle.WaitAsync(client, launchCancelled);
 
                     await client.Launch(launchType, settings.Gw2Folder!, applicationFolder, launchCancelled);
 
@@ -174,7 +169,7 @@ public class Launcher
                 }
                 finally
                 {
-                    ReleaseLoginIfRequired();
+                    ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
                     if (exeInProcess)
                     {
                         exeSemaphore.Release();
@@ -209,14 +204,4 @@ public class Launcher
         return false;
     }
 
-
-    private int LaunchDelay(int count, int attempt)
-    {
-        if (attempt > 1) return 60 + 30 * (1 << (attempt - 1));
-
-        if (count < settings.AccountBand1) return settings.AccountBand1Delay;
-        if (count < settings.AccountBand2) return settings.AccountBand2Delay;
-        if (count < settings.AccountBand3) return settings.AccountBand3Delay;
-        return settings.AccountBand3Delay + 60;
-    }
 }

@@ -14,6 +14,7 @@ global using System.Diagnostics.CodeAnalysis;
 global using System.Collections.Generic;
 global using System.Collections.ObjectModel;
 global using System.Collections.Specialized;
+global using System.Collections.Concurrent;
 
 global using System.Windows;
 global using System.Windows.Data;

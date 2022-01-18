@@ -92,13 +92,26 @@
                                Margin="20,0,0,0"
                                FontWeight="DemiBold"
                                FontFamily="Consolas"
-                               Text="Reset in:" />
+                               Text="Reset:" />
                     <TextBlock FontSize="22" 
                                Padding="0"
                                Margin="4,0,0,0"
                                FontWeight="DemiBold"
                                FontFamily="Consolas"
                                Text="{Binding ResetCountdown, FallbackValue='8hr 12min'}" />
+                   
+                    <TextBlock FontSize="22" 
+                               Padding="0"
+                               Margin="20,0,0,0"
+                               FontFamily="Consolas"
+                               Visibility="{Binding ThrottleVisible}"
+                               Text="Throttle:" />
+                    <TextBlock FontSize="22" 
+                               Padding="0"
+                               Margin="4,0,0,0"
+                               FontFamily="Consolas"
+                               Visibility="{Binding ThrottleVisible}"
+                               Text="{Binding ThrottleDelay, FallbackValue='37s'}" />
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" 
