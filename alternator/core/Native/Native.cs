@@ -57,13 +57,15 @@ public struct RECT
 
     public static RECT FromRectangle(System.Drawing.Rectangle rect)
     {
-        RECT r = new RECT();
-        r.left = rect.Left;
-        r.right = rect.Right;
-        r.top = rect.Top;
-        r.bottom = rect.Bottom;
-        return r;
+        return new RECT
+        {
+            left = rect.Left,
+            right = rect.Right,
+            top = rect.Top,
+            bottom = rect.Bottom
+        };
     }
+
     public int Height => bottom - top;
 
     public int Width => right - left;
