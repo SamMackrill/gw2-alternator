@@ -29,6 +29,7 @@
             <DataGridTextColumn Header="Account" Binding="{Binding AccountName}" />
             <DataGridTextColumn Header="Character" Binding="{Binding Character}"/>
             <DataGridTextColumn Header="Age" Binding="{Binding Age}"/>
+            <DataGridTextColumn Header="VPN" Binding="{Binding VPN, FallbackValue=NY}"/>
             <DataGridTextColumn Header="Last Login" Binding="{Binding Login}"/>
             <DataGridTextColumn Header="Login?" Binding="{Binding LoginRequired}"/>
             <DataGridTextColumn Header="Last Collected" Binding="{Binding Collected}"/>

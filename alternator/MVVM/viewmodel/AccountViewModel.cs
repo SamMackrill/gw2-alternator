@@ -2,9 +2,9 @@
 
 public class AccountViewModel : ObservableObject
 {
-    public Account Account { get;}
+    public IAccount Account { get;}
 
-    public AccountViewModel(Account account)
+    public AccountViewModel(IAccount account)
     {
         Account = account;
         account.PropertyChanged += ModelPropertyChanged;
@@ -34,6 +34,8 @@ public class AccountViewModel : ObservableObject
     public string Collected => $"{Account.LastCollection.ToShortDateString()} {Account.LastCollection.ToShortTimeString()}";
     public string CollectionRequired => Account.CollectionRequired ? "Yes" : "No";
     public int Age => (int)Math.Floor(DateTime.UtcNow.Subtract(Account.CreatedAt).TotalDays);
+
+    public string VPN => string.Join(',', Account.VPN?.ToArray() ?? Array.Empty<string>());
     public string LaurelCount => Account.GetCurrency("Laurel")?.ToString() ?? "?";
     public string MysticCoinCount => Account.GetCurrency("MysticCoin")?.ToString() ?? "?";
 

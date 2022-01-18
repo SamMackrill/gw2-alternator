@@ -2,14 +2,36 @@
 
 namespace guildwars2.tools.alternator.MVVM.model;
 
+public interface IAccount
+{
+    string Name { get; set; }
+    string? DisplayName { get; set; }
+    string? Character { get; set; }
+    string? LoginFilePath { get; set; }
+    string? ApiKey { get; set; }
+    ObservableCollectionEx<Currency>? Counts { get; set; }
+    ObservableCollectionEx<string>? VPN { get; set; }
+    DateTime LastLogin { get; set; }
+    DateTime LastCollection { get; set; }
+    DateTime CreatedAt { get; set; }
+    Client? Client { get; set; }
+    bool LoginRequired { get; }
+    bool CollectionRequired { get; }
+    bool UpdateRequired { get; }
+    Task SwapFilesAsync(FileInfo gw2LocalDat, FileInfo gw2GfxSettings, FileInfo referenceGfxSettingsFile);
+    int? GetCurrency(string currencyName);
+    void SetCount(string countName, int value);
+    event PropertyChangedEventHandler? PropertyChanged;
+}
+
 [Serializable]
 [DebuggerDisplay("{" + nameof(DebugDisplay) + ",nq}")]
-public class Account : ObservableObject
+public class Account : ObservableObject, IAccount
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-    private string? name;
-    public string? Name
+    private string name;
+    public string Name
     {
         get => name;
         set => SetProperty(ref name, value);
@@ -49,6 +71,8 @@ public class Account : ObservableObject
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public ObservableCollectionEx<Currency>? Counts { get; set; }
 
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ObservableCollectionEx<string>? VPN { get; set; }
 
     private DateTime lastLogin;
     public DateTime LastLogin
@@ -92,7 +116,7 @@ public class Account : ObservableObject
 
     public Account(string? name, string? character, string? loginFilePath)
     {
-        Name = name;
+        Name = name ?? throw new ArgumentNullException(nameof(name));
         Character = character;
         LoginFilePath = loginFilePath;
 
@@ -113,8 +137,7 @@ public class Account : ObservableObject
     public bool LoginRequired => LastLogin < DateTime.UtcNow.Date;
 
     [JsonIgnore]
-    public bool CollectionRequired => LastCollection < DateTime.UtcNow.Date
-                                      && DateTime.UtcNow.Date.Subtract(LastCollection).TotalDays > 30;
+    public bool CollectionRequired => LastCollection < DateTime.UtcNow.Date && DateTime.UtcNow.Date.Subtract(LastCollection).TotalDays > 30;
 
     [JsonIgnore]
     public bool UpdateRequired => true;

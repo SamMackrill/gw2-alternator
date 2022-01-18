@@ -2,7 +2,7 @@
 
 public class AccountsViewModel : ObservableCollectionEx<AccountViewModel>
 {
-    public void Add(IEnumerable<Account>? accounts)
+    public void Add(IEnumerable<IAccount>? accounts)
     {
         if (accounts == null) return;
         AddRange(accounts.Select(a => new AccountViewModel(a)));
@@ -13,6 +13,6 @@ public class AccountsViewModel : ObservableCollectionEx<AccountViewModel>
         Add(accountCollection?.Accounts);
     }
 
-    public IEnumerable<Account> SelectedAccounts => Items.Where(i => i.IsSelected).Select(i => i.Account);
+    public IEnumerable<IAccount> SelectedAccounts => Items.Where(i => i.IsSelected).Select(i => i.Account);
 
 }

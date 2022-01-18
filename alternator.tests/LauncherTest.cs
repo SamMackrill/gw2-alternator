@@ -1,6 +1,3 @@
-using FluentAssertions;
-using Xunit;
-
 namespace guildwars2.tools.alternator.tests;
 
 public class LauncherTest

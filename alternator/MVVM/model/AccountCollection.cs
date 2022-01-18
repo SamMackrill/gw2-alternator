@@ -1,47 +1,42 @@
 ﻿using System.Text.Json;
 using System.Xml.Linq;
+using NSubstitute;
 
 namespace guildwars2.tools.alternator.MVVM.model;
 
-public class AccountCollection
+public class AccountCollection : JsonCollection<Account>
 {
     private readonly string launchbuddyFolder;
     private readonly string launcherFolder;
-    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
     private const string AccountsJsonFile = "accounts.json";
 
-    public List<Account>? Accounts { get; private set; }
+    public List<Account>? Accounts => Items;
 
-    private readonly string accountsJson;
-    private readonly SemaphoreSlim semaphore;
+    public override event AsyncEventHandler<EventArgs>? Loaded;
+    public override event AsyncEventHandler<EventArgs>? LoadFailed;
 
-    public delegate Task AsyncEventHandler<in TEventArgs>(object? sender, TEventArgs e);
 
-    public event AsyncEventHandler<EventArgs>? Loaded;
-
-    public AccountCollection(FileSystemInfo folderPath, string launchbuddyFolder, string launcherFolder)
+    public AccountCollection(FileSystemInfo folderPath, string launchbuddyFolder, string launcherFolder) : base(folderPath, AccountsJsonFile)
     {
         this.launchbuddyFolder = launchbuddyFolder;
         this.launcherFolder = launcherFolder;
-        accountsJson = Path.Combine(folderPath.FullName, AccountsJsonFile);
-        semaphore = new SemaphoreSlim(1, 1);
     }
 
-    public async Task Save()
+    public override async Task Save()
     {
         try
         {
-            Logger.Debug("Saving Accounts to {0}", accountsJson);
+            Logger.Debug("Saving Accounts to {0}", vpnJson);
             await semaphore.WaitAsync();
 
-            await using (var stream = new FileStream(accountsJson, FileMode.Create))
+            await using (var stream = new FileStream(vpnJson, FileMode.Create))
             {
-                await JsonSerializer.SerializeAsync(stream, Accounts, new JsonSerializerOptions { AllowTrailingCommas = true, WriteIndented = true });
+                await JsonSerializer.SerializeAsync(stream, Items, new JsonSerializerOptions { AllowTrailingCommas = true, WriteIndented = true });
             }
 
             await Task.Delay(1000);
-            Logger.Debug("Accounts saved to {0}", accountsJson);
+            Logger.Debug("Accounts saved to {0}", vpnJson);
         }
         finally
         {
@@ -49,20 +44,21 @@ public class AccountCollection
         }
     }
 
-    public async Task Load()
+    public override async Task Load()
     {
         try
         {
             await semaphore.WaitAsync();
-            if (!File.Exists(accountsJson)) return;
-            await using var stream = File.OpenRead(accountsJson);
-            Accounts = await JsonSerializer.DeserializeAsync<List<Account>>(stream);
-            Logger.Debug("Accounts loaded from {0}", accountsJson);
+            if (!File.Exists(vpnJson)) throw new FileNotFoundException();
+            await using var stream = File.OpenRead(vpnJson);
+            Items = await JsonSerializer.DeserializeAsync<List<Account>>(stream);
+            Logger.Debug("Accounts loaded from {0}", vpnJson);
             Loaded?.Invoke(this, EventArgs.Empty);
         }
         catch (Exception e)
         {
-            Logger.Error(e, $"Loading accounts from {accountsJson}");
+            Logger.Error(e, $"Loading accounts from {vpnJson}");
+            LoadFailed?.Invoke(this, EventArgs.Empty);
         }
         finally
         {
@@ -70,15 +66,15 @@ public class AccountCollection
         }
     }
 
-    public List<Account>? AccountsToRun(LaunchType launchType, bool all)
+    public List<IAccount>? AccountsToRun(LaunchType launchType, bool all)
     {
         if (Accounts == null) return null;
 
         return launchType switch
         {
-            LaunchType.Login => Accounts.Where(a => all || a.LoginRequired).ToList(),
-            LaunchType.Collect => Accounts.Where(a => all || a.CollectionRequired).OrderBy(a => a.LastCollection).ToList(),
-            LaunchType.Update => Accounts.Where(a => all || a.UpdateRequired).ToList(),
+            LaunchType.Login => Accounts.Where(a => all || a.LoginRequired).Cast<IAccount>().ToList(),
+            LaunchType.Collect => Accounts.Where(a => all || a.CollectionRequired).OrderBy(a => a.LastCollection).Cast<IAccount>().ToList(),
+            LaunchType.Update => Accounts.Where(a => all || a.UpdateRequired).Cast<IAccount>().ToList(),
             _ => throw new ArgumentException(message: "invalid enum value", paramName: nameof(launchType))
         };
     }
@@ -97,7 +93,7 @@ public class AccountCollection
             Logger.Debug("{0} Accounts loaded from {1}", lbAccounts.Length, accountsXmlPath);
             if (!lbAccounts.Any()) return;
 
-            Accounts ??= new List<Account>();
+            Items ??= new List<Account>();
             foreach (var lbAccount in lbAccounts)
             {
                 var nickname = lbAccount.Element("Nickname")?.Value;
@@ -156,6 +152,7 @@ public class AccountCollection
     }
 
     public bool CanImportFromLauncher => Directory.Exists(launchbuddyFolder);
+    public bool Ready { get; set; }
 
     public void ImportFromLauncher()
     {
@@ -189,7 +186,7 @@ public class AccountCollection
             return reader.ReadInt32();
         }
 
-        Accounts ??= new List<Account>();
+        Items ??= new List<Account>();
         try
         {
             semaphore.Wait();
@@ -602,5 +599,16 @@ public class AccountCollection
         {
             semaphore.Release();
         }
+    }
+
+    public static Dictionary<string, List<IAccount>> SplitByVpn(List<IAccount> accounts)
+    {
+        var vpnAccounts = accounts
+            .Where(a => a.VPN != null)
+            .SelectMany(a => a.VPN!, (a, vpn) => new { Key = vpn, Account = a })
+            .GroupBy(t => t.Key, t=>t.Account)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        return vpnAccounts;
     }
 }

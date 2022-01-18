@@ -2,6 +2,7 @@
 
 public class MainViewModel : ObservableObject
 {
+    private readonly SettingsController settingsController;
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
     public IAsyncCommand? LoginCommand { get; set; }
@@ -12,8 +13,11 @@ public class MainViewModel : ObservableObject
     public IAsyncCommand? CloseCommand { get; }
 
     private CancellationTokenSource? cts;
+    private readonly AuthenticationThrottle authenticationThrottle;
+
 
     private readonly AccountCollection accountCollection;
+    private readonly VPNCollection vpnCollection;
     public AccountsViewModel AccountsVM { get; set; }
     public SettingsViewModel SettingsVM { get; set; }
 
@@ -24,17 +28,23 @@ public class MainViewModel : ObservableObject
         set
         {
             if (!SetProperty(ref running, value)) return;
-            LoginCommand?.RaiseCanExecuteChanged();
-            CollectCommand?.RaiseCanExecuteChanged();
-            UpdateCommand?.RaiseCanExecuteChanged();
-            StopCommand?.RaiseCanExecuteChanged();
-            ShowSettingsCommand?.RaiseCanExecuteChanged();
-            CloseCommand?.RaiseCanExecuteChanged();
+            RefreshRunState();
             OnPropertyChanged(nameof(LoginText));
             OnPropertyChanged(nameof(CollectText));
             OnPropertyChanged(nameof(UpdateText));
             OnPropertyChanged(nameof(StopText));
         }
+    }
+
+    private void RefreshRunState()
+    {
+        LoginCommand?.RaiseCanExecuteChanged();
+        CollectCommand?.RaiseCanExecuteChanged();
+        UpdateCommand?.RaiseCanExecuteChanged();
+        StopCommand?.RaiseCanExecuteChanged();
+        ShowSettingsCommand?.RaiseCanExecuteChanged();
+        CloseCommand?.RaiseCanExecuteChanged();
+        OnPropertyChanged(nameof(CanRun));
     }
 
     private LaunchType activeLaunchType;
@@ -60,6 +70,10 @@ public class MainViewModel : ObservableObject
 
     public string TimeUtc => DateTime.UtcNow.ToString("HH:mm");
     public string ResetCountdown => DateTime.UtcNow.AddDays(1).Date.Subtract(DateTime.UtcNow).ToString(@"h'hr 'm'min'");
+
+
+    public Visibility ThrottleVisible => authenticationThrottle.FreeIn > 1 ? Visibility.Visible : Visibility.Hidden;
+    public string ThrottleDelay => authenticationThrottle.FreeIn.ToString(@"0's'");
 
     private bool forceSerial;
     public bool ForceSerial
@@ -147,15 +161,16 @@ public class MainViewModel : ObservableObject
         }
     }
 
+    bool CanRun(LaunchType launchType)
+    {
+        var canRun = !Running && settingsController.Settings != null && accountCollection.Ready && vpnCollection.Ready;
+        Logger.Debug("{0} {1} ? {2}", nameof(CanRun), launchType, canRun);
+        return canRun;
+    }
 
     public MainViewModel(DirectoryInfo applicationFolder, string appData, SettingsController settingsController)
     {
-        bool CanRun(LaunchType launchType)
-        {
-            var canRun = !Running && settingsController.Settings != null;
-            Logger.Debug("{0} {1} ? {2}", nameof(CanRun), launchType, canRun);
-            return canRun;
-        }
+        this.settingsController = settingsController;
 
         var apiConnection = new Gw2Sharp.Connection();
         using var apiClient = new Gw2Sharp.Gw2Client(apiConnection);
@@ -169,10 +184,16 @@ public class MainViewModel : ObservableObject
 
         settingsController.DiscoverGw2ExeLocation();
 
+        authenticationThrottle = new AuthenticationThrottle(settingsController.Settings);
+
         accountCollection = new AccountCollection(applicationFolder, Path.Combine(appData, @"Gw2 Launchbuddy"), Path.Combine(appData, @"Gw2Launcher"));
+        vpnCollection = new VPNCollection(applicationFolder);
         SettingsVM = new SettingsViewModel(settingsController, accountCollection, () => Version);
 
         accountCollection.Loaded += OnAccountsLoaded;
+        accountCollection.LoadFailed += OnAccountsLoadFailed;
+        vpnCollection.Loaded += OnVpnsLoaded;
+        vpnCollection.LoadFailed += OnVpnsLoadFailed;
         AccountsVM = new AccountsViewModel();
 
         Initialise();
@@ -194,15 +215,9 @@ public class MainViewModel : ObservableObject
 
                 cts = new CancellationTokenSource();
                 cts.Token.ThrowIfCancellationRequested();
-                var launcher = new ClientController(applicationFolder, settingsController, launchType);
 
-                var selectedAccounts = AccountsVM.SelectedAccounts.ToList();
-
-                var accountsToRun = selectedAccounts.Any() ? selectedAccounts : accountCollection.AccountsToRun(launchType, all);
-
-                if (accountsToRun == null || !accountsToRun.Any()) return;
-                //accountsToRun = accountsToRun.Where(a => a.Name == "Fish35").ToList();
-                await launcher.LaunchMultiple(accountsToRun, maxInstances, cts);
+                var launcher = new ClientController(applicationFolder, settingsController, authenticationThrottle, vpnCollection, launchType);
+                await launcher.LaunchMultiple(AccountsVM.SelectedAccounts.ToList(), accountCollection, all, maxInstances, cts);
 
                 await accountCollection.Save();
             }
@@ -254,15 +269,36 @@ public class MainViewModel : ObservableObject
         {
             OnPropertyChanged(nameof(TimeUtc));
             OnPropertyChanged(nameof(ResetCountdown));
+            OnPropertyChanged(nameof(ThrottleDelay));
+            OnPropertyChanged(nameof(ThrottleVisible));
         };
         dt.Start();
     }
 
+    private async Task OnVpnsLoadFailed(object? sender, EventArgs e)
+    {
+        vpnCollection.Ready = true;
+        RefreshRunState();
+    }
+
+    private async Task OnVpnsLoaded(object? sender, EventArgs e)
+    {
+        vpnCollection.Ready = true;
+        RefreshRunState();
+    }
+
+    private async Task OnAccountsLoadFailed(object? sender, EventArgs e)
+    {
+        accountCollection.Ready = false;
+        RefreshRunState();
+    }
 
     private async Task OnAccountsLoaded(object? sender, EventArgs e)
     {
         AccountsVM.Clear();
         AccountsVM.Add(accountCollection);
+        accountCollection.Ready = true;
+        RefreshRunState();
 
         _ = Task.Factory.StartNew(async () =>
         {
@@ -277,7 +313,7 @@ public class MainViewModel : ObservableObject
         });
     }
 
-    private async Task FetchApiData(IReadOnlyCollection<Account>? accounts)
+    private async Task FetchApiData(IReadOnlyCollection<IAccount>? accounts)
     {
         if (accounts == null) return;
 
@@ -293,7 +329,7 @@ public class MainViewModel : ObservableObject
     public const int MysticCoinId = 19976;
     public const int LaurelId = 3;
 
-    private async Task FetchAccountDetails(Account account)
+    private async Task FetchAccountDetails(IAccount account)
     {
         Logger.Debug("{0} Fetching details from GW2 API", account.Name);
 
@@ -364,6 +400,7 @@ public class MainViewModel : ObservableObject
         //{
 #pragma warning disable CS4014
         accountCollection.Load();
+        vpnCollection.Load();
 #pragma warning restore CS4014
         // });
 
