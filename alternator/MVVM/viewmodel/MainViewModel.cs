@@ -17,7 +17,7 @@ public class MainViewModel : ObservableObject
 
 
     private readonly AccountCollection accountCollection;
-    private readonly VPNCollection vpnCollection;
+    private readonly VpnCollection vpnCollection;
     public AccountsViewModel AccountsVM { get; set; }
     public SettingsViewModel SettingsVM { get; set; }
 
@@ -87,6 +87,13 @@ public class MainViewModel : ObservableObject
     {
         get => forceAll;
         set => SetProperty(ref forceAll, value);
+    }
+
+    private bool ignoreVpn;
+    public bool IgnoreVpn
+    {
+        get => ignoreVpn;
+        set => SetProperty(ref ignoreVpn, value);
     }
 
     private bool stopping;
@@ -168,9 +175,11 @@ public class MainViewModel : ObservableObject
         return canRun;
     }
 
-    public MainViewModel(DirectoryInfo applicationFolder, string appData, SettingsController settingsController)
+    public MainViewModel(DirectoryInfo applicationFolder, string appData, SettingsController settingsController, AccountCollection accountCollection, VpnCollection vpnCollection)
     {
         this.settingsController = settingsController;
+        this.accountCollection = accountCollection;
+        this.vpnCollection = vpnCollection;
 
         var apiConnection = new Gw2Sharp.Connection();
         using var apiClient = new Gw2Sharp.Gw2Client(apiConnection);
@@ -186,8 +195,6 @@ public class MainViewModel : ObservableObject
 
         authenticationThrottle = new AuthenticationThrottle(settingsController.Settings);
 
-        accountCollection = new AccountCollection(applicationFolder, Path.Combine(appData, @"Gw2 Launchbuddy"), Path.Combine(appData, @"Gw2Launcher"));
-        vpnCollection = new VPNCollection(applicationFolder);
         SettingsVM = new SettingsViewModel(settingsController, accountCollection, () => Version);
 
         accountCollection.Loaded += OnAccountsLoaded;
@@ -198,7 +205,7 @@ public class MainViewModel : ObservableObject
 
         Initialise();
 
-        async Task LaunchMultipleAccounts(LaunchType launchType, bool all, bool serial)
+        async Task LaunchMultipleAccounts(LaunchType launchType, bool all, bool serial, bool ignoreVpn)
         {
             try
             {
@@ -217,7 +224,7 @@ public class MainViewModel : ObservableObject
                 cts.Token.ThrowIfCancellationRequested();
 
                 var launcher = new ClientController(applicationFolder, settingsController, authenticationThrottle, vpnCollection, launchType);
-                await launcher.LaunchMultiple(AccountsVM.SelectedAccounts.ToList(), accountCollection, all, maxInstances, cts);
+                await launcher.LaunchMultiple(AccountsVM.SelectedAccounts.ToList(), accountCollection, all, ignoreVpn, maxInstances, cts);
 
                 await accountCollection.Save();
             }
@@ -231,7 +238,7 @@ public class MainViewModel : ObservableObject
         AsyncCommand CreateLaunchCommand(LaunchType launchType, Action? tidyUp) =>
             new(async () =>
             {
-                await LaunchMultipleAccounts(launchType, ForceAll, ForceSerial);
+                await LaunchMultipleAccounts(launchType, ForceAll, ForceSerial, IgnoreVpn);
                 tidyUp?.Invoke();
             }, _ => CanRun(launchType));
 

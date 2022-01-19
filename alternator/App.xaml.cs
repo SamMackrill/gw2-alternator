@@ -52,6 +52,8 @@ public partial class App : Application
     public string ApplicationName { get; }
 
     private SettingsController? settingsController;
+    private AccountCollection? accountCollection;
+    private VpnCollection? vpnCollection;
 
     public App()
     {
@@ -72,7 +74,12 @@ public partial class App : Application
         settingsController = new SettingsController(applicationFolder);
         settingsController.Load();
 
-        var mainView = new MainViewModel(applicationFolder, appData, settingsController);
+        accountCollection = new AccountCollection(applicationFolder, Path.Combine(appData, @"Gw2 Launchbuddy"), Path.Combine(appData, @"Gw2Launcher"));
+
+        vpnCollection = new VpnCollection(applicationFolder);
+
+
+        var mainView = new MainViewModel(applicationFolder, appData, settingsController, accountCollection, vpnCollection);
         var mainWindow = new MainWindow(mainView);
         mainWindow.Show();
     }
@@ -147,6 +154,8 @@ public partial class App : Application
             if (result == MessageBoxResult.Yes)
             {
                 settingsController?.Save();
+                accountCollection?.Save();
+                vpnCollection?.Save();
             }
 
             Logger.Error(e.Exception, "Unrecoverable Exception");

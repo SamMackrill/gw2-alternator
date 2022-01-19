@@ -1,11 +1,20 @@
 ﻿namespace guildwars2.tools.alternator.MVVM.viewmodel;
 
-public class AccountsViewModel : ObservableCollectionEx<AccountViewModel>
+public class AccountsViewModel : ObservableObject
 {
+
+    public ObservableCollectionEx<AccountViewModel> Accounts { get; }
+
+    public AccountsViewModel()
+    {
+        Accounts = new ObservableCollectionEx<AccountViewModel>();
+    }
+
     public void Add(IEnumerable<IAccount>? accounts)
     {
         if (accounts == null) return;
-        AddRange(accounts.Select(a => new AccountViewModel(a)));
+        Accounts.AddRange(accounts.Select(a => new AccountViewModel(a)));
+        OnPropertyChanged(nameof(ApiVisibility));
     }
 
     public void Add(AccountCollection accountCollection)
@@ -13,6 +22,13 @@ public class AccountsViewModel : ObservableCollectionEx<AccountViewModel>
         Add(accountCollection?.Accounts);
     }
 
-    public IEnumerable<IAccount> SelectedAccounts => Items.Where(i => i.IsSelected).Select(i => i.Account);
+    public IEnumerable<IAccount> SelectedAccounts => Accounts.Where(i => i.IsSelected).Select(i => i.Account);
 
+
+    public Visibility ApiVisibility => Accounts.Any(a => !string.IsNullOrEmpty(a.Account.ApiKey)) ? Visibility.Visible : Visibility.Hidden;
+
+    public void Clear()
+    {
+       Accounts.Clear();
+    }
 }

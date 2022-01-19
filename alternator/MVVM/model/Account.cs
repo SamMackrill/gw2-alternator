@@ -11,6 +11,7 @@ public interface IAccount
     string? ApiKey { get; set; }
     ObservableCollectionEx<Currency>? Counts { get; set; }
     ObservableCollectionEx<string>? VPN { get; set; }
+    bool HasVPN { get; }
     DateTime LastLogin { get; set; }
     DateTime LastCollection { get; set; }
     DateTime CreatedAt { get; set; }
@@ -73,8 +74,10 @@ public class Account : ObservableObject, IAccount
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public ObservableCollectionEx<string>? VPN { get; set; }
+    public bool HasVPN => VPN?.Any() ?? false;
 
     private DateTime lastLogin;
+
     public DateTime LastLogin
     {
         get => lastLogin;
@@ -113,18 +116,24 @@ public class Account : ObservableObject, IAccount
         }
     }
 
+    public Account()
+    {
+        Client = new Client(this);
+    }
 
-    public Account(string? name, string? character, string? loginFilePath)
+    public Account(string? name) : this()
     {
         Name = name ?? throw new ArgumentNullException(nameof(name));
+    }
+
+    public Account(string? name, string? character, string? loginFilePath) : this(name)
+    {
         Character = character;
         LoginFilePath = loginFilePath;
 
         LastLogin = DateTime.MinValue;
         LastCollection = DateTime.MinValue;
         CreatedAt = DateTime.Now;
-
-        Client = new Client(this);
     }
 
     private string DebugDisplay => $"{Name} ({Character}) {LastLogin} {LastCollection}";

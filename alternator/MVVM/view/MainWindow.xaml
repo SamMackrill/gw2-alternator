@@ -192,7 +192,12 @@
                                   Style="{StaticResource CheckBoxTheme}"
                                   IsChecked="{Binding ForceSerial}"
                         />
+                        <CheckBox Content="Ignore VPN" 
+                                  Style="{StaticResource CheckBoxTheme}"
+                                  IsChecked="{Binding IgnoreVpn}"
+                        />
                     </StackPanel>
+
                 </Border>
                 <RadioButton Command="{Binding LoginCommand}"
                              d:IsChecked="True"

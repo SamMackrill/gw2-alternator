@@ -9,17 +9,17 @@ public class Launcher
     private readonly Settings settings;
     private readonly CancellationToken launchCancelled;
     private readonly FileInfo referenceGfxSettings;
-    private readonly Client? client;
+    private readonly Client client;
 
-    public Launcher(IAccount account, LaunchType launchType, DirectoryInfo applicationFolder, Settings settings, CancellationToken launchCancelled)
+    public Launcher(Client client, LaunchType launchType, DirectoryInfo applicationFolder, Settings settings, CancellationToken launchCancelled)
     {
-        this.account = account;
+        this.client = client;
         this.launchType = launchType;
         this.settings = settings;
         this.launchCancelled = launchCancelled;
         referenceGfxSettings = new FileInfo(Path.Combine(applicationFolder.FullName, "GW2 Custom GFX-Fastest.xml"));
         // TODO the client should not live on the account!
-        client = account.Client;
+        account = client.Account;
     }
 
 
@@ -29,11 +29,8 @@ public class Launcher
         FileInfo gfxSettingsFile,
         AuthenticationThrottle authenticationThrottle,
         SemaphoreSlim loginSemaphore,
-        SemaphoreSlim exeSemaphore,
-        int maxRetries)
+        SemaphoreSlim exeSemaphore)
     {
-        if (client == null) return false;
-
         Task? releaseLoginTask = null;
         var loginInProcess = false;
 
@@ -69,28 +66,28 @@ public class Launcher
                     Logger.Info("{0} login failed, giving up to try again", account.Name);
                     authenticationThrottle.LoginFailed(client, launchType, launchCancelled);
                     ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
-                    client?.Kill(false);
+                    client.Kill().Wait();
                     break;
                 case RunStage.ReadyToPlay:
                     ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
-                    client?.SendEnter();
+                    client.SendEnter();
                     break;
                 case RunStage.Playing:
                     authenticationThrottle.LoginSucceeded(client, launchType, launchCancelled);
                     break;
                 case RunStage.CharacterSelectReached:
-                    client?.SelectCharacter();
+                    client.SelectCharacter();
                     break;
                 case RunStage.CharacterSelected:
-                    if (launchType == LaunchType.Login) client?.Kill(true);
+                    if (launchType == LaunchType.Login) client.Shutdown().Wait();
                     break;
                 case RunStage.EntryFailed:
                     Logger.Info("{0} entry failed, giving up to try again", account.Name);
                     ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
-                    client?.Kill(false);
+                    client.Kill().Wait();
                     break;
                 case RunStage.WorldEntered:
-                    if (launchType == LaunchType.Login) client?.Kill(true);
+                    if (launchType == LaunchType.Login) client.Shutdown().Wait();
                     break;
                 case RunStage.Exited:
                     if (e.OldState != RunStage.CharacterSelected) break;
@@ -108,88 +105,54 @@ public class Launcher
             releaselogintask ??= ReleaseLogin(launchcancelled);
         }
 
+        client.Reset();
+
+        loginInProcess = false;
+        var exeInProcess = false;
+
         try
         {
-            client.Reset();
-            while (client.Attempt <= maxRetries)
+            Logger.Info("{0} login attempt={1}", account.Name, client.Attempt);
+
+            client.RunStatus = RunState.WaitingForLoginSlot;
+            if (releaseLoginTask != null)
             {
-                loginInProcess = false;
-                var exeInProcess = false;
-
-                try
-                {
-                    Logger.Info("{0} login attempt={1}", account.Name, client.Attempt);
-
-                    client.RunStatus = RunState.WaitingForLoginSlot;
-                    if (releaseLoginTask != null)
-                    {
-                        Logger.Info("{0} login semaphore release, count={1}", account.Name, loginSemaphore.CurrentCount);
-                        await releaseLoginTask.WaitAsync(launchCancelled);
-                        releaseLoginTask = null;
-                    }
-                    Logger.Info("{0} login semaphore entry, count={1}", account.Name, loginSemaphore.CurrentCount);
-                    await loginSemaphore.WaitAsync(launchCancelled);
-                    loginInProcess = true;
-                    Logger.Debug("{0} Login slot Free", account.Name);
-
-                    await account.SwapFilesAsync(loginFile, gfxSettingsFile, referenceGfxSettings);
-
-                    Logger.Debug("{0} exe semaphore entry, count={1}", account.Name, exeSemaphore.CurrentCount);
-                    client.RunStatus = RunState.WaitingForExeSlot;
-                    await exeSemaphore.WaitAsync(launchCancelled);
-                    exeInProcess = true;
-                    Logger.Debug("{0} Exe slot Free", account.Name);
-
-                    // Ready to roll have login and exe slot
-                    client.RunStatus = RunState.WaitingForAuthenticationThrottle;
-                    await authenticationThrottle.WaitAsync(client, launchCancelled);
-
-                    await client.Launch(launchType, settings.Gw2Folder!, applicationFolder, launchCancelled);
-
-                    client.RunStatus = RunState.Completed;
-                    return true;
-                }
-                catch (OperationCanceledException)
-                {
-                    client.RunStatus = RunState.Cancelled;
-                    Logger.Debug("{0} cancelled", account.Name);
-                    return false;
-                }
-                catch (Gw2Exception e)
-                {
-                    client.RunStatus = RunState.Error;
-                    client.StatusMessage = $"Launch failed: {e.Message}";
-                    Logger.Error(e, "{0} launch failed", account.Name);
-                }
-                catch (Exception e)
-                {
-                    client.RunStatus = RunState.Error;
-                    client.StatusMessage = "Launch crashed";
-                    Logger.Error(e, "{0} launch crash", account.Name);
-                }
-                finally
-                {
-                    ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
-                    if (exeInProcess)
-                    {
-                        exeSemaphore.Release();
-                        Logger.Debug("{0} exe semaphore released, count={1}", account.Name, exeSemaphore.CurrentCount);
-                    }
-                }
-
-                if (await client.Kill(false))
-                {
-                    Logger.Debug("{0} GW2 process killed", account.Name);
-                }
+                Logger.Info("{0} login semaphore release, count={1}", account.Name, loginSemaphore.CurrentCount);
+                await releaseLoginTask.WaitAsync(launchCancelled);
+                releaseLoginTask = null;
             }
-            client.RunStatus = RunState.Error;
-            client.StatusMessage = "Too many attempts";
-            Logger.Error("{0} too many attempts, giving up", account.Name);
+            Logger.Info("{0} login semaphore entry, count={1}", account.Name, loginSemaphore.CurrentCount);
+            await loginSemaphore.WaitAsync(launchCancelled);
+            loginInProcess = true;
+            Logger.Debug("{0} Login slot Free", account.Name);
+
+            await account.SwapFilesAsync(loginFile, gfxSettingsFile, referenceGfxSettings);
+
+            Logger.Debug("{0} exe semaphore entry, count={1}", account.Name, exeSemaphore.CurrentCount);
+            client.RunStatus = RunState.WaitingForExeSlot;
+            await exeSemaphore.WaitAsync(launchCancelled);
+            exeInProcess = true;
+            Logger.Debug("{0} Exe slot Free", account.Name);
+
+            // Ready to roll have login and exe slot
+            client.RunStatus = RunState.WaitingForAuthenticationThrottle;
+            await authenticationThrottle.WaitAsync(client, launchCancelled);
+
+            await client.Launch(launchType, settings.Gw2Folder!, applicationFolder, launchCancelled);
+
+            client.RunStatus = RunState.Completed;
+            return true;
         }
         catch (OperationCanceledException)
         {
             client.RunStatus = RunState.Cancelled;
             Logger.Debug("{0} cancelled", account.Name);
+        }
+        catch (Gw2Exception e)
+        {
+            client.RunStatus = RunState.Error;
+            client.StatusMessage = $"Launch failed: {e.Message}";
+            Logger.Error(e, "{0} launch failed", account.Name);
         }
         catch (Exception e)
         {
@@ -197,10 +160,21 @@ public class Launcher
             client.StatusMessage = "Launch crashed";
             Logger.Error(e, "{0} launch crash", account.Name);
         }
-        if (await client.Kill(false))
+        finally
+        {
+            ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
+            if (exeInProcess)
+            {
+                exeSemaphore.Release();
+                Logger.Debug("{0} exe semaphore released, count={1}", account.Name, exeSemaphore.CurrentCount);
+            }
+        }
+
+        if (await client.Kill())
         {
             Logger.Debug("{0} GW2 process killed", account.Name);
         }
+
         return false;
     }
 

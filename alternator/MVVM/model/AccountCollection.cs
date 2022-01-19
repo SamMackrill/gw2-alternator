@@ -601,13 +601,16 @@ public class AccountCollection : JsonCollection<Account>
         }
     }
 
-    public static Dictionary<string, List<IAccount>> SplitByVpn(List<IAccount> accounts)
+    public static Dictionary<string, List<Client>> ClientsByVpn(List<IAccount> accounts)
     {
         var vpnAccounts = accounts
-            .Where(a => a.VPN != null)
-            .SelectMany(a => a.VPN!, (a, vpn) => new { Key = vpn, Account = a })
-            .GroupBy(t => t.Key, t=>t.Account)
+            .Where(a => a.HasVPN)
+            .SelectMany(a => a.VPN!, (a, vpn) => new {vpn, a.Client })
+            .GroupBy(t => t.vpn, t=>t.Client)
             .ToDictionary(g => g.Key, g => g.ToList());
+
+        var nonVpnAccounts = accounts.Where(a => !a.HasVPN).Select(a => a.Client).ToList();
+        if (nonVpnAccounts.Any()) vpnAccounts.Add("", nonVpnAccounts);
 
         return vpnAccounts;
     }

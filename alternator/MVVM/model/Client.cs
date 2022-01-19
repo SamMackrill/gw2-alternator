@@ -13,7 +13,7 @@ public class ClientStateChangedEventArgs : EventArgs
     public RunStage OldState { get; }
     public RunStage State { get; }
 }
-
+[DebuggerDisplay("{" + nameof(DebugDisplay) + ",nq}")]
 public class Client : ObservableObject
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
@@ -34,7 +34,12 @@ public class Client : ObservableObject
     public event EventHandler<ClientStateChangedEventArgs>? RunStatusChanged;
 
     private Counter attempt;
+    private string? stuckReason;
+
     public int Attempt => attempt.Count;
+
+    private string DebugDisplay => $"{Account} Status:{RunStatus} Stage:{RunStage} Attempt:{Attempt} {stuckReason}";
+
 
     private void AttemptIncrement()
     {
@@ -134,20 +139,20 @@ public class Client : ObservableObject
             var staticTooLong = DateTime.Now.Subtract(lastStageSwitchTime) > tuning.StuckDelay;
             if (!staticTooLong && !ErrorDetected()) return;
 
-            var reason = staticTooLong ? "Stuck too long (>{tuning.StuckDelay.TotalSeconds}s)" : "Error Detected";
+            stuckReason = staticTooLong ? $"Stuck, took too long (>{tuning.StuckDelay.TotalSeconds}s)" : "Login Error Detected";
             switch (RunStage)
             {
                 case RunStage.ReadyToPlay:
                 case RunStage.Authenticated:
-                    Logger.Debug("{0} Stuck awaiting login, diff={1} because {2})", Account.Name, diff, reason);
+                    Logger.Debug("{0} Stuck awaiting login, diff={1} because {2})", Account.Name, diff, stuckReason);
                     //CaptureWindow(RunStage.EntryFailed, applicationFolder);
                     FailedIncrement();
-                    await ChangeRunStage(RunStage.LoginFailed, 20, reason, cancellationToken);
+                    await ChangeRunStage(RunStage.LoginFailed, 20, stuckReason, cancellationToken);
                     break;
                 case RunStage.CharacterSelected:
-                    Logger.Debug("{0} Stuck awaiting entry, diff={1} because {2})", Account.Name, diff, reason);
+                    Logger.Debug("{0} Stuck awaiting entry, diff={1} because {2})", Account.Name, diff, stuckReason);
                     //CaptureWindow(RunStage.EntryFailed, applicationFolder);
-                    await ChangeRunStage(RunStage.EntryFailed, 20, reason, cancellationToken);
+                    await ChangeRunStage(RunStage.EntryFailed, 20, stuckReason, cancellationToken);
                     break;
             }
             
@@ -188,7 +193,7 @@ public class Client : ObservableObject
 
         AttemptIncrement();
 
-        tuning = new EngineTuning(new TimeSpan(0, 0, 0, 0, 200), 0L, 1L, new TimeSpan(0, 0, 20), 100);
+        tuning = new EngineTuning(new TimeSpan(0, 0, 0, 0, 200), 0L, 1L, new TimeSpan(0, 0, 40), 100);
 
         // Run gw2 exe with arguments
         var gw2Arguments = launchType is LaunchType.Update ? "-image" : $"-windowed -nosound -shareArchive -maploadinfo -dx9 -fps 20 -autologin"; // -dat \"{account.LoginFile}\""
@@ -217,7 +222,7 @@ public class Client : ObservableObject
             if (DateTime.Now.Subtract(StartTime) > timeout)
             {
                 Logger.Debug("{0} Timed-out after {1}s, giving up)", Account.Name, timeout.TotalSeconds);
-                await Kill(true);
+                await Shutdown();
                 throw new Gw2Exception("GW2 process timed-out");
             }
 
@@ -225,6 +230,7 @@ public class Client : ObservableObject
 
             await Task.Delay(tuning.Pause, cancellationToken);
         }
+        if (!string.IsNullOrEmpty(stuckReason)) throw new Gw2Exception($"GW2 process stuck: {stuckReason}");
         if (DetectCrash()) throw new Gw2Exception("GW2 process crashed");
     }
 
@@ -310,13 +316,13 @@ public class Client : ObservableObject
         }
     }
 
-    private async Task ChangeRunStage(RunStage newRunStage, int delay, string reason, CancellationToken cancellationToken)
+    private async Task ChangeRunStage(RunStage newRunStage, int delay, string? reason, CancellationToken cancellationToken)
     {
         if (delay>0) await Task.Delay(delay, cancellationToken);
         ChangeRunStage(newRunStage, reason);
     }
 
-    private void ChangeRunStage(RunStage newRunStage, string reason)
+    private void ChangeRunStage(RunStage newRunStage, string? reason)
     {
         Logger.Debug("{0} Change State to {1} because {2}", Account.Name, newRunStage, reason);
         var eventArgs = new ClientStateChangedEventArgs(RunStage, newRunStage);
@@ -406,9 +412,14 @@ public class Client : ObservableObject
         }
     }
 
-    public async Task<bool> Kill(bool done)
+    public async Task<bool> Shutdown()
     {
-        closed = done;
+        closed = true;
+        return await Kill();
+    }
+
+    public async Task<bool> Kill()
+    {
         if (!Alive) return false;
 
         p!.Kill(true);
@@ -425,6 +436,7 @@ public class Client : ObservableObject
     public void Reset()
     {
         attempt = new Counter();
+        stuckReason = null;
     }
 }
 

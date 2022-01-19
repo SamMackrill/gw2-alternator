@@ -11,12 +11,12 @@ public class ClientController
     private readonly DirectoryInfo applicationFolder;
     private readonly Settings settings;
     private readonly AuthenticationThrottle authenticationThrottle;
-    private readonly VPNCollection vpnCollection;
+    private readonly VpnCollection vpnCollection;
 
-    public event EventHandler<GenericEventArgs<bool>>? AfterLaunchAccount;
+    public event EventHandler<GenericEventArgs<bool>>? AfterLaunchClient;
 
     public ClientController(DirectoryInfo applicationFolder, SettingsController settingsController,
-        AuthenticationThrottle authenticationThrottle, VPNCollection vpnCollection, LaunchType launchType)
+        AuthenticationThrottle authenticationThrottle, VpnCollection vpnCollection, LaunchType launchType)
     {
         this.applicationFolder = applicationFolder;
         settings = settingsController.Settings!;
@@ -29,7 +29,8 @@ public class ClientController
         loginSemaphore = new SemaphoreSlim(0, 1);
     }
 
-    public async Task LaunchMultiple(List<IAccount> selectedAccounts, AccountCollection accountCollection, bool all, int maxInstances, CancellationTokenSource cancellationTokenSource)
+    public async Task LaunchMultiple(List<IAccount> selectedAccounts, AccountCollection accountCollection, bool all,
+        bool ignoreVpn, int maxInstances, CancellationTokenSource cancellationTokenSource)
     {
 
         var accounts = selectedAccounts.Any() ? selectedAccounts : accountCollection.AccountsToRun(launchType, all);
@@ -42,42 +43,80 @@ public class ClientController
 
         try
         {
-
-            var accountsByVpn = AccountCollection.SplitByVpn(accounts);
-
-            //var vpnAccounts = accounts.Where(a => a.VPN != null && a.VPN.Contains("NY")).ToList();
-
-            //var vpn = vpnCollection.VPN.FirstOrDefault(v => v.Id == "NY");
-
-            //var vpnProcess = Process.Start("rasdial", vpn.ConnectionName);
-            //vpnProcess.Start();
-            //await vpnProcess.WaitForExitAsync(cancellationTokenSource.Token);
-
-            //if (vpnProcess.ExitCode !=) throw new InvalidOperationException($"Cound not connect to VPN {vpn}");
-
-            //accountsToRun = accountsToRun.Where(a => a.Name == "Fish35").ToList();
-
-            Logger.Debug("Max GW2 Instances={0}", maxInstances);
             var exeSemaphore = new SemaphoreSlim(0, maxInstances);
-            var tasks = accounts.Select(account => Task.Run(async () =>
+            Logger.Debug("Max GW2 Instances={0}", maxInstances);
+
+            if (ignoreVpn)
+            {
+                var tasks = PrimeLaunchTasks(accounts.Select(a => a.Client)!, exeSemaphore, cancellationTokenSource.Token);
+                await Task.Delay(200, cancellationTokenSource.Token);
+                if (cancellationTokenSource.IsCancellationRequested) return;
+
+                // Release the hounds
+                exeSemaphore.Release(maxInstances);
+                loginSemaphore.Release(1);
+
+                await Task.WhenAll(tasks.ToArray());
+            }
+            else
+            {
+                var first = true;
+                var clientsByVpn = AccountCollection.ClientsByVpn(accounts);
+                while (clientsByVpn.SelectMany(c => c.Value).Distinct().Any(c => c.RunStatus != RunState.Completed))
                 {
-                    var launcher = new Launcher(account, launchType, applicationFolder, settings, cancellationTokenSource.Token);
-                    var success = await launcher.LaunchAsync(loginFile, applicationFolder, gfxSettingsFile, authenticationThrottle, loginSemaphore, exeSemaphore, 3);
-                    AfterLaunchAccount?.Invoke(account, new GenericEventArgs<bool>(success));
-                    LogManager.Flush();
-                }, cancellationTokenSource.Token))
-                .ToList();
-            Logger.Debug("{0} launch tasks primed.", tasks.Count);
-            // Allow all the tasks to start and block.
-            await Task.Delay(200, cancellationTokenSource.Token);
-            if (cancellationTokenSource.IsCancellationRequested) return;
+                    var incompleteClients = clientsByVpn.Select(v => new
+                    { Id = v.Key, Clients = v.Value.Where(c => c.RunStatus != RunState.Completed).ToList() });
+                    foreach (var vpnSet in incompleteClients.OrderByDescending(a => a.Clients.Count))
+                    {
+                        var vpn = vpnCollection.VPN?.FirstOrDefault(v => v.Id == vpnSet.Id);
+                        if (vpn == null && !string.IsNullOrEmpty(vpnSet.Id))
+                        {
+                            Logger.Debug($"Unknown VPN {vpnSet.Id}, skipping");
+                            continue;
+                        }
 
-            // Release the hounds
-            exeSemaphore.Release(maxInstances);
-            loginSemaphore.Release(1);
+                        try
+                        {
+                            if (vpn != null)
+                            {
+                                Logger.Info($"Connecting to VPN {vpn}");
+                                var vpnProcess = Process.Start("rasdial", $@"""{vpn.ConnectionName}""");
+                                await vpnProcess.WaitForExitAsync(cancellationTokenSource.Token);
+                            }
 
-            await Task.WhenAll(tasks.ToArray());
+                            var tasks = PrimeLaunchTasks(vpnSet.Clients.Take(10), exeSemaphore, cancellationTokenSource.Token);
+                            if (cancellationTokenSource.IsCancellationRequested) return;
+
+                            if (first)
+                            {
+                                await Task.Delay(200, cancellationTokenSource.Token);
+                                if (cancellationTokenSource.IsCancellationRequested) return;
+                                // Release the hounds
+                                exeSemaphore.Release(maxInstances);
+                                loginSemaphore.Release(1);
+                                first = false;
+                            }
+
+                            await Task.WhenAll(tasks.ToArray());
+                        }
+                        finally
+                        {
+                            if (vpn != null)
+                            {
+                                Logger.Info($"Disconnecting from VPN {vpn}");
+                                var vpnProcess = Process.Start("rasdial", $@"""{vpn.ConnectionName}"" /d");
+                                await vpnProcess.WaitForExitAsync(cancellationTokenSource.Token);
+                            }
+                        }
+                    }
+                }
+            }
+
             Logger.Info("All launch tasks finished.");
+        }
+        catch (Exception e)
+        {
+            Logger.Error(e, "LaunchMultiple: unexpected error");
         }
         finally
         {
@@ -85,6 +124,21 @@ public class ClientController
             await Restore();
             Logger.Info("GW2 account files restored.");
         }
+    }
+
+    private List<Task> PrimeLaunchTasks(IEnumerable<Client> clients, SemaphoreSlim exeSemaphore, CancellationToken cancellationToken)
+    {
+        var tasks = clients.Select(client => Task.Run(async () =>
+            {
+                var launcher = new Launcher(client, launchType, applicationFolder, settings,
+                    cancellationToken);
+                var success = await launcher.LaunchAsync(loginFile, applicationFolder, gfxSettingsFile, authenticationThrottle, loginSemaphore, exeSemaphore);
+                AfterLaunchClient?.Invoke(client, new GenericEventArgs<bool>(success));
+                LogManager.Flush();
+            }, cancellationToken))
+            .ToList();
+        Logger.Debug("{0} launch tasks primed.", tasks.Count);
+        return tasks;
     }
 
     private async Task Restore()

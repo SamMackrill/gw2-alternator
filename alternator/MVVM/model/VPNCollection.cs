@@ -2,11 +2,11 @@
 
 namespace guildwars2.tools.alternator.MVVM.model;
 
-public class VPNCollection : JsonCollection<VPNDetails>
+public class VpnCollection : JsonCollection<VPNDetails>
 {
     private const string vpnFileName = "vpnconnections.json";
 
-    public VPNCollection(FileSystemInfo folderPath) : base(folderPath, vpnFileName) { }
+    public VpnCollection(FileSystemInfo folderPath) : base(folderPath, vpnFileName) { }
 
     public List<VPNDetails>? VPN => Items;
 

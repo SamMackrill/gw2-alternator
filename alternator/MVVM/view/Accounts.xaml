@@ -22,20 +22,22 @@
               SelectionUnit="FullRow"
               BorderThickness="0"
               d:ItemsSource="{d:SampleData}"
-              ItemsSource="{Binding .}"
+              ItemsSource="{Binding Accounts}"
     >
 
         <DataGrid.Columns>
             <DataGridTextColumn Header="Account" Binding="{Binding AccountName}" />
             <DataGridTextColumn Header="Character" Binding="{Binding Character}"/>
             <DataGridTextColumn Header="Age" Binding="{Binding Age}"/>
-            <DataGridTextColumn Header="VPN" Binding="{Binding VPN, FallbackValue=NY}"/>
+            <DataGridTextColumn Header="VPN" Binding="{Binding VPN, FallbackValue=NYC}"/>
             <DataGridTextColumn Header="Last Login" Binding="{Binding Login}"/>
             <DataGridTextColumn Header="Login?" Binding="{Binding LoginRequired}"/>
             <DataGridTextColumn Header="Last Collected" Binding="{Binding Collected}"/>
             <DataGridTextColumn Header="Collect?" Binding="{Binding CollectionRequired}"/>
-            <DataGridTextColumn Header="Laurels" Binding="{Binding LaurelCount, FallbackValue=?}"/>
-            <DataGridTextColumn Header="MC" Binding="{Binding MysticCoinCount, FallbackValue=?}"/>
+            <DataGridTextColumn Header="Laurels" Binding="{Binding LaurelCount, FallbackValue=?}" 
+                Visibility="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type viewmodel:AccountsViewModel}}, Path=ApiVisibility}"/>
+            <DataGridTextColumn Header="MC" Binding="{Binding MysticCoinCount, FallbackValue=?}"
+                Visibility="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type viewmodel:AccountsViewModel}}, Path=ApiVisibility}"/>
 
             <DataGridTextColumn Header="Status" Binding="{Binding RunStatus}" >
 
