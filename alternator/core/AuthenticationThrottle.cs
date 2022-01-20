@@ -1,6 +1,6 @@
 ﻿namespace guildwars2.tools.alternator;
 
-public class AuthenticationThrottle
+public class AuthenticationThrottle : ObservableObject
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -24,13 +24,18 @@ public class AuthenticationThrottle
     {
         await authenticationSemaphore.WaitAsync(launchCancelled);
         launchCount.Increment();
+        currentVpn = vpnDetails;
         vpnDetails.SetAttempt(settings);
+        OnPropertyChanged(nameof(Vpn));
     }
 
     private DateTime FreeAt { get; set; }
     public double FreeIn => FreeAt.Subtract(DateTime.Now).TotalSeconds;
+    public string? Vpn => currentVpn?.Id;
 
     private Task? releaseTask;
+    private VpnDetails? currentVpn;
+
     public async Task LoginDone(VpnDetails vpnDetails, Client client, LaunchType launchType, CancellationToken launchCancelled)
     {
         if (releaseTask != null) await releaseTask.WaitAsync(launchCancelled);

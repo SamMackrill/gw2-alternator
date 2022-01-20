@@ -99,7 +99,15 @@
                                FontWeight="DemiBold"
                                FontFamily="Consolas"
                                Text="{Binding ResetCountdown, FallbackValue='8hr 12min'}" />
-                   
+
+                    <TextBlock FontSize="22" 
+                               Padding="0"
+                               Margin="20,0,0,0"
+                               FontFamily="Consolas"
+                               FontWeight="DemiBold"
+                               Visibility="{Binding VpnVisible}"
+                               Text="{Binding Vpn, FallbackValue='NYK'}" />
+
                     <TextBlock FontSize="22" 
                                Padding="0"
                                Margin="20,0,0,0"

@@ -58,6 +58,6 @@ public class VpnCollection : JsonCollection<VpnDetails>
 
     public VpnDetails? GetVpn(string key)
     {
-        return string.IsNullOrEmpty(key) ? new VpnDetails() : VPN?.FirstOrDefault(v => v.Id == key);
+        return VPN?.FirstOrDefault(v => v.Id == key) ?? new VpnDetails();
     }
 }

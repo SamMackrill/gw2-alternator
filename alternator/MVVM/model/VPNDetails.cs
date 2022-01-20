@@ -10,7 +10,7 @@ public class VpnDetails
     private Settings? settings;
 
     public string Id { get; set; }
-    public string ConnectionName { get; }
+    public string ConnectionName { get; set; }
     public DateTime LastLoginFail { get; set; }
     public DateTime LastLoginSuccess { get; set; }
 
