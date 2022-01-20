@@ -120,6 +120,8 @@ public class SettingsController : ObservableObject
             AccountBand2Delay = 20,
             AccountBand3 = 40,
             AccountBand3Delay = 45,
+            StuckTimeout = 30,
+            VpnAccountCount = 10,
         };
 
 

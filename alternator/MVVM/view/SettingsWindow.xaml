@@ -41,6 +41,8 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="2"/>
             </Grid.RowDefinitions>
 
@@ -205,10 +207,57 @@
 
                 <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
             </Button>
+
+
+
             <Label Padding="0" Grid.Row="8" Grid.Column="1"
+                   Content="Stuck Timeout" />
+            <StackPanel Grid.Row="8" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,4">
+                <TextBox BorderThickness="1"
+                         Margin="4,4,0,0"
+                         MinWidth="50"
+                         Text="{Binding Path=StuckTimeout, Mode=TwoWay, FallbackValue='30'}"/>
+                <Label Padding="0" Content="s" />
+            </StackPanel>
+            <Button Grid.Row="8" Grid.Column="3"  
+                    Margin="4,0,0,0" 
+                    Opacity="0.6"
+                    VerticalAlignment="Center" 
+                    BorderThickness="0" 
+                    Height="16" Width="16"
+                    Background="Transparent"
+                    Style="{StaticResource FadeOutButton}"
+                    Command="{Binding Path=ResetStuckTimeoutCommand, Mode=OneWay}" >
+
+                <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
+            </Button>
+
+            <Label Padding="0" Grid.Row="9" Grid.Column="1"
+                   Content="VPN Max Count" />
+            <StackPanel Grid.Row="9" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,4">
+                <TextBox BorderThickness="1"
+                         Margin="4,4,0,0"
+                         MinWidth="50"
+                         Text="{Binding Path=VpnAccountCount, Mode=TwoWay, FallbackValue='10'}"/>
+            </StackPanel>
+            <Button Grid.Row="9" Grid.Column="3"  
+                    Margin="4,0,0,0" 
+                    Opacity="0.6"
+                    VerticalAlignment="Center" 
+                    BorderThickness="0" 
+                    Height="16" Width="16"
+                    Background="Transparent"
+                    Style="{StaticResource FadeOutButton}"
+                    Command="{Binding Path=ResetVpnAccountCountCommand, Mode=OneWay}" >
+
+                <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
+            </Button>
+
+
+            <Label Padding="0" Grid.Row="10" Grid.Column="1"
                    Content="Import From:" />
 
-            <StackPanel Grid.Row="8" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,4">
+            <StackPanel Grid.Row="10" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,4">
                 <Border
                      HorizontalAlignment="Left"
                      BorderBrush="{StaticResource ForegroundBrush}"

@@ -57,4 +57,19 @@ public class Settings : ObservableObject
         set => SetProperty(ref accountBand3Delay, value);
     }
 
+    private int stuckTimeout;
+    public int StuckTimeout
+    {
+        get => stuckTimeout;
+        set => SetProperty(ref stuckTimeout, value);
+    }
+
+    private int vpnAccountCount;
+    public int VpnAccountCount
+    {
+        get => vpnAccountCount;
+        set => SetProperty(ref vpnAccountCount, value);
+    }
+
+
 }

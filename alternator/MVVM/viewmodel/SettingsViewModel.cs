@@ -63,11 +63,25 @@ public class SettingsViewModel : ObservableObject
         get => Settings.AccountBand3;
         set => Settings.AccountBand3 = value;
     }
+
     public int AccountBand3Delay
     {
         get => Settings.AccountBand3Delay;
         set => Settings.AccountBand3Delay = value;
     }
+
+    public int StuckTimeout
+    {
+        get => Settings.StuckTimeout;
+        set => Settings.StuckTimeout = value;
+    }
+
+    public int VpnAccountCount
+    {
+        get => Settings.VpnAccountCount;
+        set => Settings.VpnAccountCount = value;
+    }
+
 
     public string Title => $"GW2 alternator Settings V{GetVersion?.Invoke() ?? "?.?.?"}";
 
@@ -114,6 +128,16 @@ public class SettingsViewModel : ObservableObject
         var defaultSettings = SettingsController.DefaultSettings;
         Settings.AccountBand3 = defaultSettings.AccountBand3;
         Settings.AccountBand3Delay = defaultSettings.AccountBand3Delay;
+    });
+    public RelayCommand<object> ResetStuckTimeoutCommand => new(_ =>
+    {
+        var defaultSettings = SettingsController.DefaultSettings;
+        Settings.StuckTimeout = defaultSettings.StuckTimeout;
+    });
+    public RelayCommand<object> ResetVpnAccountCountCommand => new(_ =>
+    {
+        var defaultSettings = SettingsController.DefaultSettings;
+        Settings.VpnAccountCount = defaultSettings.VpnAccountCount;
     });
 
     public RelayCommand<object> ImportFromLaunchBuddyCommand => new(_ =>
