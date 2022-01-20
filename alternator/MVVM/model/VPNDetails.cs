@@ -7,32 +7,38 @@ namespace guildwars2.tools.alternator.MVVM.model;
 public class VpnDetails
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+    private Settings? settings;
 
     public string Id { get; set; }
-    public string ConnectionName { get; set; }
+    public string ConnectionName { get; }
     public DateTime LastLoginFail { get; set; }
     public DateTime LastLoginSuccess { get; set; }
 
     [field: NonSerialized]
     [JsonIgnore]
-    public Counter CallCount { get; set; }
+    public Counter CallCount { get; private set; }
     
     [field: NonSerialized]
     [JsonIgnore]
-    public Counter ErrorCount { get; set; }
+    public Counter FailCount { get; private set; }
 
     [field: NonSerialized]
     [JsonIgnore]
-    public Counter SuccessCount { get; set; }
+    public Counter SuccessCount { get; private set; }
 
-    public int Delay => 60;
+    [field: NonSerialized]
+    [JsonIgnore]
+    public Counter ConsecutiveFailedCount { get; private set; }
+
+    public int Delay => LaunchDelay();
 
 
     public VpnDetails()
     {
         CallCount = new Counter();
-        ErrorCount = new Counter();
+        FailCount = new Counter();
         SuccessCount = new Counter();
+        ConsecutiveFailedCount = new Counter();
     }
 
     private string DebugDisplay => ToString();
@@ -61,8 +67,9 @@ public class VpnDetails
         await Task.Delay(new TimeSpan(0, 0, 4), cancellationToken);
     }
 
-    public void SetAttempt()
+    public void SetAttempt(Settings settings)
     {
+        this.settings = settings;
         CallCount.Increment();
     }
 
@@ -74,8 +81,29 @@ public class VpnDetails
 
     public void SetFail()
     {
-        ErrorCount.Increment();
+        FailCount.Increment();
         SuccessCount = new Counter();
         LastLoginFail = DateTime.Now;
+    }
+
+    private int LaunchDelay()
+    {
+        var delay = BandDelay(CallCount.Count);
+
+        if (FailCount.Count > 0) delay = Math.Max(delay, 60);
+        //if (clientFailedCount > 2) delay = Math.Max(delay, 60 * (clientFailedCount - 2));
+        if (ConsecutiveFailedCount.Count > 0) delay = Math.Max(delay, 60 * ConsecutiveFailedCount.Count);
+
+        return delay;
+    }
+
+    private int BandDelay(int count)
+    {
+        if (settings==null) return 0;
+
+        if (count < settings.AccountBand1) return settings.AccountBand1Delay;
+        if (count < settings.AccountBand2) return settings.AccountBand2Delay;
+        if (count < settings.AccountBand3) return settings.AccountBand3Delay;
+        return settings.AccountBand3Delay + 60;
     }
 }

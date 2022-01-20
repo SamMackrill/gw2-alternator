@@ -77,10 +77,12 @@ public class ClientController
                         .OrderByDescending(s => s.Vpn!.Available)
                         .ThenByDescending(s => s.Clients.Count)
                         .ToList();
+
                     Logger.Debug($"{vpnSets.Count} launch sets found");
+
                     foreach (var vpnSet in vpnSets)
                     {
-                        var vpn = vpnSet.Vpn;
+                        var vpn = vpnSet.Vpn!;
 
                         var waitUntil =  vpn.Available.Subtract(DateTime.Now);
                         if (waitUntil.TotalSeconds > 0)
@@ -94,7 +96,7 @@ public class ClientController
                             await vpn.Connect(cancellationTokenSource.Token);
 
                             var clientsToLaunch = vpnSet.Clients.Take(settings.VpnAccountCount).ToList();
-                            Logger.Debug($"Launching {clientsToLaunch.Count()} clients");
+                            Logger.Debug($"Launching {clientsToLaunch.Count} clients");
                             var tasks = PrimeLaunchTasks(vpn, clientsToLaunch, exeSemaphore, cancellationTokenSource.Token);
                             if (cancellationTokenSource.IsCancellationRequested) return;
 

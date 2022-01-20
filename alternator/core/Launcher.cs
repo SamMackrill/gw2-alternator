@@ -43,7 +43,7 @@ public class Launcher
         {
             try
             {
-                await authenticationThrottle.LoginDone(client, launchType, cancellationToken);
+                await authenticationThrottle.LoginDone(vpnDetails, client, launchType, cancellationToken);
             }
             finally
             {
@@ -67,7 +67,7 @@ public class Launcher
                     break;
                 case RunStage.LoginFailed:
                     Logger.Info("{0} login failed, giving up to try again", account.Name);
-                    authenticationThrottle.LoginFailed(client, launchType, launchCancelled);
+                    authenticationThrottle.LoginFailed(vpnDetails, client, launchType, launchCancelled);
                     ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
                     client.Kill().Wait();
                     break;
@@ -76,7 +76,7 @@ public class Launcher
                     client.SendEnter();
                     break;
                 case RunStage.Playing:
-                    authenticationThrottle.LoginSucceeded(client, launchType, launchCancelled);
+                    authenticationThrottle.LoginSucceeded(vpnDetails, client, launchType, launchCancelled);
                     break;
                 case RunStage.CharacterSelectReached:
                     client.SelectCharacter();
@@ -109,7 +109,6 @@ public class Launcher
         }
 
         client.Reset();
-        vpnDetails.SetAttempt();
         loginInProcess = false;
         var exeInProcess = false;
 
@@ -139,7 +138,7 @@ public class Launcher
 
             // Ready to roll have login and exe slot
             client.RunStatus = RunState.WaitingForAuthenticationThrottle;
-            await authenticationThrottle.WaitAsync(client, launchCancelled);
+            await authenticationThrottle.WaitAsync(vpnDetails, launchCancelled);
 
             await client.Launch(launchType, settings, applicationFolder, launchCancelled);
 

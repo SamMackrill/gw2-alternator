@@ -33,14 +33,12 @@ public class Client : ObservableObject
 
     public event EventHandler<ClientStateChangedEventArgs>? RunStatusChanged;
 
-    private Counter attempt;
     private string? stuckReason;
-
-    public int Attempt => attempt.Count;
 
     private string DebugDisplay => $"{Account} Status:{RunStatus} Stage:{RunStage} Attempt:{Attempt} {stuckReason}";
 
-
+    private Counter attempt;
+    public int Attempt => attempt.Count;
     private void AttemptIncrement()
     {
         attempt.Increment();
