@@ -3,7 +3,6 @@
 public class Counter : ObservableObject
 {
     private int count;
-
     public int Count => count;
 
     public void Increment()

@@ -101,8 +101,13 @@ public class Client : ObservableObject
         failedCount = new Counter();
     }
 
-    public async Task Launch(LaunchType launchType, string gw2Location, DirectoryInfo applicationFolder, CancellationToken cancellationToken)
+    public async Task Launch(
+        LaunchType launchType,
+        Settings settings,
+        DirectoryInfo applicationFolder, 
+        CancellationToken cancellationToken)
     {
+
         async Task CheckIfMovedOn(long memoryUsage)
         {
             var stageDiff = Math.Abs(memoryUsage - lastStageMemoryUsage);
@@ -193,18 +198,18 @@ public class Client : ObservableObject
 
         AttemptIncrement();
 
-        tuning = new EngineTuning(new TimeSpan(0, 0, 0, 0, 200), 0L, 1L, new TimeSpan(0, 0, 40), 100);
+        tuning = new EngineTuning(new TimeSpan(0, 0, 0, 0, 200), 0L, 1L, new TimeSpan(0, 0, settings.StuckTimeout), 100);
 
         // Run gw2 exe with arguments
         var gw2Arguments = launchType is LaunchType.Update ? "-image" : $"-windowed -nosound -shareArchive -maploadinfo -dx9 -fps 20 -autologin"; // -dat \"{account.LoginFile}\""
         p = new Process
         {
-            StartInfo = new ProcessStartInfo(Path.Combine(gw2Location, "Gw2-64.exe"))
+            StartInfo = new ProcessStartInfo(Path.Combine(settings.Gw2Folder, "Gw2-64.exe"))
             {
                 CreateNoWindow = true,
                 Arguments = gw2Arguments,
                 UseShellExecute = false,
-                WorkingDirectory = gw2Location,
+                WorkingDirectory = settings.Gw2Folder,
             }
         };
         p.Exited += Gw2Exited;

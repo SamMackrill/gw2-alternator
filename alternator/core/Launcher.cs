@@ -7,15 +7,18 @@ public class Launcher
     private readonly IAccount account;
     private readonly LaunchType launchType;
     private readonly Settings settings;
+    private readonly VpnDetails vpnDetails;
     private readonly CancellationToken launchCancelled;
     private readonly FileInfo referenceGfxSettings;
     private readonly Client client;
 
-    public Launcher(Client client, LaunchType launchType, DirectoryInfo applicationFolder, Settings settings, CancellationToken launchCancelled)
+    public Launcher(Client client, LaunchType launchType, DirectoryInfo applicationFolder, Settings settings,
+        VpnDetails vpnDetails, CancellationToken launchCancelled)
     {
         this.client = client;
         this.launchType = launchType;
         this.settings = settings;
+        this.vpnDetails = vpnDetails;
         this.launchCancelled = launchCancelled;
         referenceGfxSettings = new FileInfo(Path.Combine(applicationFolder.FullName, "GW2 Custom GFX-Fastest.xml"));
         // TODO the client should not live on the account!
@@ -106,7 +109,7 @@ public class Launcher
         }
 
         client.Reset();
-
+        vpnDetails.SetAttempt();
         loginInProcess = false;
         var exeInProcess = false;
 
@@ -138,9 +141,10 @@ public class Launcher
             client.RunStatus = RunState.WaitingForAuthenticationThrottle;
             await authenticationThrottle.WaitAsync(client, launchCancelled);
 
-            await client.Launch(launchType, settings.Gw2Folder!, applicationFolder, launchCancelled);
+            await client.Launch(launchType, settings, applicationFolder, launchCancelled);
 
             client.RunStatus = RunState.Completed;
+            vpnDetails.SetSuccess();
             return true;
         }
         catch (OperationCanceledException)
@@ -175,6 +179,7 @@ public class Launcher
             Logger.Debug("{0} GW2 process killed", account.Name);
         }
 
+        vpnDetails.SetFail();
         return false;
     }
 

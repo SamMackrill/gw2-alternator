@@ -2,13 +2,13 @@
 
 namespace guildwars2.tools.alternator.MVVM.model;
 
-public class VpnCollection : JsonCollection<VPNDetails>
+public class VpnCollection : JsonCollection<VpnDetails>
 {
     private const string vpnFileName = "vpnconnections.json";
 
     public VpnCollection(FileSystemInfo folderPath) : base(folderPath, vpnFileName) { }
 
-    public List<VPNDetails>? VPN => Items;
+    public List<VpnDetails>? VPN => Items;
 
     public override event AsyncEventHandler<EventArgs>? Loaded;
     public override event AsyncEventHandler<EventArgs>? LoadFailed;
@@ -41,7 +41,7 @@ public class VpnCollection : JsonCollection<VPNDetails>
             await semaphore.WaitAsync();
             if (!File.Exists(vpnJson)) throw new FileNotFoundException();
             await using var stream = File.OpenRead(vpnJson);
-            Items = await JsonSerializer.DeserializeAsync<List<VPNDetails>>(stream);
+            Items = await JsonSerializer.DeserializeAsync<List<VpnDetails>>(stream);
             Logger.Debug("VPNs loaded from {0}", vpnJson);
             Loaded?.Invoke(this, EventArgs.Empty);
         }
@@ -56,4 +56,8 @@ public class VpnCollection : JsonCollection<VPNDetails>
         }
     }
 
+    public VpnDetails? GetVpn(string key)
+    {
+        return string.IsNullOrEmpty(key) ? new VpnDetails() : VPN?.FirstOrDefault(v => v.Id == key);
+    }
 }
