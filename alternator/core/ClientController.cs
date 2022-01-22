@@ -30,11 +30,11 @@ public class ClientController
     }
 
     public async Task LaunchMultiple(
-        List<IAccount> selectedAccounts, 
-        AccountCollection accountCollection, 
+        List<IAccount> selectedAccounts,
+        AccountCollection accountCollection,
         bool all,
-        bool ignoreVpn, 
-        int maxInstances, 
+        bool ignoreVpn,
+        int maxInstances,
         CancellationTokenSource cancellationTokenSource
         )
     {
@@ -53,82 +53,73 @@ public class ClientController
             var exeSemaphore = new SemaphoreSlim(0, maxInstances);
             Logger.Debug("Max GW2 Instances={0}", maxInstances);
 
-            //if (ignoreVpn)
-            //{
-            //    var tasks = PrimeLaunchTasks(new VpnDetails(), accounts.Select(a => a.Client)!, exeSemaphore, cancellationTokenSource.Token);
-            //    await Task.Delay(200, cancellationTokenSource.Token);
-            //    if (cancellationTokenSource.IsCancellationRequested) return;
-
-            //    // Release the hounds
-            //    exeSemaphore.Release(maxInstances);
-            //    loginSemaphore.Release(1);
-
-            //    await Task.WhenAll(tasks.ToArray());
-            //}
-            //else
-            //{
-                var clientsByVpn = AccountCollection.ClientsByVpn(accounts, ignoreVpn);
-                while (clientsByVpn.SelectMany(c => c.Value).Distinct().Any(c => c.RunStatus != RunState.Completed))
-                {
-                    var vpnSets = clientsByVpn
-                        .Select(kv => new { Vpn = vpnCollection.GetVpn(kv.Key), 
-                                            Clients = kv.Value.Where(c => c.RunStatus != RunState.Completed).ToList() })
-                        .Where(s => s.Vpn != null)
-                        .OrderByDescending(s => s.Vpn!.Available)
-                        .ThenByDescending(s => s.Clients.Count)
-                        .ToList();
-
-                    Logger.Debug($"{vpnSets.Count} launch sets found");
-
-                    foreach (var vpnSet in vpnSets)
+            var clientsByVpn = AccountCollection.ClientsByVpn(accounts, ignoreVpn);
+            while (clientsByVpn.SelectMany(c => c.Value).Distinct().Any(c => c.RunStatus != RunState.Completed))
+            {
+                var vpnSets = clientsByVpn
+                    .Select(kv => new
                     {
-                        var vpn = vpnSet.Vpn!;
+                        Vpn = vpnCollection.GetVpn(kv.Key),
+                        Clients = kv.Value.Where(c => c.RunStatus != RunState.Completed).ToList()
+                    })
+                    .Where(s => s.Vpn != null)
+                    .OrderByDescending(s => s.Vpn!.Available)
+                    .ThenByDescending(s => s.Clients.Count)
+                    .ToList();
 
-                        var waitUntil =  vpn.Available.Subtract(DateTime.Now);
-                        if (waitUntil.TotalSeconds > 0)
+                Logger.Debug($"{vpnSets.Count} launch sets found");
+
+                foreach (var vpnSet in vpnSets)
+                {
+                    var vpn = vpnSet.Vpn!;
+
+                    var waitUntil = vpn.Available.Subtract(DateTime.Now);
+                    if (waitUntil.TotalSeconds > 0)
+                    {
+                        Logger.Debug($"VPN {vpn.Id} on login cooldown {waitUntil}");
+                        await Task.Delay(waitUntil, cancellationTokenSource.Token);
+                    }
+
+                    try
+                    {
+                        var success = await vpn.Connect(cancellationTokenSource.Token);
+                        if (!success)
                         {
-                            Logger.Debug($"VPN {vpn.Id} on login cooldown {waitUntil}");
-                            await Task.Delay(waitUntil, cancellationTokenSource.Token);
+                            Logger.Error($"VPN {vpn} Connection {vpn}");
+                            continue;
                         }
 
-                        try
-                        {
-                            var success = await vpn.Connect(cancellationTokenSource.Token);
-                            if (!success)
-                            {
-                                Logger.Error($"VPN {vpn} Connection {vpn}");
-                                continue;
-                            }
+                        var clientsToLaunch = vpnSet.Clients.Take(settings.VpnAccountCount).ToList();
+                        Logger.Debug($"Launching {clientsToLaunch.Count} clients");
+                        var tasks = PrimeLaunchTasks(vpn, clientsToLaunch, exeSemaphore, cancellationTokenSource.Token);
+                        if (cancellationTokenSource.IsCancellationRequested) return;
 
-                            var clientsToLaunch = vpnSet.Clients.Take(settings.VpnAccountCount).ToList();
-                            Logger.Debug($"Launching {clientsToLaunch.Count} clients");
-                            var tasks = PrimeLaunchTasks(vpn, clientsToLaunch, exeSemaphore, cancellationTokenSource.Token);
+                        if (first)
+                        {
+                            await Task.Delay(200, cancellationTokenSource.Token);
                             if (cancellationTokenSource.IsCancellationRequested) return;
-
-                            if (first)
-                            {
-                                await Task.Delay(200, cancellationTokenSource.Token);
-                                if (cancellationTokenSource.IsCancellationRequested) return;
-                                // Release the hounds
-                                exeSemaphore.Release(maxInstances);
-                                loginSemaphore.Release(1);
-                                first = false;
-                            }
-
-                            await Task.WhenAll(tasks.ToArray());
+                            // Release the hounds
+                            exeSemaphore.Release(maxInstances);
+                            loginSemaphore.Release(1);
+                            first = false;
                         }
-                        finally
-                        {
-                            var success = await vpn.Disconnect(cancellationTokenSource.Token);
-                            if (!success)
-                            {
-                                Logger.Error($"VPN {vpn} Disconnection failed.");
-                            }
 
+                        await Task.WhenAll(tasks.ToArray());
+                    }
+                    finally
+                    {
+                        var success = await vpn.Disconnect(cancellationTokenSource.Token);
+                        if (!success)
+                        {
+                            Logger.Error($"VPN {vpn} Disconnection failed.");
+                        }
+                        else
+                        {
+                            authenticationThrottle.CurrentVpn = null;
+                        }
                     }
                 }
-                }
-            //}
+            }
 
             Logger.Info("All launch tasks finished.");
         }

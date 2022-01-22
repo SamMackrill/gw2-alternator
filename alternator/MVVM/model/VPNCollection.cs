@@ -10,8 +10,8 @@ public class VpnCollection : JsonCollection<VpnDetails>
 
     public List<VpnDetails>? VPN => Items;
 
-    public override event AsyncEventHandler<EventArgs>? Loaded;
-    public override event AsyncEventHandler<EventArgs>? LoadFailed;
+    public override event EventHandler? Loaded;
+    public override event EventHandler? LoadFailed;
 
     public override async Task Save()
     {

@@ -54,7 +54,16 @@ public class VpnDetails
         if (!IsReal) return true;
 
         Logger.Info($"Connecting to VPN {ToString()}");
-        var vpnProcess = Process.Start("rasdial", $@"""{ConnectionName}""");
+        var psi = new ProcessStartInfo("rasdial", $@"""{ConnectionName}""")
+        {
+            CreateNoWindow = true,
+        };
+        var vpnProcess = Process.Start(psi);
+        if (vpnProcess == null)
+        {
+            Logger.Info($"Connecting from VPN {ToString()} Process null");
+            return false;
+        }
         await vpnProcess.WaitForExitAsync(cancellationToken);
         if (vpnProcess.ExitCode > 0 && vpnProcess.ExitCode != 703)
         {
@@ -70,7 +79,16 @@ public class VpnDetails
         if (!IsReal) return true;
 
         Logger.Info($"Disconnecting from VPN {ToString()}");
-        var vpnProcess = Process.Start("rasdial", $@"""{ConnectionName}"" /d");
+        var psi = new ProcessStartInfo("rasdial", $@"""{ConnectionName}"" /d")
+        {
+            CreateNoWindow = true,
+        };
+        var vpnProcess = Process.Start(psi);
+        if (vpnProcess == null)
+        {
+            Logger.Info($"Disconnecting from VPN {ToString()} Process null");
+            return false;
+        }
         await vpnProcess.WaitForExitAsync(cancellationToken);
         if (vpnProcess.ExitCode > 0)
         {

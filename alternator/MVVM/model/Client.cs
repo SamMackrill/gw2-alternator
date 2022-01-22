@@ -147,7 +147,7 @@ public class Client : ObservableObject
             {
                 case RunStage.ReadyToPlay:
                 case RunStage.Authenticated:
-                    Logger.Debug("{0} Stuck awaiting login, mem={1} diff={2} because {3})", Account.Name, memoryUsage, diff, stuckReason);
+                    Logger.Debug("{0} Stuck awaiting login, mem={1} diff={2} (because: {3})", Account.Name, memoryUsage, diff, stuckReason);
                     //CaptureWindow(RunStage.EntryFailed, applicationFolder);
                     FailedIncrement();
                     await ChangeRunStage(RunStage.LoginFailed, 20, stuckReason, cancellationToken);

@@ -1,4 +1,6 @@
-﻿namespace guildwars2.tools.alternator.MVVM.viewmodel;
+﻿using AsyncAwaitBestPractices;
+
+namespace guildwars2.tools.alternator.MVVM.viewmodel;
 
 public class MainViewModel : ObservableObject
 {
@@ -14,8 +16,6 @@ public class MainViewModel : ObservableObject
 
     private CancellationTokenSource? cts;
     private readonly AuthenticationThrottle authenticationThrottle;
-
-    private List<IAccount> accountsToLookup;
 
     private readonly AccountCollection accountCollection;
     private readonly VpnCollection vpnCollection;
@@ -209,8 +209,6 @@ public class MainViewModel : ObservableObject
         vpnCollection.LoadFailed += OnVpnsLoadFailed;
         AccountsVM = new AccountsViewModel();
 
-        accountsToLookup = new List<IAccount>();
-
         Initialise();
 
         async Task LaunchMultipleAccounts(LaunchType launchType, bool all, bool serial, bool ignoreVpn)
@@ -234,7 +232,7 @@ public class MainViewModel : ObservableObject
                 var launcher = new ClientController(applicationFolder, settingsController, authenticationThrottle, vpnCollection, launchType);
                 await launcher.LaunchMultiple(AccountsVM.SelectedAccounts.ToList(), accountCollection, all, ignoreVpn, maxInstances, cts);
 
-                await accountCollection.Save();
+                await SaveCollections(accountCollection, vpnCollection);
             }
             finally
             {
@@ -262,7 +260,7 @@ public class MainViewModel : ObservableObject
 
         CloseCommand = new AsyncCommand(async () =>
         {
-            await accountCollection.Save();
+            await SaveCollections(accountCollection, vpnCollection);
             RequestClose?.Invoke();
         }, _ => !Running && RequestClose != null);
 
@@ -286,9 +284,13 @@ public class MainViewModel : ObservableObject
             OnPropertyChanged(nameof(ResetCountdown));
             OnPropertyChanged(nameof(ThrottleDelay));
             OnPropertyChanged(nameof(ThrottleVisible));
-            apiFetcher = FetchApiData();
         };
         dt.Start();
+    }
+
+    private static async Task SaveCollections(AccountCollection accountCollection, VpnCollection vpnCollection)
+    {
+        await Task.WhenAll(accountCollection.Save(), vpnCollection.Save());
     }
 
     Task apiFetcher;
@@ -300,39 +302,38 @@ public class MainViewModel : ObservableObject
         OnPropertyChanged($"{args.PropertyName}Visible");
     }
 
-    private async Task OnVpnsLoadFailed(object? sender, EventArgs e)
+    private void OnVpnsLoadFailed(object? sender, EventArgs e)
     {
         vpnCollection.Ready = true;
         RefreshRunState();
     }
 
-    private async Task OnVpnsLoaded(object? sender, EventArgs e)
+    private void OnVpnsLoaded(object? sender, EventArgs e)
     {
         vpnCollection.Ready = true;
         RefreshRunState();
     }
 
-    private async Task OnAccountsLoadFailed(object? sender, EventArgs e)
+    private void OnAccountsLoadFailed(object? sender, EventArgs e)
     {
         accountCollection.Ready = false;
         RefreshRunState();
     }
 
-    private async Task OnAccountsLoaded(object? sender, EventArgs e)
+    private void OnAccountsLoaded(object? sender, EventArgs e)
     {
         AccountsVM.Clear();
         AccountsVM.Add(accountCollection);
         accountCollection.Ready = true;
         RefreshRunState();
-         if (accountCollection.Accounts != null) accountsToLookup.AddRange(accountCollection.Accounts);
+
+        FetchApiData(accountCollection.Accounts).SafeFireAndForget(onException: ex => Logger.Error(ex, "Fetch API Data"));
     }
 
-    private async Task FetchApiData()
-    {
-        if (accountsToLookup == null || !accountsToLookup.Any()) return;
 
-        var accounts = new List<IAccount>(accountsToLookup);
-        accountsToLookup = new List<IAccount>();
+    private async ValueTask FetchApiData(List<Account>? accounts)
+    {
+        if (accounts==null) return;
 
         var fetchTasks = accounts
             .Where(a => !string.IsNullOrEmpty(a.ApiKey))

@@ -17,10 +17,8 @@ public abstract class JsonCollection<T> : ObservableObject
 
     public bool Ready { get; set; }
 
-    public delegate Task AsyncEventHandler<in TEventArgs>(object? sender, TEventArgs e);
-
-    public abstract event AsyncEventHandler<EventArgs>? Loaded;
-    public abstract event AsyncEventHandler<EventArgs>? LoadFailed;
+    public abstract event EventHandler? Loaded;
+    public abstract event EventHandler? LoadFailed;
 
     public abstract Task Save();
     public abstract Task Load();

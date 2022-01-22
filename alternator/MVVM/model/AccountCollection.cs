@@ -13,8 +13,8 @@ public class AccountCollection : JsonCollection<Account>
 
     public List<Account>? Accounts => Items;
 
-    public override event AsyncEventHandler<EventArgs>? Loaded;
-    public override event AsyncEventHandler<EventArgs>? LoadFailed;
+    public override event EventHandler? Loaded;
+    public override event EventHandler? LoadFailed;
 
 
     public AccountCollection(FileSystemInfo folderPath, string launchbuddyFolder, string launcherFolder) : base(folderPath, AccountsJsonFile)

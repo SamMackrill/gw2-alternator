@@ -74,12 +74,13 @@
                             DockPanel.Dock="Left"
                             Margin="0" 
                             VerticalAlignment="Bottom">
+
                     <TextBlock FontSize="22" 
-                                   Padding="0"
-                                   Margin="20,0,0,0"
-                                   FontWeight="DemiBold"
-                                   FontFamily="Consolas"
-                                   Text="{Binding TimeUtc, FallbackValue='00:00'}" />
+                               Padding="0"
+                               Margin="20,0,0,0"
+                               FontWeight="DemiBold"
+                               FontFamily="Consolas"
+                               Text="{Binding TimeUtc, FallbackValue='00:00'}" />
                     <TextBlock FontSize="22" 
                                Padding="0"
                                Margin="3,0,0,0"
@@ -103,6 +104,7 @@
                     <TextBlock FontSize="22" 
                                Padding="0"
                                Margin="20,0,0,0"
+                               Background = "{StaticResource HighlightBrush}"
                                FontFamily="Consolas"
                                FontWeight="DemiBold"
                                Visibility="{Binding VpnVisible}"
