@@ -6,7 +6,7 @@ public class AccountsSplitTest
     public void Split_Blank_Blank()
     {
         var accounts = new List<IAccount>();
-        var result = AccountCollection.ClientsByVpn(accounts);
+        var result = AccountCollection.ClientsByVpn(accounts, false);
         result.Should().BeEmpty();
     }
 
@@ -18,7 +18,7 @@ public class AccountsSplitTest
             (new List<string>{ "V1" }, "account1"),
         });
 
-        var result = AccountCollection.ClientsByVpn(accounts);
+        var result = AccountCollection.ClientsByVpn(accounts, false);
 
         var expected = new Dictionary<string, List<Client>>
         {
@@ -36,7 +36,7 @@ public class AccountsSplitTest
             (new List<string>{ "V1" }, "account2"),
         });
 
-        var result = AccountCollection.ClientsByVpn(accounts);
+        var result = AccountCollection.ClientsByVpn(accounts, false);
 
         var expected = new Dictionary<string, List<Client>>
         {
@@ -54,7 +54,7 @@ public class AccountsSplitTest
             (new List<string>{ "V2" }, "account2"),
         });
 
-        var result = AccountCollection.ClientsByVpn(accounts);
+        var result = AccountCollection.ClientsByVpn(accounts, false);
 
         var expected = new Dictionary<string, List<Client>>
         {
@@ -73,7 +73,7 @@ public class AccountsSplitTest
             (new List<string>{ "V1", "V2" }, "account2"),
         });
 
-        var result = AccountCollection.ClientsByVpn(accounts);
+        var result = AccountCollection.ClientsByVpn(accounts, false);
 
         var expected = new Dictionary<string, List<Client>>
         {
@@ -96,7 +96,7 @@ public class AccountsSplitTest
             (new List<string>{ "V3" }, "account6"),
         });
 
-        var result = AccountCollection.ClientsByVpn(accounts);
+        var result = AccountCollection.ClientsByVpn(accounts, false);
 
         var expected = new Dictionary<string, List<Client>>
         {
@@ -120,7 +120,7 @@ public class AccountsSplitTest
             (new List<string>{ "V3" }, "account6"),
         });
 
-        var result = AccountCollection.ClientsByVpn(accounts);
+        var result = AccountCollection.ClientsByVpn(accounts, false);
 
         var expected = new Dictionary<string, List<Client>>
         {
@@ -145,7 +145,7 @@ public class AccountsSplitTest
             (null , "account7"),
         });
 
-        var result = AccountCollection.ClientsByVpn(accounts);
+        var result = AccountCollection.ClientsByVpn(accounts, false);
 
         var expected = new Dictionary<string, List<Client>>
         {

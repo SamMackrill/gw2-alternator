@@ -15,6 +15,7 @@ public class MainViewModel : ObservableObject
     private CancellationTokenSource? cts;
     private readonly AuthenticationThrottle authenticationThrottle;
 
+    private List<IAccount> accountsToLookup;
 
     private readonly AccountCollection accountCollection;
     private readonly VpnCollection vpnCollection;
@@ -197,6 +198,8 @@ public class MainViewModel : ObservableObject
         settingsController.DiscoverGw2ExeLocation();
 
         authenticationThrottle = new AuthenticationThrottle(settingsController.Settings);
+        authenticationThrottle.PropertyChanged += ThrottlePropertyChanged;
+
 
         SettingsVM = new SettingsViewModel(settingsController, accountCollection, () => Version);
 
@@ -205,6 +208,8 @@ public class MainViewModel : ObservableObject
         vpnCollection.Loaded += OnVpnsLoaded;
         vpnCollection.LoadFailed += OnVpnsLoadFailed;
         AccountsVM = new AccountsViewModel();
+
+        accountsToLookup = new List<IAccount>();
 
         Initialise();
 
@@ -281,8 +286,18 @@ public class MainViewModel : ObservableObject
             OnPropertyChanged(nameof(ResetCountdown));
             OnPropertyChanged(nameof(ThrottleDelay));
             OnPropertyChanged(nameof(ThrottleVisible));
+            apiFetcher = FetchApiData();
         };
         dt.Start();
+    }
+
+    Task apiFetcher;
+
+    private void ThrottlePropertyChanged(object? sender, PropertyChangedEventArgs args)
+    {
+        if (args.PropertyName == null) return;
+        OnPropertyChanged(args.PropertyName);
+        OnPropertyChanged($"{args.PropertyName}Visible");
     }
 
     private async Task OnVpnsLoadFailed(object? sender, EventArgs e)
@@ -309,23 +324,15 @@ public class MainViewModel : ObservableObject
         AccountsVM.Add(accountCollection);
         accountCollection.Ready = true;
         RefreshRunState();
-
-        _ = Task.Factory.StartNew(async () =>
-        {
-            try
-            {
-                await FetchApiData(accountCollection.Accounts);
-            }
-            catch (Exception ex)
-            {
-                Logger.Error(ex, "FetchApiData Failed");
-            }
-        });
+         if (accountCollection.Accounts != null) accountsToLookup.AddRange(accountCollection.Accounts);
     }
 
-    private async Task FetchApiData(IReadOnlyCollection<IAccount>? accounts)
+    private async Task FetchApiData()
     {
-        if (accounts == null) return;
+        if (accountsToLookup == null || !accountsToLookup.Any()) return;
+
+        var accounts = new List<IAccount>(accountsToLookup);
+        accountsToLookup = new List<IAccount>();
 
         var fetchTasks = accounts
             .Where(a => !string.IsNullOrEmpty(a.ApiKey))

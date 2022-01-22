@@ -42,29 +42,43 @@ public class VpnDetails
     }
 
     private string DebugDisplay => ToString();
+
     public bool IsReal => !string.IsNullOrEmpty(Id) && !string.IsNullOrEmpty(ConnectionName);
+
     public DateTime Available => LastLoginSuccess.AddSeconds(Delay);
 
     public override string ToString() => $"{Id} \"{ConnectionName}\"";
 
-    public async Task Connect(CancellationToken cancellationToken)
+    public async Task<bool> Connect(CancellationToken cancellationToken)
     {
-        if (!IsReal) return;
+        if (!IsReal) return true;
 
         Logger.Info($"Connecting to VPN {ToString()}");
         var vpnProcess = Process.Start("rasdial", $@"""{ConnectionName}""");
         await vpnProcess.WaitForExitAsync(cancellationToken);
+        if (vpnProcess.ExitCode > 0 && vpnProcess.ExitCode != 703)
+        {
+            Logger.Info($"Connecting to VPN {ToString()} Error={vpnProcess.ExitCode}");
+            return false;
+        }
         await Task.Delay(new TimeSpan(0, 0, 4), cancellationToken);
+        return true;
     }
 
-    public async Task Disconnect(CancellationToken cancellationToken)
+    public async Task<bool> Disconnect(CancellationToken cancellationToken)
     {
-        if (!IsReal) return;
+        if (!IsReal) return true;
 
         Logger.Info($"Disconnecting from VPN {ToString()}");
         var vpnProcess = Process.Start("rasdial", $@"""{ConnectionName}"" /d");
         await vpnProcess.WaitForExitAsync(cancellationToken);
+        if (vpnProcess.ExitCode > 0)
+        {
+            Logger.Info($"Disconnecting from VPN {ToString()} Error={vpnProcess.ExitCode}");
+            return false;
+        }
         await Task.Delay(new TimeSpan(0, 0, 4), cancellationToken);
+        return true;
     }
 
     public void SetAttempt(Settings settings)

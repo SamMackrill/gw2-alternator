@@ -601,8 +601,13 @@ public class AccountCollection : JsonCollection<Account>
         }
     }
 
-    public static Dictionary<string, List<Client>> ClientsByVpn(List<IAccount> accounts)
+    public static Dictionary<string, List<Client>> ClientsByVpn(List<IAccount> accounts, bool ignoreVpn)
     {
+        if (ignoreVpn)
+        {
+            return new Dictionary<string, List<Client>> { {"", accounts.Select(a => a.Client).ToList()! }};
+
+        }
         var vpnAccounts = accounts
             .Where(a => a.HasVPN)
             .SelectMany(a => a.VPN!, (a, vpn) => new {vpn, a.Client })

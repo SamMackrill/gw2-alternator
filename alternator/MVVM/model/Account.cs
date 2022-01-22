@@ -74,6 +74,8 @@ public class Account : ObservableObject, IAccount
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public ObservableCollectionEx<string>? VPN { get; set; }
+
+    [JsonIgnore]
     public bool HasVPN => VPN?.Any() ?? false;
 
     private DateTime lastLogin;

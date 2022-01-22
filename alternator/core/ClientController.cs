@@ -47,27 +47,27 @@ public class ClientController
             return;
         }
 
+        var first = true;
         try
         {
             var exeSemaphore = new SemaphoreSlim(0, maxInstances);
             Logger.Debug("Max GW2 Instances={0}", maxInstances);
 
-            if (ignoreVpn)
-            {
-                var tasks = PrimeLaunchTasks(null, accounts.Select(a => a.Client)!, exeSemaphore, cancellationTokenSource.Token);
-                await Task.Delay(200, cancellationTokenSource.Token);
-                if (cancellationTokenSource.IsCancellationRequested) return;
+            //if (ignoreVpn)
+            //{
+            //    var tasks = PrimeLaunchTasks(new VpnDetails(), accounts.Select(a => a.Client)!, exeSemaphore, cancellationTokenSource.Token);
+            //    await Task.Delay(200, cancellationTokenSource.Token);
+            //    if (cancellationTokenSource.IsCancellationRequested) return;
 
-                // Release the hounds
-                exeSemaphore.Release(maxInstances);
-                loginSemaphore.Release(1);
+            //    // Release the hounds
+            //    exeSemaphore.Release(maxInstances);
+            //    loginSemaphore.Release(1);
 
-                await Task.WhenAll(tasks.ToArray());
-            }
-            else
-            {
-                var first = true;
-                var clientsByVpn = AccountCollection.ClientsByVpn(accounts);
+            //    await Task.WhenAll(tasks.ToArray());
+            //}
+            //else
+            //{
+                var clientsByVpn = AccountCollection.ClientsByVpn(accounts, ignoreVpn);
                 while (clientsByVpn.SelectMany(c => c.Value).Distinct().Any(c => c.RunStatus != RunState.Completed))
                 {
                     var vpnSets = clientsByVpn
@@ -93,7 +93,12 @@ public class ClientController
 
                         try
                         {
-                            await vpn.Connect(cancellationTokenSource.Token);
+                            var success = await vpn.Connect(cancellationTokenSource.Token);
+                            if (!success)
+                            {
+                                Logger.Error($"VPN {vpn} Connection {vpn}");
+                                continue;
+                            }
 
                             var clientsToLaunch = vpnSet.Clients.Take(settings.VpnAccountCount).ToList();
                             Logger.Debug($"Launching {clientsToLaunch.Count} clients");
@@ -114,11 +119,16 @@ public class ClientController
                         }
                         finally
                         {
-                            await vpn.Disconnect(cancellationTokenSource.Token);
-                        }
+                            var success = await vpn.Disconnect(cancellationTokenSource.Token);
+                            if (!success)
+                            {
+                                Logger.Error($"VPN {vpn} Disconnection failed.");
+                            }
+
                     }
                 }
-            }
+                }
+            //}
 
             Logger.Info("All launch tasks finished.");
         }
@@ -129,7 +139,7 @@ public class ClientController
         finally
         {
             cancellationTokenSource.Cancel(true);
-            await Restore();
+            await Restore(first);
             Logger.Info("GW2 account files restored.");
         }
     }
@@ -149,11 +159,16 @@ public class ClientController
         return tasks;
     }
 
-    private async Task Restore()
+    private async Task Restore(bool first)
     {
-        Logger.Info("{0} login semaphore={1}", nameof(Restore), loginSemaphore.CurrentCount);
-        var obtainedLoginLock = await loginSemaphore.WaitAsync(new TimeSpan(0, 2, 0));
-        if (!obtainedLoginLock) Logger.Error("{0} login semaphore wait timed-out", nameof(Restore));
+        var obtainedLoginLock = false;
+        if (!first)
+        {
+            Logger.Info("{0} login semaphore={1}", nameof(Restore), loginSemaphore.CurrentCount);
+            obtainedLoginLock = await loginSemaphore.WaitAsync(new TimeSpan(0, 2, 0));
+            if (!obtainedLoginLock) Logger.Error("{0} login semaphore wait timed-out", nameof(Restore));
+        }
+
         try
         {
             await Task.Run(() =>

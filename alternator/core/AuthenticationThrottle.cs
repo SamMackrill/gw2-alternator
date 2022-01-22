@@ -24,17 +24,31 @@ public class AuthenticationThrottle : ObservableObject
     {
         await authenticationSemaphore.WaitAsync(launchCancelled);
         launchCount.Increment();
-        currentVpn = vpnDetails;
+        CurrentVpn = vpnDetails;
         vpnDetails.SetAttempt(settings);
         OnPropertyChanged(nameof(Vpn));
     }
 
     private DateTime FreeAt { get; set; }
     public double FreeIn => FreeAt.Subtract(DateTime.Now).TotalSeconds;
-    public string? Vpn => currentVpn?.Id;
+
+
+    public string? Vpn => CurrentVpn?.Id;
 
     private Task? releaseTask;
     private VpnDetails? currentVpn;
+
+    public VpnDetails? CurrentVpn
+    {
+        get => currentVpn;
+        set
+        {
+            if (SetProperty(ref currentVpn, value))
+            {
+                OnPropertyChanged(nameof(Vpn));
+            }
+        }
+    }
 
     public async Task LoginDone(VpnDetails vpnDetails, Client client, LaunchType launchType, CancellationToken launchCancelled)
     {

@@ -133,9 +133,9 @@ public class Client : ObservableObject
             }
         }
 
-        async Task CheckIfStuck(long diff)
+        async Task CheckIfStuck(long memoryUsage, long diff)
         {
-            if (RunStage is not (RunStage.Authenticated or RunStage.ReadyToPlay or RunStage.CharacterSelected)) return;
+            if (RunStage is not (RunStage.Authenticated or RunStage.ReadyToPlay)) return;
 
             if (diff >= tuning.StuckTolerance) return;
 
@@ -147,16 +147,16 @@ public class Client : ObservableObject
             {
                 case RunStage.ReadyToPlay:
                 case RunStage.Authenticated:
-                    Logger.Debug("{0} Stuck awaiting login, diff={1} because {2})", Account.Name, diff, stuckReason);
+                    Logger.Debug("{0} Stuck awaiting login, mem={1} diff={2} because {3})", Account.Name, memoryUsage, diff, stuckReason);
                     //CaptureWindow(RunStage.EntryFailed, applicationFolder);
                     FailedIncrement();
                     await ChangeRunStage(RunStage.LoginFailed, 20, stuckReason, cancellationToken);
                     break;
-                case RunStage.CharacterSelected:
-                    Logger.Debug("{0} Stuck awaiting entry, diff={1} because {2})", Account.Name, diff, stuckReason);
-                    //CaptureWindow(RunStage.EntryFailed, applicationFolder);
-                    await ChangeRunStage(RunStage.EntryFailed, 20, stuckReason, cancellationToken);
-                    break;
+                //case RunStage.CharacterSelected:
+                //    Logger.Debug("{0} Stuck awaiting entry, mem={1} diff={2} because {3})", Account.Name, memoryUsage, diff, stuckReason);
+                //    //CaptureWindow(RunStage.EntryFailed, applicationFolder);
+                //    await ChangeRunStage(RunStage.EntryFailed, 20, stuckReason, cancellationToken);
+                //    break;
             }
             
         }
@@ -180,7 +180,7 @@ public class Client : ObservableObject
             await CheckIfMovedOn(memoryUsage);
 
             var diff = Math.Abs(memoryUsage - tuning.MemoryUsage);
-            await CheckIfStuck(diff);
+            await CheckIfStuck(memoryUsage, diff);
 
             await CheckMemoryThresholdReached(diff, memoryUsage);
 
@@ -298,9 +298,6 @@ public class Client : ObservableObject
             if (shot == null) throw new Exception("PrintWindow failed");
             var shotFile = Path.Combine(applicationFolder.FullName, $"shot_{stage}_{Guid.NewGuid()}.png");
             shot.Save(shotFile, ImageFormat.Png);
-
-            var bitmap = new Bitmap(shot);
-            var pixel = bitmap.GetPixel(200, 550);
         }
         catch (Exception e)
         {
