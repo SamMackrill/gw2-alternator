@@ -157,7 +157,7 @@ public class Account : ObservableObject, IAccount
     public const int MysticCoinId = 19976;
     public const int LaurelId = 3;
 
-    public async Task FetchAccountDetails()
+    public async Task FetchAccountDetails(CancellationToken cancellationToken)
     {
         Logger.Debug("{0} Fetching details from GW2 API", Name);
 
@@ -165,11 +165,11 @@ public class Account : ObservableObject, IAccount
         using var apiClient = new Gw2Sharp.Gw2Client(apiConnection);
         var webApiClient = apiClient.WebApi.V2;
 
-        var accountReturnTask = webApiClient.Account.GetAsync();
-        var charactersReturnTask = webApiClient.Characters.AllAsync();
-        var walletReturnTask = webApiClient.Account.Wallet.GetAsync();
-        var bankReturnTask = webApiClient.Account.Bank.GetAsync();
-        var materialsReturnTask = webApiClient.Account.Materials.GetAsync();
+        var accountReturnTask = webApiClient.Account.GetAsync(cancellationToken);
+        var charactersReturnTask = webApiClient.Characters.AllAsync(cancellationToken);
+        var walletReturnTask = webApiClient.Account.Wallet.GetAsync(cancellationToken);
+        var bankReturnTask = webApiClient.Account.Bank.GetAsync(cancellationToken);
+        var materialsReturnTask = webApiClient.Account.Materials.GetAsync(cancellationToken);
 
         var accountReturn = await accountReturnTask;
         CreatedAt = accountReturn.Created.UtcDateTime;
