@@ -67,7 +67,7 @@ public class Launcher
                     break;
                 case RunStage.LoginFailed:
                     Logger.Info("{0} login failed, giving up to try again", account.Name);
-                    authenticationThrottle.LoginFailed(vpnDetails, client, launchType, launchCancelled);
+                    authenticationThrottle.LoginFailed(vpnDetails, client);
                     ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
                     client.Kill().Wait();
                     break;
@@ -76,7 +76,7 @@ public class Launcher
                     client.SendEnter();
                     break;
                 case RunStage.Playing:
-                    authenticationThrottle.LoginSucceeded(vpnDetails, client, launchType, launchCancelled);
+                    authenticationThrottle.LoginSucceeded(vpnDetails, client);
                     break;
                 case RunStage.CharacterSelectReached:
                     client.SelectCharacter();

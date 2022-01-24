@@ -153,6 +153,76 @@ public class Account : ObservableObject, IAccount
     [JsonIgnore]
     public bool UpdateRequired => true;
 
+
+    public const int MysticCoinId = 19976;
+    public const int LaurelId = 3;
+
+    public async Task FetchAccountDetails()
+    {
+        Logger.Debug("{0} Fetching details from GW2 API", Name);
+
+        var apiConnection = new Gw2Sharp.Connection(ApiKey!);
+        using var apiClient = new Gw2Sharp.Gw2Client(apiConnection);
+        var webApiClient = apiClient.WebApi.V2;
+
+        var accountReturnTask = webApiClient.Account.GetAsync();
+        var charactersReturnTask = webApiClient.Characters.AllAsync();
+        var walletReturnTask = webApiClient.Account.Wallet.GetAsync();
+        var bankReturnTask = webApiClient.Account.Bank.GetAsync();
+        var materialsReturnTask = webApiClient.Account.Materials.GetAsync();
+
+        var accountReturn = await accountReturnTask;
+        CreatedAt = accountReturn.Created.UtcDateTime;
+        DisplayName = accountReturn.Name;
+
+        var wallet = await walletReturnTask;
+
+        int laurelCount = wallet.FirstOrDefault(c => c is {Id: LaurelId})?.Value ?? 0;
+
+        var characters = await charactersReturnTask;
+        var prime = characters.FirstOrDefault();
+        int mysticCoinCount = 0;
+        if (prime != null)
+        {
+            Character = prime.Name;
+
+            var allSlots = prime.Bags?
+                .SelectMany(bag => bag?.Inventory ?? Array.Empty<Gw2Sharp.WebApi.V2.Models.AccountItem>())
+                .Where(i => i != null).ToList();
+
+            mysticCoinCount += (allSlots?.Where(i => i is {Id: MysticCoinId}).Sum(i => i!.Count)).GetValueOrDefault(0);
+            // Bags of Mystic Coins
+            mysticCoinCount += (allSlots?.Where(i => i is {Id: 68332}).Sum(i => i!.Count)).GetValueOrDefault(0) * 2;
+            mysticCoinCount += (allSlots?.Where(i => i is {Id: 68318}).Sum(i => i!.Count)).GetValueOrDefault(0) * 4;
+            mysticCoinCount += (allSlots?.Where(i => i is {Id: 68330}).Sum(i => i!.Count)).GetValueOrDefault(0) * 6;
+            mysticCoinCount += (allSlots?.Where(i => i is {Id: 68333}).Sum(i => i!.Count)).GetValueOrDefault(0) * 8;
+
+            // Bags of Laurels
+            laurelCount += (allSlots?.Where(i => i is {Id: 68314}).Sum(i => i!.Count)).GetValueOrDefault(0);
+            laurelCount += (allSlots?.Where(i => i is {Id: 68339}).Sum(i => i!.Count)).GetValueOrDefault(0) * 2;
+            laurelCount += (allSlots?.Where(i => i is {Id: 68327}).Sum(i => i!.Count)).GetValueOrDefault(0) * 3;
+            laurelCount += (allSlots?.Where(i => i is {Id: 68336}).Sum(i => i!.Count)).GetValueOrDefault(0) * 4;
+            laurelCount += (allSlots?.Where(i => i is {Id: 68328}).Sum(i => i!.Count)).GetValueOrDefault(0) * 10;
+            laurelCount += (allSlots?.Where(i => i is {Id: 68334}).Sum(i => i!.Count)).GetValueOrDefault(0) * 15;
+            laurelCount += (allSlots?.Where(i => i is {Id: 68351}).Sum(i => i!.Count)).GetValueOrDefault(0) * 20;
+            // Chest of Loyalty
+            laurelCount += (allSlots?.Where(i => i is {Id: 68326}).Sum(i => i!.Count)).GetValueOrDefault(0) * 20;
+        }
+
+        var bank = await bankReturnTask;
+        var mysticCoinInBank = bank.Where(i => i is {Id: MysticCoinId}).Sum(i => i.Count);
+        mysticCoinCount += mysticCoinInBank;
+
+        var materials = await materialsReturnTask;
+        mysticCoinCount += (materials.FirstOrDefault(m => m is {Id: MysticCoinId})?.Count).GetValueOrDefault(0);
+
+        SetCount("MysticCoin", mysticCoinCount);
+        SetCount("Laurel", laurelCount);
+
+        Logger.Debug("{0} {1} has {2} Laurels and {3} Mystic Coins", Name, Character, laurelCount, mysticCoinCount);
+
+    }
+
     private void LinkFiles(FileSystemInfo from, FileSystemInfo to)
     {
         if (from.Exists)

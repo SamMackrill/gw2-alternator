@@ -11,9 +11,9 @@ public class AuthenticationThrottle : ObservableObject
 
     private readonly ConcurrentDictionary<string, Client> failedClients;
 
-    public AuthenticationThrottle(Settings settings)
+    public AuthenticationThrottle(Settings? settings)
     {
-        this.settings = settings;
+        this.settings = settings ?? throw new NullReferenceException(nameof(settings));
         authenticationSemaphore = new SemaphoreSlim(1, 1);
         launchCount = new Counter();
         failedCount = new Counter();
@@ -82,15 +82,14 @@ public class AuthenticationThrottle : ObservableObject
         }, launchCancelled);
     }
 
-    public void LoginFailed(VpnDetails vpnDetails, Client client, LaunchType launchType,
-        CancellationToken launchCancelled)
+    public void LoginFailed(VpnDetails vpnDetails, Client client)
     {
         failedCount.Increment();
         failedClients.AddOrUpdate(client.Account.Name, client, (_, _) => client);
         vpnDetails.SetFail();
     }
 
-    public void LoginSucceeded(VpnDetails vpnDetails, Client client, LaunchType launchType, CancellationToken launchCancelled)
+    public void LoginSucceeded(VpnDetails vpnDetails, Client client)
     {
         failedClients.Remove(client.Account.Name, out _);
         vpnDetails.SetSuccess();

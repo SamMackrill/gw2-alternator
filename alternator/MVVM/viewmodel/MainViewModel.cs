@@ -4,7 +4,6 @@ namespace guildwars2.tools.alternator.MVVM.viewmodel;
 
 public class MainViewModel : ObservableObject
 {
-    private readonly SettingsController settingsController;
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
     public IAsyncCommand? LoginCommand { get; set; }
@@ -15,10 +14,12 @@ public class MainViewModel : ObservableObject
     public IAsyncCommand? CloseCommand { get; }
 
     private CancellationTokenSource? cts;
-    private readonly AuthenticationThrottle authenticationThrottle;
 
+    private readonly SettingsController settingsController;
+    private readonly AuthenticationThrottle authenticationThrottle;
     private readonly AccountCollection accountCollection;
     private readonly VpnCollection vpnCollection;
+
     public AccountsViewModel AccountsVM { get; set; }
     public SettingsViewModel SettingsVM { get; set; }
 
@@ -79,25 +80,25 @@ public class MainViewModel : ObservableObject
     public Visibility ThrottleVisible => authenticationThrottle.FreeIn > 1 ? Visibility.Visible : Visibility.Hidden;
     public string ThrottleDelay => authenticationThrottle.FreeIn.ToString(@"0's'");
 
-    private bool forceSerial;
-    public bool ForceSerial
+    private bool forceSerialOverride;
+    public bool ForceSerialOverride
     {
-        get => forceSerial;
-        set => SetProperty(ref forceSerial, value);
+        get => forceSerialOverride;
+        set => SetProperty(ref forceSerialOverride, value);
     }
 
-    private bool forceAll;
-    public bool ForceAll
+    private bool forceAllOverride;
+    public bool ForceAllOverride
     {
-        get => forceAll;
-        set => SetProperty(ref forceAll, value);
+        get => forceAllOverride;
+        set => SetProperty(ref forceAllOverride, value);
     }
 
-    private bool ignoreVpn;
-    public bool IgnoreVpn
+    private bool ignoreVpnOverride;
+    public bool IgnoreVpnOverride
     {
-        get => ignoreVpn;
-        set => SetProperty(ref ignoreVpn, value);
+        get => ignoreVpnOverride;
+        set => SetProperty(ref ignoreVpnOverride, value);
     }
 
     private bool stopping;
@@ -179,18 +180,12 @@ public class MainViewModel : ObservableObject
         return canRun;
     }
 
+
     public MainViewModel(DirectoryInfo applicationFolder, string appData, SettingsController settingsController, AccountCollection accountCollection, VpnCollection vpnCollection)
     {
         this.settingsController = settingsController;
         this.accountCollection = accountCollection;
         this.vpnCollection = vpnCollection;
-
-        var apiConnection = new Gw2Sharp.Connection();
-        using var apiClient = new Gw2Sharp.Gw2Client(apiConnection);
-        var webApiClient = apiClient.WebApi.V2;
-
-        var buildFetch = webApiClient.Build.GetAsync();
-
 
         settingsController.DatFile = new FileInfo(Path.Combine(appData, @"Guild Wars 2", @"Local.dat"));
         settingsController.GfxSettingsFile = new FileInfo(Path.Combine(appData, @"Guild Wars 2", @"GFXSettings.Gw2-64.exe.xml"));
@@ -202,14 +197,7 @@ public class MainViewModel : ObservableObject
 
 
         SettingsVM = new SettingsViewModel(settingsController, accountCollection, () => Version);
-
-        accountCollection.Loaded += OnAccountsLoaded;
-        accountCollection.LoadFailed += OnAccountsLoadFailed;
-        vpnCollection.Loaded += OnVpnsLoaded;
-        vpnCollection.LoadFailed += OnVpnsLoadFailed;
         AccountsVM = new AccountsViewModel();
-
-        Initialise();
 
         async Task LaunchMultipleAccounts(LaunchType launchType, bool all, bool serial, bool ignoreVpn)
         {
@@ -244,7 +232,7 @@ public class MainViewModel : ObservableObject
         AsyncCommand CreateLaunchCommand(LaunchType launchType, Action? tidyUp) =>
             new(async () =>
             {
-                await LaunchMultipleAccounts(launchType, ForceAll, ForceSerial, IgnoreVpn);
+                await LaunchMultipleAccounts(launchType, ForceAllOverride, ForceSerialOverride, IgnoreVpnOverride);
                 tidyUp?.Invoke();
             }, _ => CanRun(launchType));
 
@@ -288,12 +276,46 @@ public class MainViewModel : ObservableObject
         dt.Start();
     }
 
+    public void Initialise()
+    {
+        QueryGw2Version().SafeFireAndForget(onException: ex => Logger.Error(ex, "Query GW2 Version"));
+        LoadAccounts().SafeFireAndForget(onException: ex => Logger.Error(ex, "Load Accounts"));
+        LoadVpns().SafeFireAndForget(onException: ex => Logger.Error(ex, "Load VPNs"));
+    }
+
+    private async ValueTask QueryGw2Version()
+    {
+        var apiConnection = new Gw2Sharp.Connection();
+        using var apiClient = new Gw2Sharp.Gw2Client(apiConnection);
+        var webApiClient = apiClient.WebApi.V2;
+
+        var build =  await webApiClient.Build.GetAsync();
+
+        // TODO check versions
+    }
+
+    private async ValueTask LoadAccounts()
+    {
+        await accountCollection.Load();
+        AccountsVM.Clear();
+        AccountsVM.Add(accountCollection);
+        accountCollection.Ready = true;
+        RefreshRunState();
+        FetchApiData(accountCollection.Accounts).SafeFireAndForget(onException: ex => Logger.Error(ex, "Fetch API Data"));
+    }
+
+    private async ValueTask LoadVpns()
+    {
+        await vpnCollection.Load();
+        vpnCollection.Ready = true;
+        RefreshRunState();
+    }
+
+
     private static async Task SaveCollections(AccountCollection accountCollection, VpnCollection vpnCollection)
     {
         await Task.WhenAll(accountCollection.Save(), vpnCollection.Save());
     }
-
-    Task apiFetcher;
 
     private void ThrottlePropertyChanged(object? sender, PropertyChangedEventArgs args)
     {
@@ -302,126 +324,16 @@ public class MainViewModel : ObservableObject
         OnPropertyChanged($"{args.PropertyName}Visible");
     }
 
-    private void OnVpnsLoadFailed(object? sender, EventArgs e)
-    {
-        vpnCollection.Ready = true;
-        RefreshRunState();
-    }
-
-    private void OnVpnsLoaded(object? sender, EventArgs e)
-    {
-        vpnCollection.Ready = true;
-        RefreshRunState();
-    }
-
-    private void OnAccountsLoadFailed(object? sender, EventArgs e)
-    {
-        accountCollection.Ready = false;
-        RefreshRunState();
-    }
-
-    private void OnAccountsLoaded(object? sender, EventArgs e)
-    {
-        AccountsVM.Clear();
-        AccountsVM.Add(accountCollection);
-        accountCollection.Ready = true;
-        RefreshRunState();
-
-        FetchApiData(accountCollection.Accounts).SafeFireAndForget(onException: ex => Logger.Error(ex, "Fetch API Data"));
-    }
-
-
     private async ValueTask FetchApiData(List<Account>? accounts)
     {
         if (accounts==null) return;
 
         var fetchTasks = accounts
             .Where(a => !string.IsNullOrEmpty(a.ApiKey))
-            .Select(FetchAccountDetails)
+            .Select(a => a.FetchAccountDetails())
             .ToList();
 
         await Task.WhenAll(fetchTasks);
-    }
-
-
-    public const int MysticCoinId = 19976;
-    public const int LaurelId = 3;
-
-    private async Task FetchAccountDetails(IAccount account)
-    {
-        Logger.Debug("{0} Fetching details from GW2 API", account.Name);
-
-        var apiConnection = new Gw2Sharp.Connection(account.ApiKey!);
-        using var apiClient = new Gw2Sharp.Gw2Client(apiConnection);
-        var webApiClient = apiClient.WebApi.V2;
-
-        var accountReturnTask = webApiClient.Account.GetAsync();
-        var charactersReturnTask = webApiClient.Characters.AllAsync();
-        var walletReturnTask = webApiClient.Account.Wallet.GetAsync();
-        var bankReturnTask = webApiClient.Account.Bank.GetAsync();
-        var materialsReturnTask = webApiClient.Account.Materials.GetAsync();
-
-        var accountReturn = await accountReturnTask;
-        account.CreatedAt = accountReturn.Created.UtcDateTime;
-        account.DisplayName = accountReturn.Name;
-
-        var wallet = await walletReturnTask;
-
-        int laurelCount = wallet.FirstOrDefault(c => c is { Id: LaurelId })?.Value ?? 0;
-
-        var characters = await charactersReturnTask;
-        var prime = characters.FirstOrDefault();
-        int mysticCoinCount = 0;
-        if (prime != null)
-        {
-            account.Character = prime.Name;
-
-            var allSlots = prime.Bags?
-                .SelectMany(bag => bag?.Inventory ?? Array.Empty<Gw2Sharp.WebApi.V2.Models.AccountItem>())
-                .Where(i => i != null).ToList();
-
-            mysticCoinCount += (allSlots?.Where(i => i is { Id: MysticCoinId }).Sum(i => i!.Count)).GetValueOrDefault(0);
-            // Bags of Mystic Coins
-            mysticCoinCount += (allSlots?.Where(i => i is { Id: 68332 }).Sum(i => i!.Count)).GetValueOrDefault(0) * 2;
-            mysticCoinCount += (allSlots?.Where(i => i is { Id: 68318 }).Sum(i => i!.Count)).GetValueOrDefault(0) * 4;
-            mysticCoinCount += (allSlots?.Where(i => i is { Id: 68330 }).Sum(i => i!.Count)).GetValueOrDefault(0) * 6;
-            mysticCoinCount += (allSlots?.Where(i => i is { Id: 68333 }).Sum(i => i!.Count)).GetValueOrDefault(0) * 8;
-
-            // Bags of Laurels
-            laurelCount += (allSlots?.Where(i => i is { Id: 68314 }).Sum(i => i!.Count)).GetValueOrDefault(0);
-            laurelCount += (allSlots?.Where(i => i is { Id: 68339 }).Sum(i => i!.Count)).GetValueOrDefault(0) * 2;
-            laurelCount += (allSlots?.Where(i => i is { Id: 68327 }).Sum(i => i!.Count)).GetValueOrDefault(0) * 3;
-            laurelCount += (allSlots?.Where(i => i is { Id: 68336 }).Sum(i => i!.Count)).GetValueOrDefault(0) * 4;
-            laurelCount += (allSlots?.Where(i => i is { Id: 68328 }).Sum(i => i!.Count)).GetValueOrDefault(0) * 10;
-            laurelCount += (allSlots?.Where(i => i is { Id: 68334 }).Sum(i => i!.Count)).GetValueOrDefault(0) * 15;
-            laurelCount += (allSlots?.Where(i => i is { Id: 68351 }).Sum(i => i!.Count)).GetValueOrDefault(0) * 20;
-            // Chest of Loyalty
-            laurelCount += (allSlots?.Where(i => i is { Id: 68326 }).Sum(i => i!.Count)).GetValueOrDefault(0) * 20;
-        }
-
-        var bank = await bankReturnTask;
-        var mysticCoinInBank = bank.Where(i => i is { Id: MysticCoinId }).Sum(i => i.Count);
-        mysticCoinCount += mysticCoinInBank;
-
-        var materials = await materialsReturnTask;
-        mysticCoinCount += (materials.FirstOrDefault(m => m is { Id: MysticCoinId })?.Count).GetValueOrDefault(0);
-
-        account.SetCount("MysticCoin", mysticCoinCount);
-        account.SetCount("Laurel", laurelCount);
-
-        Logger.Debug("{0} {1} has {2} Laurels and {3} Mystic Coins", account.Name, account.Character, laurelCount, mysticCoinCount);
-    }
-
-    private void Initialise()
-    {
-        //Task.Run(() =>
-        //{
-#pragma warning disable CS4014
-        accountCollection.Load();
-        vpnCollection.Load();
-#pragma warning restore CS4014
-        // });
-
     }
 
 }

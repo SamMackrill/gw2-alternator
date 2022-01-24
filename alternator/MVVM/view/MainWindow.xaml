@@ -196,15 +196,15 @@
                     <StackPanel>
                         <CheckBox Content="Force All" 
                                   Style="{StaticResource CheckBoxTheme}" 
-                                  IsChecked="{Binding ForceAll}"
+                                  IsChecked="{Binding ForceAllOverride}"
                         />
                         <CheckBox Content="Force Serial" 
                                   Style="{StaticResource CheckBoxTheme}"
-                                  IsChecked="{Binding ForceSerial}"
+                                  IsChecked="{Binding ForceSerialOverride}"
                         />
                         <CheckBox Content="Ignore VPN" 
                                   Style="{StaticResource CheckBoxTheme}"
-                                  IsChecked="{Binding IgnoreVpn}"
+                                  IsChecked="{Binding IgnoreVpnOverride}"
                         />
                     </StackPanel>
 

@@ -75,11 +75,10 @@ public partial class App : Application
         settingsController.Load();
 
         accountCollection = new AccountCollection(applicationFolder, Path.Combine(appData, @"Gw2 Launchbuddy"), Path.Combine(appData, @"Gw2Launcher"));
-
         vpnCollection = new VpnCollection(applicationFolder);
 
-
         var mainView = new MainViewModel(applicationFolder, appData, settingsController, accountCollection, vpnCollection);
+        mainView.Initialise();
         var mainWindow = new MainWindow(mainView);
         mainWindow.Show();
     }
@@ -111,8 +110,10 @@ public partial class App : Application
             DeleteOldFileOnStartup = false
         };
         var logConsole = new NLog.Targets.ConsoleTarget("logconsole");
+        var debugConsole = new NLog.Targets.DebuggerTarget("debugconsole");
 
         // Rules for mapping loggers to targets            
+        config.AddRule(LogLevel.Trace, LogLevel.Fatal, debugConsole);
         config.AddRule(LogLevel.Trace, LogLevel.Fatal, logConsole);
         config.AddRule(LogLevel.Trace, LogLevel.Fatal, debugLogfile);
         config.AddRule(LogLevel.Error, LogLevel.Fatal, errorLogfile);

@@ -11,6 +11,8 @@ public class VpnDetails
 
     public string Id { get; set; }
     public string ConnectionName { get; set; }
+    public DateTime LastConnectionFail { get; set; }
+    public DateTime LastConnectionSuccess { get; set; }
     public DateTime LastLoginFail { get; set; }
     public DateTime LastLoginSuccess { get; set; }
 
@@ -30,6 +32,7 @@ public class VpnDetails
     [JsonIgnore]
     public Counter ConsecutiveFailedCount { get; private set; }
 
+    [JsonIgnore]
     public int Delay => LaunchDelay();
 
 
@@ -43,60 +46,68 @@ public class VpnDetails
 
     private string DebugDisplay => ToString();
 
+    [JsonIgnore]
     public bool IsReal => !string.IsNullOrEmpty(Id) && !string.IsNullOrEmpty(ConnectionName);
 
+    [JsonIgnore]
     public DateTime Available => LastLoginSuccess.AddSeconds(Delay);
 
     public override string ToString() => $"{Id} \"{ConnectionName}\"";
 
     public async Task<bool> Connect(CancellationToken cancellationToken)
     {
-        if (!IsReal) return true;
-
-        Logger.Info($"Connecting to VPN {ToString()}");
-        var psi = new ProcessStartInfo("rasdial", $@"""{ConnectionName}""")
-        {
-            CreateNoWindow = true,
-        };
-        var vpnProcess = Process.Start(psi);
-        if (vpnProcess == null)
-        {
-            Logger.Info($"Connecting from VPN {ToString()} Process null");
-            return false;
-        }
-        await vpnProcess.WaitForExitAsync(cancellationToken);
-        if (vpnProcess.ExitCode > 0 && vpnProcess.ExitCode != 703)
-        {
-            Logger.Info($"Connecting to VPN {ToString()} Error={vpnProcess.ExitCode}");
-            return false;
-        }
-        await Task.Delay(new TimeSpan(0, 0, 4), cancellationToken);
-        return true;
+        return await RunRasdial("Connecting", "", cancellationToken);
     }
 
     public async Task<bool> Disconnect(CancellationToken cancellationToken)
     {
+        return await RunRasdial("Disconnecting", @" /d", cancellationToken);
+    }
+
+    private async Task<bool> RunRasdial(string display, string arg, CancellationToken cancellationToken)
+    {
         if (!IsReal) return true;
 
-        Logger.Info($"Disconnecting from VPN {ToString()}");
-        var psi = new ProcessStartInfo("rasdial", $@"""{ConnectionName}"" /d")
+        Logger.Info($"Connecting to VPN {ToString()}");
+        var psi = new ProcessStartInfo("rasdial", $@"""{ConnectionName}""{arg}")
         {
-            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
         };
         var vpnProcess = Process.Start(psi);
         if (vpnProcess == null)
         {
-            Logger.Info($"Disconnecting from VPN {ToString()} Process null");
+            Logger.Error($"{display} from VPN {ToString()} Process null");
+            LastConnectionFail = DateTime.Now;
             return false;
         }
+
+        _ = Task.Run(() => ReadStream(vpnProcess.StandardOutput, s => Logger.Debug($"VPN: {s}")), cancellationToken);
+        _ = Task.Run(() => ReadStream(vpnProcess.StandardError, s => Logger.Debug($"VPN Error: {s}")), cancellationToken);
+
         await vpnProcess.WaitForExitAsync(cancellationToken);
         if (vpnProcess.ExitCode > 0)
         {
-            Logger.Info($"Disconnecting from VPN {ToString()} Error={vpnProcess.ExitCode}");
+            Logger.Error($"{display} to VPN {ToString()} Error={vpnProcess.ExitCode}");
+            LastConnectionFail = DateTime.Now;
             return false;
         }
+
+        LastConnectionSuccess = DateTime.Now;
         await Task.Delay(new TimeSpan(0, 0, 4), cancellationToken);
         return true;
+    }
+
+    private void ReadStream(TextReader textReader, Action<string> callback)
+    {
+        while (true)
+        {
+            var line = textReader.ReadLine();
+            if (line == null) break;
+
+            callback(line);
+        }
     }
 
     public void SetAttempt(Settings settings)

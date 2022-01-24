@@ -608,15 +608,18 @@ public class AccountCollection : JsonCollection<Account>
             return new Dictionary<string, List<Client>> { {"", accounts.Select(a => a.Client).ToList()! }};
 
         }
-        var vpnAccounts = accounts
+        var vpnClients = accounts
             .Where(a => a.HasVPN)
             .SelectMany(a => a.VPN!, (a, vpn) => new {vpn, a.Client })
             .GroupBy(t => t.vpn, t=>t.Client)
             .ToDictionary(g => g.Key, g => g.ToList());
 
-        var nonVpnAccounts = accounts.Where(a => !a.HasVPN).Select(a => a.Client).ToList();
-        if (nonVpnAccounts.Any()) vpnAccounts.Add("", nonVpnAccounts);
+        var nonVpnClients = accounts.Where(a => !a.HasVPN).Select(a => a.Client).ToList();
+        if (nonVpnClients.Any()) vpnClients.Add("", nonVpnClients);
 
-        return vpnAccounts;
+        vpnClients.Add("", accounts.Select(a => a.Client).ToList());
+
+
+        return vpnClients;
     }
 }
