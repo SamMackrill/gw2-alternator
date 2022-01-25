@@ -56,6 +56,7 @@ public class ClientController
             var clientsByVpn = AccountCollection.ClientsByVpn(accounts, ignoreVpn);
             while (clientsByVpn.SelectMany(c => c.Value).Distinct().Any(c => c.RunStatus != RunState.Completed))
             {
+                var now = DateTime.Now;
                 var vpnSets = clientsByVpn
                     .Select(kv => new
                     {
@@ -63,7 +64,7 @@ public class ClientController
                         Clients = kv.Value.Where(c => c.RunStatus != RunState.Completed).ToList()
                     })
                     .Where(s => s.Vpn != null)
-                    .OrderByDescending(s => s.Vpn!.Available)
+                    .OrderByDescending(s => s.Vpn!.Available(now))
                     .ThenByDescending(s => s.Clients.Count)
                     .ToList();
 
@@ -78,7 +79,7 @@ public class ClientController
                         .ToList();
                     if (!clientsToLaunch.Any()) continue;
 
-                    var waitUntil = vpn.Available.Subtract(DateTime.Now);
+                    var waitUntil = vpn.Available(now).Subtract(now);
                     if (waitUntil.TotalSeconds > 0)
                     {
                         Logger.Debug($"VPN {vpn.Id} on login cooldown {waitUntil}");

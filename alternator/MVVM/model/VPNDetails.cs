@@ -49,8 +49,11 @@ public class VpnDetails
     [JsonIgnore]
     public bool IsReal => !string.IsNullOrEmpty(Id) && !string.IsNullOrEmpty(ConnectionName);
 
-    [JsonIgnore]
-    public DateTime Available => LastLoginSuccess.AddSeconds(Delay);
+    public DateTime Available(DateTime cutoff)
+    {
+        var available = LastLoginSuccess.AddSeconds(Delay);
+        return available > cutoff ? available : cutoff;
+    }
 
     public override string ToString() => $"{Id} \"{ConnectionName}\"";
 
