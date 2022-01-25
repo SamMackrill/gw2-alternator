@@ -82,6 +82,13 @@ public class SettingsViewModel : ObservableObject
         set => Settings.VpnAccountCount = value;
     }
 
+    public ErrorDetection ExperimentalErrorDetection
+    {
+        get => Settings.ExperimentalErrorDetection;
+        set => Settings.ExperimentalErrorDetection = value;
+    }
+
+    public Array ErrorDetectionArray => Enum.GetValues(typeof(ErrorDetection));
 
     public string Title => $"GW2 alternator Settings V{GetVersion?.Invoke() ?? "?.?.?"}";
 
@@ -138,6 +145,11 @@ public class SettingsViewModel : ObservableObject
     {
         var defaultSettings = SettingsController.DefaultSettings;
         Settings.VpnAccountCount = defaultSettings.VpnAccountCount;
+    });
+    public RelayCommand<object> ResetErrorDetectionCommand => new(_ =>
+    {
+        var defaultSettings = SettingsController.DefaultSettings;
+        Settings.ExperimentalErrorDetection = defaultSettings.ExperimentalErrorDetection;
     });
 
     public RelayCommand<object> ImportFromLaunchBuddyCommand => new(_ =>

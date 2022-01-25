@@ -34,10 +34,8 @@
             <DataGridTextColumn Header="Login?" Binding="{Binding LoginRequired}"/>
             <DataGridTextColumn Header="Last Collected" Binding="{Binding Collected}"/>
             <DataGridTextColumn Header="Collect?" Binding="{Binding CollectionRequired}"/>
-            <DataGridTextColumn Header="Laurels" Binding="{Binding LaurelCount, FallbackValue=?}" 
-                Visibility="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type viewmodel:AccountsViewModel}}, Path=ApiVisibility}"/>
-            <DataGridTextColumn Header="MC" Binding="{Binding MysticCoinCount, FallbackValue=?}"
-                Visibility="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type viewmodel:AccountsViewModel}}, Path=ApiVisibility}"/>
+            <DataGridTextColumn Header="Laurels" Binding="{Binding LaurelCount, FallbackValue=?}" />
+            <DataGridTextColumn Header="MC" Binding="{Binding MysticCoinCount, FallbackValue=?}" />
 
             <DataGridTextColumn Header="Status" Binding="{Binding RunStatus}" >
 

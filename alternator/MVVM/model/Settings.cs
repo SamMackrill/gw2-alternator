@@ -71,5 +71,11 @@ public class Settings : ObservableObject
         set => SetProperty(ref vpnAccountCount, value);
     }
 
+    private ErrorDetection experimentalErrorDetection;
+    public ErrorDetection ExperimentalErrorDetection
+    {
+        get => experimentalErrorDetection;
+        set => SetProperty(ref experimentalErrorDetection, value);
+    }
 
 }

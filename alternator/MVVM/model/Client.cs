@@ -140,7 +140,7 @@ public class Client : ObservableObject
             if (diff >= tuning.StuckTolerance) return;
 
             var staticTooLong = DateTime.Now.Subtract(lastStageSwitchTime) > tuning.StuckDelay;
-            if (!staticTooLong && !ErrorDetected()) return;
+            if (!staticTooLong && !ErrorDetected(settings.ExperimentalErrorDetection)) return;
 
             stuckReason = staticTooLong ? $"Stuck, took too long (>{tuning.StuckDelay.TotalSeconds}s)" : "Login Error Detected";
             switch (RunStage)
@@ -152,11 +152,6 @@ public class Client : ObservableObject
                     FailedIncrement();
                     await ChangeRunStage(RunStage.LoginFailed, 20, stuckReason, cancellationToken);
                     break;
-                //case RunStage.CharacterSelected:
-                //    Logger.Debug("{0} Stuck awaiting entry, mem={1} diff={2} because {3})", Account.Name, memoryUsage, diff, stuckReason);
-                //    //CaptureWindow(RunStage.EntryFailed, applicationFolder);
-                //    await ChangeRunStage(RunStage.EntryFailed, 20, stuckReason, cancellationToken);
-                //    break;
             }
             
         }
@@ -240,9 +235,9 @@ public class Client : ObservableObject
 
     private readonly Point errorDetectPoint = new(220, 550);
     private readonly Color errorColor =  Color.FromArgb(25, 42, 58);
-    private bool ErrorDetected()
+    private bool ErrorDetected(ErrorDetection errorDetection)
     {
-        if (!Alive) return false;
+        if (!Alive || errorDetection!=ErrorDetection.DelayAndPixel) return false;
 
         try
         {

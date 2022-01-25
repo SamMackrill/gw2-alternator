@@ -3,6 +3,14 @@ using System.Xml.Linq;
 
 namespace guildwars2.tools.alternator;
 
+public enum ErrorDetection
+{
+    [Description("Delay")]
+    Delay,
+    [Description("Delay & Pixel")]
+    DelayAndPixel,
+}
+
 public class SettingsController : ObservableObject
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
@@ -122,6 +130,7 @@ public class SettingsController : ObservableObject
             AccountBand3Delay = 45,
             StuckTimeout = 30,
             VpnAccountCount = 10,
+            ExperimentalErrorDetection = ErrorDetection.Delay,
         };
 
 
