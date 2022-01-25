@@ -24,6 +24,9 @@ public class VpnDetails
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public int LastConnectionFailCode { get; set; }
 
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public string LastLoginFailAccount { get; set; }
+
     [field: NonSerialized]
     [JsonIgnore]
     public Counter CallCount { get; private set; }
@@ -67,15 +70,15 @@ public class VpnDetails
 
     public async Task<bool> Connect(CancellationToken cancellationToken)
     {
-        return await RunRasdial("Connecting to", "", cancellationToken);
+        return await RunRasdial("Connecting to", "", true, cancellationToken);
     }
 
     public async Task<bool> Disconnect(CancellationToken cancellationToken)
     {
-        return await RunRasdial("Disconnecting from", @" /d", cancellationToken);
+        return await RunRasdial("Disconnecting from", @" /d", false, cancellationToken);
     }
 
-    private async Task<bool> RunRasdial(string display, string arg, CancellationToken cancellationToken)
+    private async Task<bool> RunRasdial(string display, string arg, bool record, CancellationToken cancellationToken)
     {
         if (!IsReal) return true;
 
@@ -90,7 +93,11 @@ public class VpnDetails
         if (vpnProcess == null)
         {
             Logger.Error($"{display} VPN {ToString()} Process null");
-            LastConnectionFail = DateTime.Now;
+            if (record)
+            {
+                LastConnectionFail = DateTime.Now;
+                LastConnectionFailCode = -999;
+            }
             return false;
         }
 
@@ -101,13 +108,16 @@ public class VpnDetails
         if (vpnProcess.ExitCode > 0)
         {
             Logger.Error($"{display} VPN {ToString()} Error={vpnProcess.ExitCode}");
-            LastConnectionFail = DateTime.Now;
-            LastConnectionFailCode = vpnProcess.ExitCode;
+            if (record)
+            {
+                LastConnectionFail = DateTime.Now;
+                LastConnectionFailCode = vpnProcess.ExitCode;
+            }
             return false;
         }
 
-        LastConnectionSuccess = DateTime.Now;
-        await Task.Delay(new TimeSpan(0, 0, 4), cancellationToken);
+        if (record) LastConnectionSuccess = DateTime.Now;
+        await Task.Delay(new TimeSpan(0, 0, 1), cancellationToken);
         return true;
     }
 
@@ -122,9 +132,9 @@ public class VpnDetails
         }
     }
 
-    public void SetAttempt(Settings settings)
+    public void SetAttempt(Settings currentSettings)
     {
-        this.settings = settings;
+        settings = currentSettings;
         CallCount.Increment();
     }
 
@@ -134,11 +144,12 @@ public class VpnDetails
         LastLoginSuccess = DateTime.Now;
     }
 
-    public void SetFail()
+    public void SetFail(IAccount account)
     {
         FailCount.Increment();
         SuccessCount = new Counter();
         LastLoginFail = DateTime.Now;
+        LastLoginFailAccount = account.Name;
     }
 
     private int LaunchDelay()

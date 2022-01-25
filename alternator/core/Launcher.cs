@@ -21,6 +21,7 @@ public class Launcher
         this.vpnDetails = vpnDetails;
         this.launchCancelled = launchCancelled;
         referenceGfxSettings = new FileInfo(Path.Combine(applicationFolder.FullName, "GW2 Custom GFX-Fastest.xml"));
+
         // TODO the client should not live on the account!
         account = client.Account;
     }
@@ -178,7 +179,7 @@ public class Launcher
             Logger.Debug("{0} GW2 process killed", account.Name);
         }
 
-        vpnDetails.SetFail();
+        vpnDetails.SetFail(client.Account);
         return false;
     }
 
