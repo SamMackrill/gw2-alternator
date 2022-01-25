@@ -38,6 +38,7 @@ global using guildwars2.tools.alternator.MVVM.viewmodel;
 global using AsyncAwaitBestPractices.MVVM;
 
 global using NLog;
+using NLog.Targets;
 
 
 namespace guildwars2.tools.alternator;
@@ -96,33 +97,32 @@ public partial class App : Application
     private void SetLogging(DirectoryInfo folder)
     {
         var config = new NLog.Config.LoggingConfiguration();
-        // Targets where to log to: File and Console
-        var logfile = new NLog.Targets.FileTarget("logfile")
+
+        var logfile = new FileTarget("logfile")
         {
             FileName = Path.Combine(folder.FullName, "gw2-alternator-log.txt"), 
             DeleteOldFileOnStartup = true
         };
-        var debugLogfile = new NLog.Targets.FileTarget("debuglogfile")
+        config.AddRule(LogLevel.Info, LogLevel.Info, logfile);
+
+        var debugLogfile = new FileTarget("debuglogfile")
         {
             FileName = Path.Combine(folder.FullName, "gw2-alternator-debug-log.txt"),
             DeleteOldFileOnStartup = true
         };
-        var errorLogfile = new NLog.Targets.FileTarget("errorlogfile")
+        config.AddRule(LogLevel.Trace, LogLevel.Fatal, debugLogfile);
+
+        var errorLogfile = new FileTarget("errorlogfile")
         {
             FileName = Path.Combine(folder.FullName, "gw2-alternator-error-log.txt"),
             DeleteOldFileOnStartup = false
         };
-        var logConsole = new NLog.Targets.ConsoleTarget("logconsole");
-        var debugConsole = new NLog.Targets.DebuggerTarget("debugconsole");
-
-        // Rules for mapping loggers to targets            
-        config.AddRule(LogLevel.Trace, LogLevel.Fatal, debugConsole);
-        config.AddRule(LogLevel.Trace, LogLevel.Fatal, logConsole);
-        config.AddRule(LogLevel.Trace, LogLevel.Fatal, debugLogfile);
         config.AddRule(LogLevel.Error, LogLevel.Fatal, errorLogfile);
-        config.AddRule(LogLevel.Info, LogLevel.Info, logfile);
 
-        // Apply config           
+        config.AddRule(LogLevel.Trace, LogLevel.Fatal, new ConsoleTarget("logconsole"));
+
+        config.AddRule(LogLevel.Trace, LogLevel.Fatal, new DebuggerTarget("debugconsole"));
+
         LogManager.Configuration = config;
     }
 

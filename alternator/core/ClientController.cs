@@ -159,7 +159,7 @@ public class ClientController
         var obtainedLoginLock = false;
         if (!first)
         {
-            Logger.Info("{0} login semaphore={1}", nameof(Restore), loginSemaphore.CurrentCount);
+            Logger.Debug("{0} login semaphore={1}", nameof(Restore), loginSemaphore.CurrentCount);
             obtainedLoginLock = await loginSemaphore.WaitAsync(new TimeSpan(0, 2, 0));
             if (!obtainedLoginLock) Logger.Error("{0} login semaphore wait timed-out", nameof(Restore));
         }

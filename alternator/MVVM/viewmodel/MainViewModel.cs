@@ -292,12 +292,6 @@ public class MainViewModel : ObservableObject
         });
     }
 
-    private async ValueTask SlowThing()
-    {
-        await Task.Delay(new TimeSpan(0, 0, 30));
-        throw new Exception("blah!");
-    }
-
     private async ValueTask QueryGw2Version()
     {
         var apiConnection = new Gw2Sharp.Connection();
@@ -314,7 +308,6 @@ public class MainViewModel : ObservableObject
 
         await accountCollection.Load();
 
-        
         AccountsVM.Clear();
         AccountsVM.Add(accountCollection);
         accountCollection.Ready = true;
@@ -330,7 +323,6 @@ public class MainViewModel : ObservableObject
         vpnCollection.Ready = true;
         RefreshRunState();
     }
-
 
     private static async Task SaveCollections(AccountCollection accountCollection, VpnCollection vpnCollection)
     {

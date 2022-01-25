@@ -48,7 +48,7 @@ public class Launcher
             finally
             {
                 loginSemaphore.Release();
-                Logger.Info("{0} login semaphore released, count={1}", account.Name, loginSemaphore.CurrentCount);
+                Logger.Debug("{0} login semaphore released, count={1}", account.Name, loginSemaphore.CurrentCount);
             }
         }
 
@@ -119,11 +119,11 @@ public class Launcher
             client.RunStatus = RunState.WaitingForLoginSlot;
             if (releaseLoginTask != null)
             {
-                Logger.Info("{0} login semaphore release, count={1}", account.Name, loginSemaphore.CurrentCount);
+                Logger.Debug("{0} login semaphore release, count={1}", account.Name, loginSemaphore.CurrentCount);
                 await releaseLoginTask.WaitAsync(launchCancelled);
                 releaseLoginTask = null;
             }
-            Logger.Info("{0} login semaphore entry, count={1}", account.Name, loginSemaphore.CurrentCount);
+            Logger.Debug("{0} login semaphore entry, count={1}", account.Name, loginSemaphore.CurrentCount);
             await loginSemaphore.WaitAsync(launchCancelled);
             loginInProcess = true;
             Logger.Debug("{0} Login slot Free", account.Name);
