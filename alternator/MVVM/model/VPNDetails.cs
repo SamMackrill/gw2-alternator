@@ -11,10 +11,18 @@ public class VpnDetails
 
     public string Id { get; set; }
     public string ConnectionName { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public DateTime LastConnectionFail { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public DateTime LastConnectionSuccess { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public DateTime LastLoginFail { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public DateTime LastLoginSuccess { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public int LastConnectionFailCode { get; set; }
 
     [field: NonSerialized]
     [JsonIgnore]
@@ -94,6 +102,7 @@ public class VpnDetails
         {
             Logger.Error($"{display} VPN {ToString()} Error={vpnProcess.ExitCode}");
             LastConnectionFail = DateTime.Now;
+            LastConnectionFailCode = vpnProcess.ExitCode;
             return false;
         }
 
