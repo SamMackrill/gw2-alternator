@@ -2,9 +2,30 @@
 
 namespace guildwars2.tools.alternator.MVVM.model;
 
+
+public class EventMetrics
+{
+    public DateTime StartAt { get; }
+    public DateTime FinishAt { get; private set; }
+    public EventMetrics() => StartAt = DateTime.Now;
+    public void Done() => FinishAt = DateTime.Now;
+    public TimeSpan Duration => FinishAt.Subtract(StartAt);
+}
+
+public class VpnConnectionMetrics
+{
+    public EventMetrics? ConnectMetrics { get; }
+    public EventMetrics? DisconnectMetrics { get; private set; }
+
+    public VpnConnectionMetrics() => ConnectMetrics = new EventMetrics();
+    public void Connected() => ConnectMetrics?.Done();
+    public void DisconnectStart() => DisconnectMetrics = new EventMetrics();
+    public void Disconnected() => DisconnectMetrics?.Done();
+}
+
 [Serializable]
 [DebuggerDisplay("{" + nameof(DebugDisplay) + ",nq}")]
-public class VpnDetails
+public class VpnDetails : IEquatable<VpnDetails>
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private Settings? settings;
@@ -46,6 +67,8 @@ public class VpnDetails
     [JsonIgnore]
     public int Delay => LaunchDelay();
 
+    [JsonIgnore]
+    public List<VpnConnectionMetrics> Connections { get; private set; }
 
     public VpnDetails()
     {
@@ -53,6 +76,7 @@ public class VpnDetails
         FailCount = new Counter();
         SuccessCount = new Counter();
         ConsecutiveFailedCount = new Counter();
+        Connections = new List<VpnConnectionMetrics>();
     }
 
     private string DebugDisplay => ToString();
@@ -66,16 +90,31 @@ public class VpnDetails
         return available > cutoff ? available : cutoff;
     }
 
+    public bool Equals(VpnDetails? other)
+    {
+        if (other == null) return false;
+        return Id == other.Id;
+    }
+
     public override string ToString() => $"{Id} \"{ConnectionName}\"";
+
+    private VpnConnectionMetrics currentConnectionMetrics;
 
     public async Task<bool> Connect(CancellationToken cancellationToken)
     {
-        return await RunRasdial("Connecting to", "", true, cancellationToken);
+        currentConnectionMetrics = new VpnConnectionMetrics();
+        Connections.Add(currentConnectionMetrics);
+        if (!await RunRasdial("Connecting to", "", true, cancellationToken)) return false;
+        currentConnectionMetrics.Connected();
+        return true;
     }
 
     public async Task<bool> Disconnect(CancellationToken cancellationToken)
     {
-        return await RunRasdial("Disconnecting from", @" /d", false, cancellationToken);
+        currentConnectionMetrics.DisconnectStart();
+        if (!await RunRasdial("Disconnecting from", @" /d", false, cancellationToken)) return false;
+        currentConnectionMetrics.Disconnected();
+        return true;
     }
 
     private async Task<bool> RunRasdial(string display, string arg, bool record, CancellationToken cancellationToken)

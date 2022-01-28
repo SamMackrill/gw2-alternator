@@ -181,8 +181,12 @@ public class MainViewModel : ObservableObject
     }
 
 
-    public MainViewModel(DirectoryInfo applicationFolder, string appData, SettingsController settingsController,
-        AccountCollection accountCollection, VpnCollection vpnCollection,
+    public MainViewModel(
+        DirectoryInfo applicationFolder, 
+        string appData, 
+        SettingsController settingsController,
+        AccountCollection accountCollection, 
+        VpnCollection vpnCollection,
         CancellationTokenSource cancellationTokenSource)
     {
         this.settingsController = settingsController;

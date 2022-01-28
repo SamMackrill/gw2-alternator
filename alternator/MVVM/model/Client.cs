@@ -54,11 +54,39 @@ public class Client : ObservableObject
         OnPropertyChanged(nameof(FailedCount));
     }
 
-    private DateTime startTime;
-    public DateTime StartTime
+    private DateTime startAt;
+    public DateTime StartAt
     {
-        get => startTime;
-        private set => SetProperty(ref startTime, value);
+        get => startAt;
+        private set => SetProperty(ref startAt, value);
+    }
+
+    private DateTime authenticationAt;
+    public DateTime AuthenticationAt
+    {
+        get => authenticationAt;
+        private set => SetProperty(ref authenticationAt, value);
+    }
+
+    private DateTime loginAt;
+    public DateTime LoginAt
+    {
+        get => loginAt;
+        private set => SetProperty(ref loginAt, value);
+    }
+
+    private DateTime enterAt;
+    public DateTime EnterAt
+    {
+        get => enterAt;
+        private set => SetProperty(ref enterAt, value);
+    }
+
+    private DateTime exitAt;
+    public DateTime ExitAt
+    {
+        get => exitAt;
+        private set => SetProperty(ref exitAt, value);
     }
 
     private RunState runStatus;
@@ -217,7 +245,7 @@ public class Client : ObservableObject
         // State Engine
         while (Alive)
         {
-            if (DateTime.Now.Subtract(StartTime) > timeout)
+            if (DateTime.Now.Subtract(StartAt) > timeout)
             {
                 Logger.Debug("{0} Timed-out after {1}s, giving up)", Account.Name, timeout.TotalSeconds);
                 await Shutdown();
@@ -320,6 +348,19 @@ public class Client : ObservableObject
     private void ChangeRunStage(RunStage newRunStage, string? reason)
     {
         Logger.Debug("{0} Change State to {1} because {2}", Account.Name, newRunStage, reason);
+        switch (newRunStage)
+        {
+            case RunStage.Authenticated:
+                AuthenticationAt = DateTime.Now;
+                break;
+            case RunStage.ReadyToPlay:
+                LoginAt = DateTime.Now;
+                break;
+            case RunStage.CharacterSelected:
+                EnterAt = DateTime.Now;
+                break;
+        }
+
         var eventArgs = new ClientStateChangedEventArgs(RunStage, newRunStage);
         RunStage = newRunStage;
         if (!p!.HasExited) lastStageMemoryUsage = p!.WorkingSet64 / 1024;
@@ -333,7 +374,7 @@ public class Client : ObservableObject
         if (!p!.Start()) throw new Gw2Exception($"{Account.Name} Failed to start");
 
         RunStatus = RunState.Running;
-        StartTime = p.StartTime;
+        StartAt = p.StartTime;
         Logger.Debug("{0} Started {1}", Account.Name, launchType);
         await ChangeRunStage(RunStage.Started, 200, "Normal start", cancellationToken);
     }
@@ -426,6 +467,7 @@ public class Client : ObservableObject
     {
         ChangeRunStage(RunStage.Exited, "Process.Exit event");
         Logger.Debug("{0} GW2 process exited", Account.Name);
+        ExitAt = DateTime.Now;
     }
 
     public void Reset()

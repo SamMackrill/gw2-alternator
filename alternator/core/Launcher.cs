@@ -12,8 +12,13 @@ public class Launcher
     private readonly FileInfo referenceGfxSettings;
     private readonly Client client;
 
-    public Launcher(Client client, LaunchType launchType, DirectoryInfo applicationFolder, Settings settings,
-        VpnDetails vpnDetails, CancellationToken launchCancelled)
+    public Launcher(
+        Client client, 
+        LaunchType launchType, 
+        DirectoryInfo applicationFolder, 
+        Settings settings,
+        VpnDetails vpnDetails, 
+        CancellationToken launchCancelled)
     {
         this.client = client;
         this.launchType = launchType;

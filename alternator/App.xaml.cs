@@ -4,6 +4,7 @@ global using System.Linq;
 global using System.Text;
 global using System.ComponentModel;
 global using System.Xaml;
+global using System.Globalization;
 
 global using System.Threading;
 global using System.Threading.Tasks;
@@ -21,7 +22,6 @@ global using System.Windows.Data;
 global using System.Windows.Controls;
 global using System.Windows.Threading;
 global using System.Windows.Input;
-
 
 global using System.Drawing;
 global using System.Drawing.Imaging;

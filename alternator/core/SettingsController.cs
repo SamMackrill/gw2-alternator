@@ -13,6 +13,7 @@ public enum ErrorDetection
 
 public class SettingsController : ObservableObject
 {
+    public FileSystemInfo SourceFolder { get; }
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
     private const string SettingsJsonFile = "settings.json";
@@ -27,6 +28,7 @@ public class SettingsController : ObservableObject
 
     public SettingsController(FileSystemInfo folderPath)
     {
+        SourceFolder = folderPath;
         settingsJson = Path.Combine(folderPath.FullName, SettingsJsonFile);
         semaphore = new SemaphoreSlim(1, 1);
     }
