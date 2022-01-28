@@ -145,21 +145,24 @@ public class ClientController
 
     private async Task SaveMetrics(DateTime startOfRun, List<IAccount> accounts, List<VpnDetails> vpnDetailsList)
     {
-        var lines = new List<string>();
+        (string, DateTime) AddOffset(DateTime reference, DateTime time, string line)
+        {
+            if (time < reference) return ("", reference);
+            line += $"\t{time.Subtract(reference).TotalSeconds.ToString(CultureInfo.InvariantCulture)}";
+            return (line, time);
+        }
 
-        string TimeOffset(DateTime reference, DateTime? time) => 
-            time.HasValue && time.Value >= reference
-            ? time.Value.Subtract(reference).TotalSeconds.ToString(CultureInfo.InvariantCulture) 
-            : "";
+        var lines = new List<string>();
 
         foreach (var client in accounts.Where(a => a.Client!=null).Select(a => a.Client).OrderBy(c => c!.StartAt))
         {
             var line = client!.Account.Name;
-            line += $"\t{TimeOffset(startOfRun, client.StartAt)}";
-            line += $"\t{TimeOffset(client.StartAt,client.AuthenticationAt)}";
-            line += $"\t{TimeOffset(client.AuthenticationAt, client.LoginAt)}";
-            line += $"\t{TimeOffset(client.LoginAt, client.EnterAt)}";
-            line += $"\t{TimeOffset(client.EnterAt, client.ExitAt)}";
+            var reference = startOfRun;
+            (line, reference) = AddOffset(reference, client.StartAt, line);
+            (line, reference) = AddOffset(reference, client.AuthenticationAt, line);
+            (line, reference) = AddOffset(reference, client.LoginAt, line);
+            (line, reference) = AddOffset(reference, client.EnterAt, line);
+            (line, reference) = AddOffset(reference, client.ExitAt, line);
             lines.Add(line);
         }
 
@@ -168,12 +171,13 @@ public class ClientController
             foreach (var connection in vpn.Connections.Where(c => c.ConnectMetrics != null))
             {
                 var line = $"VPN-{vpn.Id}\t";
-                line += $"\t{TimeOffset(startOfRun, connection.ConnectMetrics!.StartAt)}";
-                line += $"\t{TimeOffset(connection.ConnectMetrics!.StartAt, connection.ConnectMetrics?.FinishAt)}";
+                var reference = startOfRun;
+                (line, reference) = AddOffset(reference, connection.ConnectMetrics!.StartAt, line);
+                (line, reference) = AddOffset(reference, connection.ConnectMetrics!.FinishAt, line);
                 if (connection.DisconnectMetrics != null)
                 {
-                    line += $"\t{TimeOffset(connection.ConnectMetrics!.FinishAt, connection.DisconnectMetrics?.StartAt)}";
-                    line += $"\t{TimeOffset(connection.DisconnectMetrics!.StartAt, connection.DisconnectMetrics?.FinishAt)}";
+                    (line, reference) = AddOffset(reference, connection.DisconnectMetrics!.StartAt, line);
+                    (line, reference) = AddOffset(reference, connection.DisconnectMetrics!.FinishAt, line);
                 }
                 lines.Add(line);
             }
