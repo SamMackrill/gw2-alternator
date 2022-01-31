@@ -41,7 +41,7 @@
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal">
                                         <CheckBox IsChecked="{Binding IsChecked}" Width="20" />
-                                        <TextBlock Text="{Binding Id}" Width="100" />
+                                        <TextBlock Text="{Binding Display}" />
                                     </StackPanel>
                                 </DataTemplate>
                             </ComboBox.ItemTemplate>

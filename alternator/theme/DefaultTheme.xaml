@@ -91,27 +91,6 @@
         <Setter Property="Foreground" Value="{StaticResource BackgroundBrush}" />
     </Style>
 
-    <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource DefaultStyle}">
-        <Setter Property="Background" Value="{StaticResource HighlightBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource BackgroundBrush}" />
-    </Style>
-
-    <!--<Style TargetType="{x:Type ComboBox.ItemContainerStyle}" BasedOn="{StaticResource DefaultStyle}">
-        <Setter Property="Background" Value="{StaticResource HighlightBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource BackgroundBrush}" />
-    </Style>
-
-    <ComboBox.ItemContainerStyle>
-        <Style TargetType="ComboBoxItem">
-            <Setter Property="Background" Value="Yellow"/>
-            <Setter Property="BorderBrush" Value="Yellow"/>
-        </Style>
-    </ComboBox.ItemContainerStyle>-->
-    <!--<Combobox.Resources>
-        <SolidColorBrush x:Key="{x:Static SystemColors.WindowBrushKey}" Color="Yellow" />
-        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="Red" />
-    </Combobox.Resources>-->
-
     <Style TargetType="{x:Type ToolTip}">
         <Style.Triggers>
             <Trigger Property="Content"

@@ -6,6 +6,7 @@ public class AccountVpnViewModel : ObservableObject
 {
     public bool IsChecked { get; set; }
     public string Id => vpn.Id;
+    public string Display => vpn.ToString();
 
     private readonly VpnDetails vpn;
 
