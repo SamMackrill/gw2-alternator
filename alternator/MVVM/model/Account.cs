@@ -4,18 +4,17 @@ namespace guildwars2.tools.alternator.MVVM.model;
 
 public interface IAccount
 {
-    string Name { get; set; }
+    string Name { get; }
     string? DisplayName { get; set; }
-    string? Character { get; set; }
+    string? Character { get; }
     string? LoginFilePath { get; set; }
-    string? ApiKey { get; set; }
+    string? ApiKey { get; }
     ObservableCollectionEx<Currency>? Counts { get; set; }
-    ObservableCollectionEx<string>? VPN { get; set; }
+    ObservableCollectionEx<string>? VPN { get; }
     bool HasVPN { get; }
     DateTime LastLogin { get; set; }
     DateTime LastCollection { get; set; }
-    DateTime CreatedAt { get; set; }
-    Client? Client { get; set; }
+    DateTime CreatedAt { get; }
     bool LoginRequired { get; }
     bool CollectionRequired { get; }
     bool UpdateRequired { get; }
@@ -23,6 +22,12 @@ public interface IAccount
     int? GetCurrency(string currencyName);
     void SetCount(string countName, int value);
     event PropertyChangedEventHandler? PropertyChanged;
+    // Client
+    Client NewClient { get; }
+    Client? CurrentClient { get; }
+    int Attempt { get; }
+    RunState RunStatus { get; }
+    string? StatusMessage { get; }
 }
 
 [Serializable]
@@ -120,7 +125,6 @@ public class Account : ObservableObject, IAccount
 
     public Account()
     {
-        Client = new Client(this);
     }
 
     public Account(string? name) : this()
@@ -140,9 +144,39 @@ public class Account : ObservableObject, IAccount
 
     private string DebugDisplay => $"{Name} ({Character}) {LastLogin} {LastCollection}";
 
-    [field: NonSerialized]
+    public Client? currentClient;
     [JsonIgnore]
-    public Client? Client { get; set; }
+    public Client? CurrentClient
+    {
+        get => currentClient;
+        private set
+        {
+            if (SetProperty(ref currentClient, value))
+            {
+                OnPropertyChanged(nameof(Attempt));
+                OnPropertyChanged(nameof(RunStatus));
+                OnPropertyChanged(nameof(StatusMessage));
+            }
+        }
+    }
+
+    [JsonIgnore]
+    public int Attempt => CurrentClient?.Attempt ?? 0;
+    [JsonIgnore]
+    public RunState RunStatus => CurrentClient?.RunStatus ?? RunState.Unset;
+    [JsonIgnore]
+    public string? StatusMessage => CurrentClient?.StatusMessage;
+
+    [JsonIgnore]
+    public Client NewClient
+    {
+        get
+        {
+            CurrentClient = new Client(this);
+            CurrentClient.PropertyChanged += (sender, args) => OnPropertyChanged(args.PropertyName);
+            return CurrentClient;
+        }
+    }
 
     [JsonIgnore]
     public bool LoginRequired => LastLogin < DateTime.UtcNow.Date;
@@ -279,4 +313,5 @@ public class Account : ObservableObject, IAccount
             OnPropertyChanged($"{countName}Count");
         }
     }
+
 }

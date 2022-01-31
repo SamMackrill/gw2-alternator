@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Net;
+using System.Text.Json.Serialization;
 
 namespace guildwars2.tools.alternator.MVVM.model;
 
@@ -106,6 +107,10 @@ public class VpnDetails : IEquatable<VpnDetails>
         Connections.Add(currentConnectionMetrics);
         if (!await RunRasdial("Connecting to", "", true, cancellationToken)) return false;
         currentConnectionMetrics.Connected();
+
+        string hostName = Dns.GetHostName();
+        var hostEntry = await Dns.GetHostEntryAsync(hostName, cancellationToken);
+
         return true;
     }
 

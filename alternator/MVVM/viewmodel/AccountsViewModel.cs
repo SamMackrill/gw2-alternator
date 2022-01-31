@@ -10,16 +10,16 @@ public class AccountsViewModel : ObservableObject
         Accounts = new ObservableCollectionEx<AccountViewModel>();
     }
 
-    public void Add(IEnumerable<IAccount>? accounts)
+    public void Add(IEnumerable<IAccount>? accounts, VpnCollection vpnCollection)
     {
         if (accounts == null) return;
-        Accounts.AddRange(accounts.Select(a => new AccountViewModel(a)));
+        Accounts.AddRange(accounts.Select(a => new AccountViewModel(a, vpnCollection)));
         OnPropertyChanged(nameof(ApiVisibility));
     }
 
-    public void Add(AccountCollection accountCollection)
+    public void Add(AccountCollection accountCollection, VpnCollection vpnCollection)
     {
-        Add(accountCollection?.Accounts);
+        Add(accountCollection?.Accounts, vpnCollection);
     }
 
     public IEnumerable<IAccount> SelectedAccounts => Accounts.Where(i => i.IsSelected).Select(i => i.Account);

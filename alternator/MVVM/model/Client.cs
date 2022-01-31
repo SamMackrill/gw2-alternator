@@ -225,7 +225,7 @@ public class Client : ObservableObject
         var gw2Arguments = launchType is LaunchType.Update ? "-image" : $"-windowed -nosound -shareArchive -maploadinfo -dx9 -fps 20 -autologin"; // -dat \"{account.LoginFile}\""
         p = new Process
         {
-            StartInfo = new ProcessStartInfo(Path.Combine(settings.Gw2Folder, "Gw2-64.exe"))
+            StartInfo = new ProcessStartInfo(Path.Combine(settings.Gw2Folder!, "Gw2-64.exe"))
             {
                 CreateNoWindow = true,
                 Arguments = gw2Arguments,
@@ -297,35 +297,6 @@ public class Client : ObservableObject
         return Math.Abs(c1.R - c2.R) <= tolerance ^
                Math.Abs(c1.G - c2.G) <= tolerance ^
                Math.Abs(c1.B - c2.B) <= tolerance;
-    }
-
-    private void CaptureWindow(RunStage stage, DirectoryInfo applicationFolder)
-    {
-        if (!Alive) return;
-
-        try
-        {
-
-            Bitmap shot;
-            var currentFocus = Native.GetForegroundWindow();
-            try
-            {
-                _ = Native.SetForegroundWindow(p!.MainWindowHandle);
-                shot = PrintScreen.CaptureWindow(p!.MainWindowHandle);
-            }
-            finally
-            {
-                _ = Native.SetForegroundWindow(currentFocus);
-            }
-
-            if (shot == null) throw new Exception("PrintWindow failed");
-            var shotFile = Path.Combine(applicationFolder.FullName, $"shot_{stage}_{Guid.NewGuid()}.png");
-            shot.Save(shotFile, ImageFormat.Png);
-        }
-        catch (Exception e)
-        {
-            Logger.Error(e, "{0} CaptureWindow failed", Account.Name);
-        }
     }
 
     private void UpdateEngineSpeed()

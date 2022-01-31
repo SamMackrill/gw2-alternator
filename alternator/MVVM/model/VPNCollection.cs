@@ -8,7 +8,7 @@ public class VpnCollection : JsonCollection<VpnDetails>
 
     public VpnCollection(FileSystemInfo folderPath) : base(folderPath, vpnFileName) { }
 
-    public List<VpnDetails>? VPN => Items;
+    public List<VpnDetails>? Vpns => Items;
 
     public override event EventHandler? Loaded;
     public override event EventHandler? LoadFailed;
@@ -58,6 +58,11 @@ public class VpnCollection : JsonCollection<VpnDetails>
 
     public VpnDetails? GetVpn(string key)
     {
-        return VPN?.FirstOrDefault(v => v.Id == key) ?? new VpnDetails();
+        return Vpns?.FirstOrDefault(v => v.Id == key) ?? new VpnDetails();
+    }
+
+    public List<AccountVpnViewModel> GetAccountVpns(ObservableCollectionEx<string>? accountVPN)
+    {
+        return Vpns?.Select(v => new AccountVpnViewModel(v, accountVPN?.Contains(v.Id) ?? false)).ToList() ?? new List<AccountVpnViewModel>();
     }
 }

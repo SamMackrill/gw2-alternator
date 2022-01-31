@@ -15,7 +15,7 @@
               CanUserSortColumns="True"
               CanUserResizeColumns="True"
               CanUserReorderColumns="True"
-              GridLinesVisibility="Vertical"
+              GridLinesVisibility="None"
               RowHeaderWidth="0"
               SelectionMode="Extended"
               IsReadOnly="True"
@@ -29,7 +29,27 @@
             <DataGridTextColumn Header="Account" Binding="{Binding AccountName}" />
             <DataGridTextColumn Header="Character" Binding="{Binding Character}"/>
             <DataGridTextColumn Header="Age" Binding="{Binding Age}"/>
-            <DataGridTextColumn Header="VPN" Binding="{Binding VPN, FallbackValue=NYC}"/>
+
+            <DataGridTemplateColumn Header="VPNs">
+                <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                        <ComboBox ItemsSource="{Binding Vpns}" 
+                                  IsEditable="True" 
+                                  IsReadOnly="True"
+                                  Text="{Binding VPN, Mode=OneWay}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox IsChecked="{Binding IsChecked}" Width="20" />
+                                        <TextBlock Text="{Binding Id}" Width="100" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+
             <DataGridTextColumn Header="Last Login" Binding="{Binding Login}"/>
             <DataGridTextColumn Header="Login?" Binding="{Binding LoginRequired}"/>
             <DataGridTextColumn Header="Last Collected" Binding="{Binding Collected}"/>

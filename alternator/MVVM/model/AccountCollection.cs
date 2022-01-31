@@ -605,20 +605,18 @@ public class AccountCollection : JsonCollection<Account>
     {
         if (ignoreVpn)
         {
-            return new Dictionary<string, List<Client>> { {"", accounts.Select(a => a.Client).ToList()! }};
-
+            return new Dictionary<string, List<Client>> { { "", accounts.Select(a => a.NewClient).ToList() } };
         }
         var vpnClients = accounts
             .Where(a => a.HasVPN)
-            .SelectMany(a => a.VPN!, (a, vpn) => new {vpn, a.Client })
-            .GroupBy(t => t.vpn, t=>t.Client)
+            .SelectMany(a => a.VPN!, (a, vpn) => new {vpn, a.NewClient })
+            .GroupBy(t => t.vpn, t=>t.NewClient)
             .ToDictionary(g => g.Key, g => g.ToList());
 
-        var nonVpnClients = accounts.Where(a => !a.HasVPN).Select(a => a.Client).ToList();
+        var nonVpnClients = accounts.Where(a => !a.HasVPN).Select(a => a.NewClient).ToList();
         if (nonVpnClients.Any()) vpnClients.Add("", nonVpnClients);
 
-        vpnClients.Add("", accounts.Select(a => a.Client).ToList());
-
+        vpnClients.Add("", accounts.Select(a => a.CurrentClient).ToList()!);
 
         return vpnClients;
     }

@@ -313,7 +313,7 @@ public class MainViewModel : ObservableObject
         await accountCollection.Load();
 
         AccountsVM.Clear();
-        AccountsVM.Add(accountCollection);
+        AccountsVM.Add(accountCollection, vpnCollection);
         accountCollection.Ready = true;
 
         RefreshRunState();

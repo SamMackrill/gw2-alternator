@@ -47,6 +47,7 @@ public class ClientController
         }
 
         var vpnsUsed = new List<VpnDetails>();
+        var clients = new List<Client>();
         var first = true;
         var start = DateTime.Now;
         try
@@ -58,6 +59,7 @@ public class ClientController
             while (clientsByVpn.SelectMany(c => c.Value).Distinct().Any(c => c.RunStatus != RunState.Completed))
             {
                 var now = DateTime.Now;
+
                 var vpnSets = clientsByVpn
                     .Select(kv => new
                     {
@@ -79,6 +81,8 @@ public class ClientController
                         .Take(settingsController.Settings!.VpnAccountCount)
                         .ToList();
                     if (!clientsToLaunch.Any()) continue;
+
+                    clients.AddRange(clientsToLaunch);
 
                     var waitUntil = vpn.Available(now).Subtract(now);
                     if (waitUntil.TotalSeconds > 0)
@@ -139,24 +143,24 @@ public class ClientController
             cancellationTokenSource.Cancel(true);
             await Restore(first);
             Logger.Info("GW2 account files restored.");
-            await SaveMetrics(start, accounts, vpnsUsed);
+            await SaveMetrics(start, clients, vpnsUsed);
         }
     }
 
-    private async Task SaveMetrics(DateTime startOfRun, List<IAccount> accounts, List<VpnDetails> vpnDetailsList)
+    private async Task SaveMetrics(DateTime startOfRun, List<Client> clients, List<VpnDetails> vpnDetailsList)
     {
         (string, DateTime) AddOffset(DateTime reference, DateTime time, string line)
         {
-            if (time < reference) return ("", reference);
+            if (time < reference) return (line + "\t", reference);
             line += $"\t{time.Subtract(reference).TotalSeconds.ToString(CultureInfo.InvariantCulture)}";
             return (line, time);
         }
 
         var lines = new List<string>();
 
-        foreach (var client in accounts.Where(a => a.Client!=null).Select(a => a.Client).OrderBy(c => c!.StartAt))
+        foreach (var client in clients.OrderBy(c => c.StartAt))
         {
-            var line = client!.Account.Name;
+            var line = client.Account.Name;
             var reference = startOfRun;
             (line, reference) = AddOffset(reference, client.StartAt, line);
             (line, reference) = AddOffset(reference, client.AuthenticationAt, line);
@@ -170,9 +174,10 @@ public class ClientController
         {
             foreach (var connection in vpn.Connections.Where(c => c.ConnectMetrics != null))
             {
-                var line = $"VPN-{vpn.Id}\t";
+                var line = $"VPN-{vpn.Id}";
                 var reference = startOfRun;
                 (line, reference) = AddOffset(reference, connection.ConnectMetrics!.StartAt, line);
+                line += "\t";
                 (line, reference) = AddOffset(reference, connection.ConnectMetrics!.FinishAt, line);
                 if (connection.DisconnectMetrics != null)
                 {
@@ -182,8 +187,11 @@ public class ClientController
                 lines.Add(line);
             }
         }
-        var timingsFilePath = Path.Combine(settingsController.SourceFolder.FullName, "gw2-alternator-metrics.txt");
-        await File.WriteAllLinesAsync(timingsFilePath, lines);
+        var metricsFilePath = Path.Combine(settingsController.SourceFolder.FullName, "gw2-alternator-metrics.txt");
+        await File.WriteAllLinesAsync(metricsFilePath, lines);
+        var metricsFileUniquePath = Path.Combine(settingsController.SourceFolder.FullName, $"gw2-alternator-metrics_{DateTime.UtcNow:yyyy-dd-MM_HH-mm-ss}");
+        File.Copy(metricsFilePath, metricsFileUniquePath);
+        Logger.Info($"Metrics saved to {metricsFileUniquePath}");
     }
 
     private List<Task> PrimeLaunchTasks(VpnDetails vpnDetails, IEnumerable<Client> clients, SemaphoreSlim exeSemaphore,

@@ -2,28 +2,36 @@
 
 public class AccountViewModel : ObservableObject
 {
+    private readonly VpnCollection vpnCollection;
     public IAccount Account { get;}
 
-    public AccountViewModel(IAccount account)
+    public AccountViewModel(IAccount account, VpnCollection vpnCollection)
     {
+        this.vpnCollection = vpnCollection;
         Account = account;
         account.PropertyChanged += ModelPropertyChanged;
-        account.Client.PropertyChanged += ModelPropertyChanged;
+        vpns = vpnCollection.GetAccountVpns(Account.VPN).OrderBy(v => v.Id).ToList();
     }
 
-    private readonly Dictionary<string, string> propertyConverter = new()
+    private readonly Dictionary<string, List<string>> propertyConverter = new()
     {
-        { "Name", "Account" },
-        { "LastLogin", "Login" },
-        { "LastCollection", "Collected" },
-        { "CreatedAt", "Age" },
+        { "Name", new() {"AccountName"} },
+        { "LastLogin", new() { "Login"} },
+        { "LastCollection", new() { "Collected"} },
+        { "CreatedAt", new() { "Age"} },
+        { "StatusMessage", new() { "TooltipText"} },
+        { "VPN", new() { "VPNs"} },
     };
 
     private void ModelPropertyChanged(object? sender, PropertyChangedEventArgs args)
     {
         if (args.PropertyName == null) return;
-        var propertyName = propertyConverter.ContainsKey(args.PropertyName) ? propertyConverter[args.PropertyName] : args.PropertyName;
-        OnPropertyChanged(propertyName);
+        var propertyNames = new List<string> { args.PropertyName };
+        if (propertyConverter.ContainsKey(args.PropertyName)) propertyNames.AddRange(propertyConverter[args.PropertyName]);
+        foreach (var propertyName in propertyNames)
+        {
+            OnPropertyChanged(propertyName);
+        }
     }
 
     public string AccountName => Account.Name ?? "Unknown";
@@ -36,12 +44,16 @@ public class AccountViewModel : ObservableObject
     public int Age => (int)Math.Floor(DateTime.UtcNow.Subtract(Account.CreatedAt).TotalDays);
 
     public string VPN => string.Join(',', Account.VPN?.ToArray() ?? Array.Empty<string>());
+
+    private List<AccountVpnViewModel> vpns;
+    public List<AccountVpnViewModel> Vpns => vpns;
+
     public string LaurelCount => Account.GetCurrency("Laurel")?.ToString() ?? "?";
     public string MysticCoinCount => Account.GetCurrency("MysticCoin")?.ToString() ?? "?";
 
-    public int Attempt => Account.Client?.Attempt ?? 0;
-    public RunState RunStatus => Account.Client?.RunStatus ?? RunState.Unset;
-    public string? TooltipText => Account.Client?.StatusMessage;
+    public int Attempt => Account.Attempt;
+    public RunState RunStatus => Account.RunStatus;
+    public string? TooltipText => Account.StatusMessage;
 
     public bool IsSelected { get; set; }
 }
