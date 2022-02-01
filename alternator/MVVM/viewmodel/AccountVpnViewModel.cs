@@ -25,7 +25,7 @@ public class AccountVpnViewModel : ObservableObject
     {
         this.vpn = vpn;
         this.account = account;
-        IsChecked = account.VPN?.Contains(vpn.Id) ?? false;
+        IsChecked = account.Vpns?.Contains(vpn.Id) ?? false;
     }
 
     private string DebugDisplay => $"{Id} {IsChecked}";

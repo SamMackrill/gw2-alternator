@@ -610,12 +610,12 @@ public class AccountCollection : JsonCollection<Account>
         else
         {
             vpnAccounts = accounts
-                .Where(a => a.HasVPN)
-                .SelectMany(a => a.VPN!, (a, vpn) => new { vpn, a })
+                .Where(a => a.HasVpn)
+                .SelectMany(a => a.Vpns!, (a, vpn) => new { vpn, a })
                 .GroupBy(t => t.vpn, t => t.a)
                 .ToDictionary(g => g.Key, g => g.ToList());
 
-            if (accounts.Where(a => !a.HasVPN).ToList().Any()) vpnAccounts.Add("", accounts.Where(a => !a.HasVPN).ToList());
+            if (accounts.Where(a => !a.HasVpn).ToList().Any()) vpnAccounts.Add("", accounts.Where(a => !a.HasVpn).ToList());
         }
 
         vpnAccounts.Add("", accounts);

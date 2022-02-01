@@ -10,7 +10,7 @@ public class AccountViewModel : ObservableObject
         this.vpnCollection = vpnCollection;
         Account = account;
         account.PropertyChanged += ModelPropertyChanged;
-        vpns = vpnCollection.GetAccountVpns(Account).OrderBy(v => v.Id).ToList();
+        Vpns = vpnCollection.GetAccountVpns(Account).OrderBy(v => v.Id).ToList();
     }
 
     private readonly Dictionary<string, List<string>> propertyConverter = new()
@@ -20,7 +20,6 @@ public class AccountViewModel : ObservableObject
         { "LastCollection", new() { "Collected"} },
         { "CreatedAt", new() { "Age"} },
         { "StatusMessage", new() { "TooltipText"} },
-        { "VPN", new() { "VPNs"} },
     };
 
     private void ModelPropertyChanged(object? sender, PropertyChangedEventArgs args)
@@ -43,10 +42,9 @@ public class AccountViewModel : ObservableObject
     public string CollectionRequired => Account.CollectionRequired ? "Yes" : "No";
     public int Age => (int)Math.Floor(DateTime.UtcNow.Subtract(Account.CreatedAt).TotalDays);
 
-    public string VPN => string.Join(',', Account.VPN?.ToArray() ?? Array.Empty<string>());
+    public string VpnsDisplay => string.Join(',', Account.Vpns?.ToArray() ?? Array.Empty<string>());
 
-    private List<AccountVpnViewModel> vpns;
-    public List<AccountVpnViewModel> Vpns => vpns;
+    public List<AccountVpnViewModel> Vpns { get; }
 
     public string LaurelCount => Account.GetCurrency("Laurel")?.ToString() ?? "?";
     public string MysticCoinCount => Account.GetCurrency("MysticCoin")?.ToString() ?? "?";

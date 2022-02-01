@@ -163,7 +163,7 @@ public class AccountsSplitTest
         foreach (var postfix in names)
         {
             var account = new Account(postfix.Item2);
-            account.VPN = postfix.Item1 == null ? null : new ObservableCollectionEx<string>(postfix.Item1);
+            account.Vpns = postfix.Item1 == null ? null : new ObservableCollectionEx<string>(postfix.Item1);
             accounts.Add(account);
         }
         return accounts;

@@ -36,7 +36,7 @@
                         <ComboBox ItemsSource="{Binding Vpns}" 
                                   IsEditable="True" 
                                   IsReadOnly="True"
-                                  Text="{Binding VPN, Mode=OneWay}">
+                                  Text="{Binding VpnsDisplay, Mode=OneWay}">
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal">

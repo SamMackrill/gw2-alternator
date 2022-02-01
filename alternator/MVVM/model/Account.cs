@@ -10,8 +10,8 @@ public interface IAccount
     string? LoginFilePath { get; set; }
     string? ApiKey { get; }
     ObservableCollectionEx<Currency>? Counts { get; set; }
-    ObservableCollectionEx<string>? VPN { get; }
-    bool HasVPN { get; }
+    ObservableCollectionEx<string>? Vpns { get; }
+    bool HasVpn { get; }
     DateTime LastLogin { get; set; }
     DateTime LastCollection { get; set; }
     DateTime CreatedAt { get; }
@@ -80,30 +80,30 @@ public class Account : ObservableObject, IAccount
     public ObservableCollectionEx<Currency>? Counts { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public ObservableCollectionEx<string>? VPN { get; set; }
+    public ObservableCollectionEx<string>? Vpns { get; set; }
 
 
     public void UpdateVpn(VpnDetails vpn, bool isChecked)
     {
-        if (VPN == null)
+        if (Vpns == null)
         {
             if (!isChecked) return;
-            VPN = new ObservableCollectionEx<string>();
+            Vpns = new ObservableCollectionEx<string>();
         }
 
         if (isChecked)
         {
-            if (!VPN.Contains(vpn.Id)) VPN.Add(vpn.Id);
+            if (!Vpns.Contains(vpn.Id)) Vpns.Add(vpn.Id);
         }
         else
         {
-            if (VPN.Contains(vpn.Id)) VPN.Remove(vpn.Id);
-            if (!VPN.Any()) VPN = null;
+            if (Vpns.Contains(vpn.Id)) Vpns.Remove(vpn.Id);
+            if (!Vpns.Any()) Vpns = null;
         }
     }
 
     [JsonIgnore]
-    public bool HasVPN => VPN?.Any() ?? false;
+    public bool HasVpn => Vpns?.Any() ?? false;
 
     private DateTime lastLogin;
 
