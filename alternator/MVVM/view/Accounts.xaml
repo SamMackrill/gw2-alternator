@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewmodel="clr-namespace:guildwars2.tools.alternator.MVVM.viewmodel"
+             xmlns:core="clr-namespace:guildwars2.tools.alternator.core"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance Type=viewmodel:AccountsViewModel}"
              d:DesignHeight="300" >
@@ -24,11 +25,14 @@
               d:ItemsSource="{d:SampleData}"
               ItemsSource="{Binding Accounts}"
     >
+        <DataGrid.Resources>
+            <core:BindingProxy x:Key="proxy" Data="{Binding}"/>
+        </DataGrid.Resources>
 
-        <DataGrid.Columns>
+            <DataGrid.Columns>
             <DataGridTextColumn Header="Account" Binding="{Binding AccountName}" />
             <DataGridTextColumn Header="Character" Binding="{Binding Character}"/>
-            <DataGridTextColumn Header="Age" Binding="{Binding Age}"/>
+            <DataGridTextColumn Header="Age" Binding="{Binding Age}" />
 
             <DataGridTemplateColumn Header="VPNs">
                 <DataGridTemplateColumn.CellTemplate>
@@ -54,8 +58,8 @@
             <DataGridTextColumn Header="Login?" Binding="{Binding LoginRequired}"/>
             <DataGridTextColumn Header="Last Collected" Binding="{Binding Collected}"/>
             <DataGridTextColumn Header="Collect?" Binding="{Binding CollectionRequired}"/>
-            <DataGridTextColumn Header="Laurels" Binding="{Binding LaurelCount, FallbackValue=?}" />
-            <DataGridTextColumn Header="MC" Binding="{Binding MysticCoinCount, FallbackValue=?}" />
+            <DataGridTextColumn Header="Laurels" Binding="{Binding LaurelCount, FallbackValue=?}" Visibility="{Binding Data.ApiVisibility, Source={StaticResource proxy}}"/>
+            <DataGridTextColumn Header="MC" Binding="{Binding MysticCoinCount, FallbackValue=?}" Visibility="{Binding Data.ApiVisibility, Source={StaticResource proxy}}" />
 
             <DataGridTextColumn Header="Status" Binding="{Binding RunStatus}" >
 
