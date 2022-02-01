@@ -61,8 +61,8 @@ public class VpnCollection : JsonCollection<VpnDetails>
         return Vpns?.FirstOrDefault(v => v.Id == key) ?? new VpnDetails();
     }
 
-    public List<AccountVpnViewModel> GetAccountVpns(ObservableCollectionEx<string>? accountVPN)
+    public List<AccountVpnViewModel> GetAccountVpns(IAccount account)
     {
-        return Vpns?.Select(v => new AccountVpnViewModel(v, accountVPN?.Contains(v.Id) ?? false)).ToList() ?? new List<AccountVpnViewModel>();
+        return Vpns?.Select(v => new AccountVpnViewModel(v, account)).ToList() ?? new List<AccountVpnViewModel>();
     }
 }

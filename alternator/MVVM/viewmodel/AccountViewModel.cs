@@ -10,7 +10,7 @@ public class AccountViewModel : ObservableObject
         this.vpnCollection = vpnCollection;
         Account = account;
         account.PropertyChanged += ModelPropertyChanged;
-        vpns = vpnCollection.GetAccountVpns(Account.VPN).OrderBy(v => v.Id).ToList();
+        vpns = vpnCollection.GetAccountVpns(Account).OrderBy(v => v.Id).ToList();
     }
 
     private readonly Dictionary<string, List<string>> propertyConverter = new()

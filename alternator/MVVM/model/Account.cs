@@ -29,6 +29,7 @@ public interface IAccount
     RunState RunStatus { get; }
     string? StatusMessage { get; }
     bool Done { get; set; }
+    void UpdateVpn(VpnDetails vpn, bool isChecked);
 }
 
 [Serializable]
@@ -80,6 +81,27 @@ public class Account : ObservableObject, IAccount
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public ObservableCollectionEx<string>? VPN { get; set; }
+
+
+    public void UpdateVpn(VpnDetails vpn, bool isChecked)
+    {
+        if (VPN == null)
+        {
+            if (!isChecked) return;
+            VPN = new ObservableCollectionEx<string>();
+        }
+
+        if (isChecked)
+        {
+            if (!VPN.Contains(vpn.Id)) VPN.Add(vpn.Id);
+        }
+        else
+        {
+            if (VPN.Contains(vpn.Id)) VPN.Remove(vpn.Id);
+        }
+
+
+    }
 
     [JsonIgnore]
     public bool HasVPN => VPN?.Any() ?? false;
