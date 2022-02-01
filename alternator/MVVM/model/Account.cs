@@ -98,9 +98,8 @@ public class Account : ObservableObject, IAccount
         else
         {
             if (VPN.Contains(vpn.Id)) VPN.Remove(vpn.Id);
+            if (!VPN.Any()) VPN = null;
         }
-
-
     }
 
     [JsonIgnore]
