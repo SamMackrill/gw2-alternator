@@ -13,10 +13,10 @@ public class ClientController
     private readonly VpnCollection vpnCollection;
 
     public ClientController(
-        DirectoryInfo applicationFolder, 
+        DirectoryInfo applicationFolder,
         SettingsController settingsController,
-        AuthenticationThrottle authenticationThrottle, 
-        VpnCollection vpnCollection, 
+        AuthenticationThrottle authenticationThrottle,
+        VpnCollection vpnCollection,
         LaunchType launchType)
     {
         this.applicationFolder = applicationFolder;
@@ -181,22 +181,23 @@ public class ClientController
             lines.Add(line);
         }
 
-        foreach (var vpn in vpnDetailsList.Where(v => !string.IsNullOrEmpty(v.Id)))
+        foreach (var connection in vpnDetailsList
+                     .Where(v => !string.IsNullOrEmpty(v.Id))
+                     .SelectMany(v => v.Connections)
+                     .Where(c => c.ConnectMetrics != null)
+                     .OrderBy(c => c.ConnectMetrics!.StartAt))
         {
-            foreach (var connection in vpn.Connections.Where(c => c.ConnectMetrics != null))
+            var line = $"VPN-{connection.Id}";
+            var reference = startOfRun;
+            (line, reference) = AddOffset(reference, connection.ConnectMetrics!.StartAt, line);
+            line += "\t";
+            (line, reference) = AddOffset(reference, connection.ConnectMetrics!.FinishAt, line);
+            if (connection.DisconnectMetrics != null)
             {
-                var line = $"VPN-{vpn.Id}";
-                var reference = startOfRun;
-                (line, reference) = AddOffset(reference, connection.ConnectMetrics!.StartAt, line);
-                line += "\t";
-                (line, reference) = AddOffset(reference, connection.ConnectMetrics!.FinishAt, line);
-                if (connection.DisconnectMetrics != null)
-                {
-                    (line, reference) = AddOffset(reference, connection.DisconnectMetrics!.StartAt, line);
-                    (line, reference) = AddOffset(reference, connection.DisconnectMetrics!.FinishAt, line);
-                }
-                lines.Add(line);
+                (line, reference) = AddOffset(reference, connection.DisconnectMetrics!.StartAt, line);
+                (line, reference) = AddOffset(reference, connection.DisconnectMetrics!.FinishAt, line);
             }
+            lines.Add(line);
         }
         var metricsFilePath = Path.Combine(settingsController.SourceFolder.FullName, "gw2-alternator-metrics.txt");
         await File.WriteAllLinesAsync(metricsFilePath, lines);

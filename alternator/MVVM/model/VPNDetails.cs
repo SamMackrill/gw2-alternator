@@ -15,10 +15,17 @@ public class EventMetrics
 
 public class VpnConnectionMetrics
 {
+    public string Id { get; }
+
     public EventMetrics? ConnectMetrics { get; }
     public EventMetrics? DisconnectMetrics { get; private set; }
 
-    public VpnConnectionMetrics() => ConnectMetrics = new EventMetrics();
+    public VpnConnectionMetrics(string id)
+    {
+        Id = id;
+        ConnectMetrics = new EventMetrics();
+    }
+
     public void Connected() => ConnectMetrics?.Done();
     public void DisconnectStart() => DisconnectMetrics = new EventMetrics();
     public void Disconnected() => DisconnectMetrics?.Done();
@@ -103,7 +110,7 @@ public class VpnDetails : IEquatable<VpnDetails>
 
     public async Task<bool> Connect(CancellationToken cancellationToken)
     {
-        currentConnectionMetrics = new VpnConnectionMetrics();
+        currentConnectionMetrics = new VpnConnectionMetrics(Id);
         Connections.Add(currentConnectionMetrics);
         if (!await RunRasdial("Connecting to", "", true, cancellationToken)) return false;
         currentConnectionMetrics.Connected();

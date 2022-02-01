@@ -119,7 +119,7 @@ public class Launcher
 
         try
         {
-            Logger.Info("{0} login attempt={1}", account.Name, account.Clients.Count);
+            Logger.Info("{0} login attempt={1}", account.Name, account.Attempt);
 
             client.RunStatus = RunState.WaitingForLoginSlot;
             if (releaseLoginTask != null)
