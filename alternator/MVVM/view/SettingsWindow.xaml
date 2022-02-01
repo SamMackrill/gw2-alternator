@@ -1,22 +1,35 @@
-﻿<Window x:Class="guildwars2.tools.alternator.MVVM.view.SettingsWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:viewmodel="clr-namespace:guildwars2.tools.alternator.MVVM.viewmodel"
-        xmlns:alternator="clr-namespace:guildwars2.tools.alternator"
-        d:DataContext="{d:DesignInstance viewmodel:SettingsViewModel}"
-        mc:Ignorable="d"
-        Title="Settings"
-        Background="Transparent"
-        WindowStyle="None"
-        AllowsTransparency="True"
-        ResizeMode="CanResize"
-        MinWidth="420"
-        SizeToContent="WidthAndHeight"
-        Loaded="window_Loaded"
-        MouseLeftButtonDown="Window_MouseLeftButtonDown"
-        >
+﻿<view:WindowBase  x:Class="guildwars2.tools.alternator.MVVM.view.SettingsWindow"
+                  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                  xmlns:viewmodel="clr-namespace:guildwars2.tools.alternator.MVVM.viewmodel"
+                  xmlns:alternator="clr-namespace:guildwars2.tools.alternator"
+                  xmlns:view="clr-namespace:guildwars2.tools.alternator.MVVM.view"
+                  d:DataContext="{d:DesignInstance viewmodel:SettingsViewModel}"
+                  mc:Ignorable="d"
+                  Title="Settings"
+                  Background="Transparent"
+                  WindowStyle="None"
+                  AllowsTransparency="True"
+                  ResizeMode="CanResize"
+                  MinWidth="420"
+                  SizeToContent="WidthAndHeight"
+                  Loaded="window_Loaded"
+                  MouseLeftButtonDown="Window_MouseLeftButtonDown"
+>
+    <Window.Resources>
+
+        <Style x:Key="RectBorderStyle" TargetType="Rectangle">
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Fill" Value="Transparent" />
+            <Setter Property="Tag" Value="{Binding RelativeSource={RelativeSource AncestorType=Window}}" />
+            <EventSetter Event="MouseLeftButtonDown" Handler="Resize_Init"/>
+            <EventSetter Event="MouseLeftButtonUp" Handler="Resize_End"/>
+            <EventSetter Event="MouseMove" Handler="Resizing_Form"/>
+        </Style>
+
+    </Window.Resources>
 
     <Border BorderBrush="{StaticResource ForegroundBrush}"
             BorderThickness="2"
@@ -323,4 +336,4 @@
         </Grid>
     </Border>
 
-</Window>
+</view:WindowBase>

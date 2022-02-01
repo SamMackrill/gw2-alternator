@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using System.Xml.Linq;
-using NSubstitute;
 
 namespace guildwars2.tools.alternator.MVVM.model;
 
@@ -601,23 +600,26 @@ public class AccountCollection : JsonCollection<Account>
         }
     }
 
-    public static Dictionary<string, List<Client>> ClientsByVpn(List<IAccount> accounts, bool ignoreVpn)
+    public static Dictionary<string, List<IAccount>> AccountsByVpn(List<IAccount> accounts, bool ignoreVpn)
     {
+        Dictionary<string, List<IAccount>> vpnAccounts;
         if (ignoreVpn)
         {
-            return new Dictionary<string, List<Client>> { { "", accounts.Select(a => a.NewClient).ToList() } };
+            vpnAccounts = new Dictionary<string, List<IAccount>>();
         }
-        var vpnClients = accounts
-            .Where(a => a.HasVPN)
-            .SelectMany(a => a.VPN!, (a, vpn) => new {vpn, a.NewClient })
-            .GroupBy(t => t.vpn, t=>t.NewClient)
-            .ToDictionary(g => g.Key, g => g.ToList());
+        else
+        {
+            vpnAccounts = accounts
+                .Where(a => a.HasVPN)
+                .SelectMany(a => a.VPN!, (a, vpn) => new { vpn, a })
+                .GroupBy(t => t.vpn, t => t.a)
+                .ToDictionary(g => g.Key, g => g.ToList());
 
-        var nonVpnClients = accounts.Where(a => !a.HasVPN).Select(a => a.NewClient).ToList();
-        if (nonVpnClients.Any()) vpnClients.Add("", nonVpnClients);
+            if (accounts.Where(a => !a.HasVPN).ToList().Any()) vpnAccounts.Add("", accounts.Where(a => !a.HasVPN).ToList());
+        }
 
-        vpnClients.Add("", accounts.Select(a => a.CurrentClient).ToList()!);
+        vpnAccounts.Add("", accounts);
 
-        return vpnClients;
+        return vpnAccounts;
     }
 }

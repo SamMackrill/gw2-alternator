@@ -35,24 +35,7 @@ public class Client : ObservableObject
 
     private string? stuckReason;
 
-    private string DebugDisplay => $"{Account} Status:{RunStatus} Stage:{RunStage} Attempt:{Attempt} {stuckReason}";
-
-    private Counter attempt;
-    public int Attempt => attempt.Count;
-    private void AttemptIncrement()
-    {
-        attempt.Increment();
-        OnPropertyChanged(nameof(Attempt));
-    }
-
-    private Counter failedCount;
-    public int FailedCount => failedCount.Count;
-
-    private void FailedIncrement()
-    {
-        failedCount.Increment();
-        OnPropertyChanged(nameof(FailedCount));
-    }
+    private string DebugDisplay => $"{Account.Name} Status:{RunStatus} Stage:{RunStage} {stuckReason}";
 
     private DateTime startAt;
     public DateTime StartAt
@@ -123,8 +106,6 @@ public class Client : ObservableObject
         RunStatus = RunState.Ready;
         loadedModules = new List<string>();
         RunStage = RunStage.NotRun;
-        attempt = new Counter();
-        failedCount = new Counter();
     }
 
     public async Task Launch(
@@ -177,7 +158,6 @@ public class Client : ObservableObject
                 case RunStage.Authenticated:
                     Logger.Debug("{0} Stuck awaiting login, mem={1} diff={2} (because: {3})", Account.Name, memoryUsage, diff, stuckReason);
                     //CaptureWindow(RunStage.EntryFailed, applicationFolder);
-                    FailedIncrement();
                     await ChangeRunStage(RunStage.LoginFailed, 20, stuckReason, cancellationToken);
                     break;
             }
@@ -216,8 +196,6 @@ public class Client : ObservableObject
                 await ChangeRunStage(value, 200, $"Module {key} loaded", cancellationToken);
             }
         }
-
-        AttemptIncrement();
 
         tuning = new EngineTuning(new TimeSpan(0, 0, 0, 0, 200), 0L, 1L, new TimeSpan(0, 0, settings.StuckTimeout), 100);
 
@@ -441,10 +419,5 @@ public class Client : ObservableObject
         ExitAt = DateTime.Now;
     }
 
-    public void Reset()
-    {
-        attempt = new Counter();
-        stuckReason = null;
-    }
 }
 

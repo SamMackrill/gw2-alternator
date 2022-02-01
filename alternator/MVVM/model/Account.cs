@@ -23,11 +23,12 @@ public interface IAccount
     void SetCount(string countName, int value);
     event PropertyChangedEventHandler? PropertyChanged;
     // Client
-    Client NewClient { get; }
+    Client NewClient();
     Client? CurrentClient { get; }
     int Attempt { get; }
     RunState RunStatus { get; }
     string? StatusMessage { get; }
+    bool Done { get; set; }
 }
 
 [Serializable]
@@ -123,8 +124,16 @@ public class Account : ObservableObject, IAccount
         }
     }
 
+    private Counter attempt;
+    [JsonIgnore]
+    public int Attempt => attempt.Count;
+
     public Account()
     {
+        attempt = new Counter();
+        LastLogin = DateTime.MinValue;
+        LastCollection = DateTime.MinValue;
+        CreatedAt = DateTime.Now;
     }
 
     public Account(string? name) : this()
@@ -136,19 +145,15 @@ public class Account : ObservableObject, IAccount
     {
         Character = character;
         LoginFilePath = loginFilePath;
-
-        LastLogin = DateTime.MinValue;
-        LastCollection = DateTime.MinValue;
-        CreatedAt = DateTime.Now;
     }
 
     private string DebugDisplay => $"{Name} ({Character}) {LastLogin} {LastCollection}";
 
-    public Client? currentClient;
+    private Client? currentClient;
     [JsonIgnore]
     public Client? CurrentClient
     {
-        get => currentClient;
+        get => currentClient!;
         private set
         {
             if (SetProperty(ref currentClient, value))
@@ -161,21 +166,25 @@ public class Account : ObservableObject, IAccount
     }
 
     [JsonIgnore]
-    public int Attempt => CurrentClient?.Attempt ?? 0;
-    [JsonIgnore]
     public RunState RunStatus => CurrentClient?.RunStatus ?? RunState.Unset;
     [JsonIgnore]
     public string? StatusMessage => CurrentClient?.StatusMessage;
 
+    private bool done;
     [JsonIgnore]
-    public Client NewClient
+    public bool Done
     {
-        get
-        {
-            CurrentClient = new Client(this);
-            CurrentClient.PropertyChanged += (sender, args) => OnPropertyChanged(args.PropertyName);
-            return CurrentClient;
-        }
+        get => done;
+        set => SetProperty(ref done, value);
+    }
+
+    public Client NewClient()
+    {
+        attempt.Increment();
+        CurrentClient = new Client(this);
+        CurrentClient.PropertyChanged += (_, args) => OnPropertyChanged(args.PropertyName);
+        OnPropertyChanged(nameof(Attempt));
+        return CurrentClient;
     }
 
     [JsonIgnore]

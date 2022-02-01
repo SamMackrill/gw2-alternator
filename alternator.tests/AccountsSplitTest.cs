@@ -6,7 +6,7 @@ public class AccountsSplitTest
     public void Split_Blank_Blank()
     {
         var accounts = new List<IAccount>();
-        var result = AccountCollection.ClientsByVpn(accounts, false);
+        var result = AccountCollection.AccountsByVpn(accounts, false);
         result.Should().BeEmpty();
     }
 
@@ -18,11 +18,13 @@ public class AccountsSplitTest
             (new List<string>{ "V1" }, "account1"),
         });
 
-        var result = AccountCollection.ClientsByVpn(accounts, false);
+        var result = AccountCollection.AccountsByVpn(accounts, false);
 
-        result.Count.Should().Be(1);
-        result["V1"].Count.Should().Be(1);
-        result["V1"][0].Account.Should().Be(accounts[0]);
+        var expected = new Dictionary<string, List<IAccount>>
+            {
+                { "V1", new List<IAccount> { accounts[0] } },
+            };
+        result.Should().BeEquivalentTo(expected);
     }
 
     [Fact]
@@ -34,32 +36,33 @@ public class AccountsSplitTest
             (new List<string>{ "V1" }, "account2"),
         });
 
-        var result = AccountCollection.ClientsByVpn(accounts, false);
+        var result = AccountCollection.AccountsByVpn(accounts, false);
 
-        result.Count.Should().Be(1);
-        result["V1"].Count.Should().Be(2);
-        result["V1"][0].Account.Should().Be(accounts[0]);
-        result["V1"][1].Account.Should().Be(accounts[1]);
+        var expected = new Dictionary<string, List<IAccount>>
+        {
+            { "V1", new List<IAccount> { accounts[0], accounts[1] } },
+        };
+        result.Should().BeEquivalentTo(expected);
     }
 
-    //[Fact]
-    //public void Split_TwoDifferent_TwoSetSingleAccount()
-    //{
-    //    var accounts = CreateAccountList(new List<(List<string>?, string)>
-    //    {
-    //        (new List<string>{ "V1" }, "account1"),
-    //        (new List<string>{ "V2" }, "account2"),
-    //    });
+    [Fact]
+    public void Split_TwoDifferent_TwoSetSingleAccount()
+    {
+        var accounts = CreateAccountList(new List<(List<string>?, string)>
+        {
+            (new List<string>{ "V1" }, "account1"),
+            (new List<string>{ "V2" }, "account2"),
+        });
 
-    //    var result = AccountCollection.ClientsByVpn(accounts, false);
+        var result = AccountCollection.AccountsByVpn(accounts, false);
 
-    //    var expected = new Dictionary<string, List<Client>>
-    //    {
-    //        { "V1", new List<Client> { accounts[0].Client } },
-    //        { "V2", new List<Client> { accounts[1].Client } },
-    //    };
-    //    result.Should().BeEquivalentTo(expected);
-    //}
+        var expected = new Dictionary<string, List<IAccount>>
+        {
+            { "V1", new List<IAccount> { accounts[0] } },
+            { "V2", new List<IAccount> { accounts[1] } },
+        };
+        result.Should().BeEquivalentTo(expected);
+    }
 
     //[Fact]
     //public void Split_TwoBoth_TwoSetTwoAccounts()
@@ -70,7 +73,7 @@ public class AccountsSplitTest
     //        (new List<string>{ "V1", "V2" }, "account2"),
     //    });
 
-    //    var result = AccountCollection.ClientsByVpn(accounts, false);
+    //    var result = AccountCollection.AccountsByVpn(accounts, false);
 
     //    var expected = new Dictionary<string, List<Client>>
     //    {
@@ -93,7 +96,7 @@ public class AccountsSplitTest
     //        (new List<string>{ "V3" }, "account6"),
     //    });
 
-    //    var result = AccountCollection.ClientsByVpn(accounts, false);
+    //    var result = AccountCollection.AccountsByVpn(accounts, false);
 
     //    var expected = new Dictionary<string, List<Client>>
     //    {
@@ -117,7 +120,7 @@ public class AccountsSplitTest
     //        (new List<string>{ "V3" }, "account6"),
     //    });
 
-    //    var result = AccountCollection.ClientsByVpn(accounts, false);
+    //    var result = AccountCollection.AccountsByVpn(accounts, false);
 
     //    var expected = new Dictionary<string, List<Client>>
     //    {
@@ -142,7 +145,7 @@ public class AccountsSplitTest
     //        (null , "account7"),
     //    });
 
-    //    var result = AccountCollection.ClientsByVpn(accounts, false);
+    //    var result = AccountCollection.AccountsByVpn(accounts, false);
 
     //    var expected = new Dictionary<string, List<Client>>
     //    {

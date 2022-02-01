@@ -46,6 +46,11 @@ public class ClientController
             return;
         }
 
+        foreach (var account in accounts)
+        {
+            account.Done = false;
+        }
+
         var vpnsUsed = new List<VpnDetails>();
         var clients = new List<Client>();
         var first = true;
@@ -55,20 +60,20 @@ public class ClientController
             var exeSemaphore = new SemaphoreSlim(0, maxInstances);
             Logger.Debug("Max GW2 Instances={0}", maxInstances);
 
-            var clientsByVpn = AccountCollection.ClientsByVpn(accounts, ignoreVpn);
-            while (clientsByVpn.SelectMany(c => c.Value).Distinct().Any(c => c.RunStatus != RunState.Completed))
+            var accountsByVpn = AccountCollection.AccountsByVpn(accounts, ignoreVpn);
+            while (accountsByVpn.SelectMany(a => a.Value).Distinct().Any(a => !a.Done))
             {
                 var now = DateTime.Now;
 
-                var vpnSets = clientsByVpn
+                var vpnSets = accountsByVpn
                     .Select(kv => new
                     {
                         Vpn = vpnCollection.GetVpn(kv.Key),
-                        Clients = kv.Value.Where(c => c.RunStatus != RunState.Completed).ToList()
+                        Accounts = kv.Value.Where(a => !a.Done).ToList()
                     })
                     .Where(s => s.Vpn != null)
                     .OrderByDescending(s => s.Vpn!.Available(now))
-                    .ThenByDescending(s => s.Clients.Count)
+                    .ThenByDescending(s => s.Accounts.Count)
                     .ToList();
 
                 Logger.Debug($"{vpnSets.Count} launch sets found");
@@ -76,12 +81,18 @@ public class ClientController
                 foreach (var vpnSet in vpnSets)
                 {
                     var vpn = vpnSet.Vpn!;
-                    var clientsToLaunch = vpnSet.Clients
-                        .Where(c => c.RunStatus != RunState.Completed)
+                    var accountsToLaunch = vpnSet.Accounts
+                        .Where(a => !a.Done)
                         .Take(settingsController.Settings!.VpnAccountCount)
                         .ToList();
-                    if (!clientsToLaunch.Any()) continue;
+                    if (!accountsToLaunch.Any()) continue;
 
+                    var clientsToLaunch = new List<Client>();
+                    foreach (var account in accountsToLaunch)
+                    {
+                        Logger.Debug($"Launching client for Account {account.Name}");
+                        clientsToLaunch.Add(account.NewClient());
+                    }
                     clients.AddRange(clientsToLaunch);
 
                     var waitUntil = vpn.Available(now).Subtract(now);

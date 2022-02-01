@@ -114,13 +114,12 @@ public class Launcher
             releaselogintask ??= ReleaseLogin(launchcancelled);
         }
 
-        client.Reset();
         loginInProcess = false;
         var exeInProcess = false;
 
         try
         {
-            Logger.Info("{0} login attempt={1}", account.Name, client.Attempt);
+            Logger.Info("{0} login attempt={1}", account.Name, account.Clients.Count);
 
             client.RunStatus = RunState.WaitingForLoginSlot;
             if (releaseLoginTask != null)
@@ -142,7 +141,7 @@ public class Launcher
             exeInProcess = true;
             Logger.Debug("{0} Exe slot Free", account.Name);
 
-            // Ready to roll have login and exe slot
+            // Ready to roll, have login and exe slot
             client.RunStatus = RunState.WaitingForAuthenticationThrottle;
             await authenticationThrottle.WaitAsync(vpnDetails, launchCancelled);
 
@@ -150,6 +149,7 @@ public class Launcher
 
             client.RunStatus = RunState.Completed;
             vpnDetails.SetSuccess();
+            account.Done = true;
             return true;
         }
         catch (OperationCanceledException)
