@@ -11,6 +11,7 @@ public class MainViewModel : ObservableObject
     public IAsyncCommand? UpdateCommand { get; set; }
     public ICommandExtended? StopCommand { get; set; }
     public ICommandExtended? ShowSettingsCommand { get; }
+    public ICommandExtended? CopyMetricsCommand { get; }
     public IAsyncCommand? CloseCommand { get; }
 
     private readonly CancellationTokenSource cancellationTokenSource;
@@ -222,6 +223,7 @@ public class MainViewModel : ObservableObject
                 };
 
                 var launcher = new ClientController(applicationFolder, settingsController, authenticationThrottle, vpnCollection, launchType);
+                launcher.MetricsUpdated += Launcher_MetricsUpdated;
                 await launcher.LaunchMultiple(AccountsVM.SelectedAccounts.ToList(), accountCollection, all, ignoreVpn, maxInstances, this.cancellationTokenSource);
 
                 await SaveCollections(accountCollection, vpnCollection);
@@ -266,6 +268,12 @@ public class MainViewModel : ObservableObject
             settingsView.ShowDialog();
         });
 
+        CopyMetricsCommand = new RelayCommand<object>(_ =>
+        {
+            Clipboard.SetText(File.ReadAllText(settingsController.MetricsFile));
+
+        }, _ => MetricsAvailable(settingsController));
+
         var dt = new DispatcherTimer(DispatcherPriority.Background)
         {
             Interval = TimeSpan.FromSeconds(1)
@@ -278,6 +286,16 @@ public class MainViewModel : ObservableObject
             OnPropertyChanged(nameof(ThrottleVisible));
         };
         dt.Start();
+    }
+
+    private void Launcher_MetricsUpdated(object? sender, EventArgs e)
+    {
+        OnPropertyChanged(nameof(MetricsAvailable));
+    }
+
+    private static bool MetricsAvailable(SettingsController settingsController)
+    {
+        return File.Exists(settingsController.MetricsFile);
     }
 
     public void Initialise(CancellationToken cancellationToken)

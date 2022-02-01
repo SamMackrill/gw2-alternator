@@ -1,5 +1,4 @@
-﻿
-namespace guildwars2.tools.alternator;
+﻿namespace guildwars2.tools.alternator;
 
 public class ClientController
 {
@@ -11,6 +10,9 @@ public class ClientController
     private readonly SettingsController settingsController;
     private readonly AuthenticationThrottle authenticationThrottle;
     private readonly VpnCollection vpnCollection;
+
+    public event EventHandler? MetricsUpdated;
+
 
     public ClientController(
         DirectoryInfo applicationFolder,
@@ -199,11 +201,13 @@ public class ClientController
             }
             lines.Add(line);
         }
-        var metricsFilePath = Path.Combine(settingsController.SourceFolder.FullName, "gw2-alternator-metrics.txt");
-        await File.WriteAllLinesAsync(metricsFilePath, lines);
-        var metricsFileUniquePath = Path.Combine(settingsController.SourceFolder.FullName, $"gw2-alternator-metrics_{DateTime.UtcNow:yyyy-dd-MM_HH-mm-ss}");
-        File.Copy(metricsFilePath, metricsFileUniquePath);
+
+        var metricsFile = settingsController.MetricsFile;
+        await File.WriteAllLinesAsync(metricsFile, lines);
+        var metricsFileUniquePath = settingsController.UniqueMetricsFile;
+        File.Copy(metricsFile, metricsFileUniquePath);
         Logger.Info($"Metrics saved to {metricsFileUniquePath}");
+        MetricsUpdated?.Invoke(this, EventArgs.Empty);
     }
 
     private List<Task> PrimeLaunchTasks(VpnDetails vpnDetails, IEnumerable<Client> clients, SemaphoreSlim exeSemaphore,

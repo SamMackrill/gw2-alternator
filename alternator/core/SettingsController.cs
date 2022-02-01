@@ -135,6 +135,9 @@ public class SettingsController : ObservableObject
             ExperimentalErrorDetection = ErrorDetection.Delay,
         };
 
+    public string MetricsFile => Path.Combine(SourceFolder.FullName, "gw2-alternator-metrics.txt");
+    public string UniqueMetricsFile => Path.Combine(SourceFolder.FullName, $"gw2-alternator-metrics_{DateTime.UtcNow:yyyy-dd-MM_HH-mm-ss}");
+
 
     public void DiscoverGw2ExeLocation( )
     {
