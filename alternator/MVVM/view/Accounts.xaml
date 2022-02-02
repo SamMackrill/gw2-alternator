@@ -58,8 +58,10 @@
             <DataGridTextColumn Header="Login?" Binding="{Binding LoginRequired}"/>
             <DataGridTextColumn Header="Last Collected" Binding="{Binding Collected}"/>
             <DataGridTextColumn Header="Collect?" Binding="{Binding CollectionRequired}"/>
-            <DataGridTextColumn Header="Laurels" Binding="{Binding LaurelCount, FallbackValue=?}" Visibility="{Binding Data.ApiVisibility, Source={StaticResource proxy}}"/>
-            <DataGridTextColumn Header="MC" Binding="{Binding MysticCoinCount, FallbackValue=?}" Visibility="{Binding Data.ApiVisibility, Source={StaticResource proxy}}" />
+            <DataGridTextColumn Header="Laurels" Binding="{Binding LaurelCount, FallbackValue=?}"
+                                Visibility="{Binding Data.ApiVisibility, Source={StaticResource proxy}}"/>
+            <DataGridTextColumn Header="MC" Binding="{Binding MysticCoinCount, FallbackValue=?}"
+                                Visibility="{Binding Data.ApiVisibility, Source={StaticResource proxy}}" />
 
             <DataGridTextColumn Header="Status" Binding="{Binding RunStatus}" >
 

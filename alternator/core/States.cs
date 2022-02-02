@@ -36,8 +36,8 @@ public enum RunStage
     ReadyToPlay,
     Playing,
     CharacterSelectReached,
-    CharacterSelected,
     EntryFailed,
+    CharacterSelected,
     WorldEntered,
     Exited,
 }

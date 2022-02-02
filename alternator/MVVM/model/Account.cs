@@ -2,7 +2,7 @@
 
 namespace guildwars2.tools.alternator.MVVM.model;
 
-public interface IAccount
+public interface IAccount : IEquatable<IAccount>
 {
     string Name { get; }
     string? DisplayName { get; set; }
@@ -93,12 +93,20 @@ public class Account : ObservableObject, IAccount
 
         if (isChecked)
         {
-            if (!Vpns.Contains(vpn.Id)) Vpns.Add(vpn.Id);
+            if (!Vpns.Contains(vpn.Id))
+            {
+                Vpns.Add(vpn.Id);
+                OnPropertyChanged(nameof(Vpns));
+            }
         }
         else
         {
-            if (Vpns.Contains(vpn.Id)) Vpns.Remove(vpn.Id);
-            if (!Vpns.Any()) Vpns = null;
+            if (Vpns.Contains(vpn.Id))
+            {
+                Vpns.Remove(vpn.Id);
+                if (!Vpns.Any()) Vpns = null;
+                OnPropertyChanged(nameof(Vpns));
+            }
         }
     }
 
@@ -344,4 +352,8 @@ public class Account : ObservableObject, IAccount
         }
     }
 
+    public bool Equals(IAccount? other)
+    {
+        return other != null && Name.Equals(other.Name);
+    }
 }

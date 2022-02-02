@@ -30,6 +30,8 @@ public class ClientController
         loginSemaphore = new SemaphoreSlim(0, 1);
     }
 
+    public record VpnAccounts(VpnDetails Vpn, List<IAccount> Accounts);
+
     public async Task LaunchMultiple(
         List<IAccount> selectedAccounts,
         AccountCollection accountCollection,
@@ -63,27 +65,27 @@ public class ClientController
             Logger.Debug("Max GW2 Instances={0}", maxInstances);
 
             var accountsByVpn = AccountCollection.AccountsByVpn(accounts, ignoreVpn);
-            while (accountsByVpn.SelectMany(a => a.Value).Distinct().Any(a => !a.Done))
+            while (accounts.Any(a => !a.Done))
             {
                 var now = DateTime.Now;
 
-                var vpnSets = accountsByVpn
-                    .Select(kv => new
-                    {
-                        Vpn = vpnCollection.GetVpn(kv.Key),
-                        Accounts = kv.Value.Where(a => !a.Done).ToList()
-                    })
-                    .Where(s => s.Vpn != null)
-                    .OrderByDescending(s => s.Vpn!.Available(now))
+                var accountsByVpnDetails = accountsByVpn
+                    .Select(kv => new VpnAccounts(vpnCollection.GetVpn(kv.Key), kv.Value.Where(a => !a.Done).ToList()))
+                    .ToList();
+
+                AddNonVpnAccounts(accountsByVpnDetails, accounts);
+
+                var vpnSets = accountsByVpnDetails
+                    .OrderBy(s => s.Vpn!.Available(now))
+                    .ThenBy(s => s.Vpn!.IsReal ? 1 : 0)
                     .ThenByDescending(s => s.Accounts.Count)
                     .ToList();
 
                 Logger.Debug($"{vpnSets.Count} launch sets found");
 
-                foreach (var vpnSet in vpnSets)
+                foreach (var (vpn, vpnAccounts) in vpnSets)
                 {
-                    var vpn = vpnSet.Vpn!;
-                    var accountsToLaunch = vpnSet.Accounts
+                    var accountsToLaunch = vpnAccounts
                         .Where(a => !a.Done)
                         .Take(settingsController.Settings!.VpnAccountCount)
                         .ToList();
@@ -157,6 +159,26 @@ public class ClientController
             await Restore(first);
             Logger.Info("GW2 account files restored.");
             await SaveMetrics(start, clients, vpnsUsed);
+        }
+    }
+
+    private void AddNonVpnAccounts(List<VpnAccounts> accountsByVpnDetails, List<IAccount> accounts)
+    {
+        var nonVpnAccounts = accountsByVpnDetails.FirstOrDefault(a => !a.Vpn.IsReal);
+        
+        var topUpCount = settingsController.Settings!.VpnAccountCount;
+        if (nonVpnAccounts != null) topUpCount -= nonVpnAccounts.Accounts.Count(a => !a.Done);
+        if (topUpCount <= 0) return;
+
+        var topUpAccounts = accounts.Where(a => !a.Done).Take(topUpCount).ToList();
+
+        if (nonVpnAccounts == null)
+        {
+            accountsByVpnDetails.Add(new VpnAccounts(vpnCollection.GetVpn(""), topUpAccounts));
+        }
+        else
+        {
+            nonVpnAccounts.Accounts.AddRange(topUpAccounts);
         }
     }
 

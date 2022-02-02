@@ -99,7 +99,7 @@ public class Launcher
                     if (launchType == LaunchType.Login) client.Shutdown().Wait();
                     break;
                 case RunStage.Exited:
-                    if (e.OldState != RunStage.CharacterSelected) break;
+                    if (e.OldState is not RunStage.CharacterSelected and not RunStage.WorldEntered) break;
                     account.LastLogin = DateTime.UtcNow;
                     if (launchType is LaunchType.Collect) account.LastCollection = DateTime.UtcNow;
                     break;

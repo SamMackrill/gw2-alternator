@@ -14,7 +14,8 @@ public class MainViewModel : ObservableObject
     public ICommandExtended? CopyMetricsCommand { get; }
     public IAsyncCommand? CloseCommand { get; }
 
-    private readonly CancellationTokenSource cancellationTokenSource;
+    private CancellationTokenSource launchCancellation;
+    private CancellationTokenSource apiFetchCancellation;
 
     private readonly SettingsController settingsController;
     private readonly AuthenticationThrottle authenticationThrottle;
@@ -187,13 +188,11 @@ public class MainViewModel : ObservableObject
         string appData, 
         SettingsController settingsController,
         AccountCollection accountCollection, 
-        VpnCollection vpnCollection,
-        CancellationTokenSource cancellationTokenSource)
+        VpnCollection vpnCollection)
     {
         this.settingsController = settingsController;
         this.accountCollection = accountCollection;
         this.vpnCollection = vpnCollection;
-        this.cancellationTokenSource = cancellationTokenSource;
 
         settingsController.DatFile = new FileInfo(Path.Combine(appData, @"Guild Wars 2", @"Local.dat"));
         settingsController.GfxSettingsFile = new FileInfo(Path.Combine(appData, @"Guild Wars 2", @"GFXSettings.Gw2-64.exe.xml"));
@@ -222,9 +221,11 @@ public class MainViewModel : ObservableObject
                     _ => 1
                 };
 
+                apiFetchCancellation = new CancellationTokenSource();
+                apiFetchCancellation.Token.ThrowIfCancellationRequested();
                 var launcher = new ClientController(applicationFolder, settingsController, authenticationThrottle, vpnCollection, launchType);
                 launcher.MetricsUpdated += Launcher_MetricsUpdated;
-                await launcher.LaunchMultiple(AccountsVM.SelectedAccounts.ToList(), accountCollection, all, ignoreVpn, maxInstances, this.cancellationTokenSource);
+                await launcher.LaunchMultiple(AccountsVM.SelectedAccounts.ToList(), accountCollection, all, ignoreVpn, maxInstances, this.apiFetchCancellation);
 
                 await SaveCollections(accountCollection, vpnCollection);
             }
@@ -249,7 +250,7 @@ public class MainViewModel : ObservableObject
         StopCommand = new RelayCommand<object>(_ =>
         {
             Stopping = true;
-            this.cancellationTokenSource?.Cancel();
+            this.apiFetchCancellation?.Cancel();
         }, _ => Running);
 
         CloseCommand = new AsyncCommand(async () =>
@@ -298,13 +299,13 @@ public class MainViewModel : ObservableObject
         return File.Exists(settingsController.MetricsFile);
     }
 
-    public void Initialise(CancellationToken cancellationToken)
+    public void Initialise()
     {
         QueryGw2Version().SafeFireAndForget(onException: ex =>
         {
             Logger.Error(ex, "Query GW2 Version");
         });
-        LoadAccounts(cancellationToken).SafeFireAndForget(onException: ex =>
+        LoadAccounts().SafeFireAndForget(onException: ex =>
         {
             Logger.Error(ex, "Load Accounts");
         });
@@ -325,7 +326,7 @@ public class MainViewModel : ObservableObject
         // TODO check versions
     }
 
-    private async ValueTask LoadAccounts(CancellationToken cancellationToken)
+    private async ValueTask LoadAccounts()
     {
 
         await accountCollection.Load();
@@ -336,7 +337,8 @@ public class MainViewModel : ObservableObject
 
         RefreshRunState();
 
-        await FetchApiData(accountCollection.Accounts, cancellationToken);
+        apiFetchCancellation = new CancellationTokenSource();
+        await FetchApiData(accountCollection.Accounts, apiFetchCancellation.Token);
     }
 
     private async ValueTask LoadVpns()

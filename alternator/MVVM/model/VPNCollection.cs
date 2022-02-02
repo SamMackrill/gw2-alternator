@@ -56,7 +56,7 @@ public class VpnCollection : JsonCollection<VpnDetails>
         }
     }
 
-    public VpnDetails? GetVpn(string key)
+    public VpnDetails GetVpn(string key)
     {
         return Vpns?.FirstOrDefault(v => v.Id == key) ?? new VpnDetails();
     }

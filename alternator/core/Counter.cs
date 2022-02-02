@@ -1,5 +1,6 @@
 ﻿namespace guildwars2.tools.alternator;
 
+[DebuggerDisplay("{" + nameof(DebugDisplay) + ",nq}")]
 public class Counter : ObservableObject
 {
     private int count;
@@ -10,4 +11,7 @@ public class Counter : ObservableObject
         Interlocked.Increment(ref count);
         OnPropertyChanged(nameof(Count));
     }
+
+    private string DebugDisplay => $"{count}";
+
 }

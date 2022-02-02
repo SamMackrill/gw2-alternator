@@ -2,12 +2,10 @@
 
 public class AccountViewModel : ObservableObject
 {
-    private readonly VpnCollection vpnCollection;
     public IAccount Account { get;}
 
     public AccountViewModel(IAccount account, VpnCollection vpnCollection)
     {
-        this.vpnCollection = vpnCollection;
         Account = account;
         account.PropertyChanged += ModelPropertyChanged;
         Vpns = vpnCollection.GetAccountVpns(Account).OrderBy(v => v.Id).ToList();
@@ -15,11 +13,12 @@ public class AccountViewModel : ObservableObject
 
     private readonly Dictionary<string, List<string>> propertyConverter = new()
     {
-        { "Name", new() {"AccountName"} },
-        { "LastLogin", new() { "Login"} },
-        { "LastCollection", new() { "Collected"} },
-        { "CreatedAt", new() { "Age"} },
-        { "StatusMessage", new() { "TooltipText"} },
+        { "Name",           new() {"AccountName"  } },
+        { "LastLogin",      new() { "Login"       } },
+        { "LastCollection", new() { "Collected"   } },
+        { "CreatedAt",      new() { "Age"         } },
+        { "StatusMessage",  new() { "TooltipText" } },
+        { "Vpns",           new() { "VpnsDisplay" } },
     };
 
     private void ModelPropertyChanged(object? sender, PropertyChangedEventArgs args)
@@ -33,7 +32,7 @@ public class AccountViewModel : ObservableObject
         }
     }
 
-    public string AccountName => Account.Name ?? "Unknown";
+    public string AccountName => Account.Name;
 
     public string Character => Account.Character ?? "Unknown";
     public string Login => $"{Account.LastLogin.ToShortDateString()} {Account.LastLogin.ToShortTimeString()}";
@@ -42,7 +41,7 @@ public class AccountViewModel : ObservableObject
     public string CollectionRequired => Account.CollectionRequired ? "Yes" : "No";
     public int Age => (int)Math.Floor(DateTime.UtcNow.Subtract(Account.CreatedAt).TotalDays);
 
-    public string VpnsDisplay => string.Join(',', Account.Vpns?.ToArray() ?? Array.Empty<string>());
+    public string VpnsDisplay => string.Join(',', Account.Vpns?.OrderBy(v => v).ToArray() ?? Array.Empty<string>());
 
     public List<AccountVpnViewModel> Vpns { get; }
 

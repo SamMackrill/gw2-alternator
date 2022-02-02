@@ -78,11 +78,9 @@ public partial class App : Application
         accountCollection = new AccountCollection(applicationFolder, Path.Combine(appData, @"Gw2 Launchbuddy"), Path.Combine(appData, @"Gw2Launcher"));
         vpnCollection = new VpnCollection(applicationFolder);
 
-        var cts = new CancellationTokenSource();
-        cts.Token.ThrowIfCancellationRequested();
 
-        var mainView = new MainViewModel(applicationFolder, appData, settingsController, accountCollection, vpnCollection, cts);
-        mainView.Initialise(cts.Token);
+        var mainView = new MainViewModel(applicationFolder, appData, settingsController, accountCollection, vpnCollection);
+        mainView.Initialise();
         var mainWindow = new MainWindow(mainView);
         mainWindow.Show();
     }
