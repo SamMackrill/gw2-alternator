@@ -65,4 +65,4 @@ Credits:
 * Logging using NLog https://nlog-project.org/
 * Unit Testing using xUnit https://xunit.net/ and FluentAssertions https://fluentassertions.com/
 * Main icon by https://www.flaticon.com/authors/ingmixa
-* Other icons from: https://www.iconsdb.com/ with color: #FB651D
+* Other icons from: https://www.iconsdb.com/ with color: #FB651D This site is so good :)

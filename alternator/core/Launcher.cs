@@ -59,7 +59,7 @@ public class Launcher
         }
 
 
-        void Client_RunStatusChanged(object? sender, ClientStateChangedEventArgs e)
+        void Client_RunStatusChanged(object? sender, Client.ClientStateChangedEventArgs e)
         {
             Logger.Debug("{0} Status changed from {1} to {2}", account.Name, e.OldState, e.State);
             switch (e.State)
@@ -101,7 +101,10 @@ public class Launcher
                 case RunStage.Exited:
                     if (e.OldState is not RunStage.CharacterSelected and not RunStage.WorldEntered) break;
                     account.LastLogin = DateTime.UtcNow;
-                    if (launchType is LaunchType.Collect) account.LastCollection = DateTime.UtcNow;
+                    if (launchType is LaunchType.Collect)
+                    {
+                        account.SetCollected();
+                    }
                     break;
                 default:
                     throw new ArgumentOutOfRangeException($"Unhandled RunStage: {e.State}");

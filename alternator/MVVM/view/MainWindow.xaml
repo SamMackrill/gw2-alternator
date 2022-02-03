@@ -107,7 +107,7 @@
                                Background = "{StaticResource HighlightBrush}"
                                FontFamily="Consolas"
                                FontWeight="DemiBold"
-                               Visibility="{Binding VpnVisible}"
+                               Visibility="{Binding CurrentVpnVisible}"
                                Text="{Binding Vpn, FallbackValue='NYK'}" />
 
                     <TextBlock FontSize="22" 
@@ -129,6 +129,7 @@
                             Margin="0" 
                             HorizontalAlignment="Right"
                             VerticalAlignment="Center">
+
                     <Button Padding="0"
                             Margin="0,0,8,0"
                             Opacity="0.6"
@@ -137,10 +138,38 @@
                             Height="24" Width="24"
                             Background="Transparent"
                             Style="{StaticResource FadeOutButton}"
-                            ToolTip="Settings"
+                            ToolTip="Settings..."
                             Command="{Binding Path=ShowSettingsCommand, Mode=OneWay}">
 
-                        <Image Source="/images/settings3.png"  Width="24" />
+                        <Image Source="/images/settings3.png" Width="24" />
+                    </Button>
+
+                    <Button Padding="0"
+                            Margin="0,0,8,0"
+                            Opacity="0.6"
+                            VerticalAlignment="Center" 
+                            BorderThickness="0" 
+                            Height="24" Width="24"
+                            Background="Transparent"
+                            Style="{StaticResource FadeOutButton}"
+                            ToolTip="GW2 API Keys..."
+                            Command="{Binding Path=ShowApisCommand, Mode=OneWay}">
+
+                            <Image Source="/images/cloud-download.png" Width="24" />
+                    </Button>
+
+                    <Button Padding="0"
+                            Margin="0,0,8,0"
+                            Opacity="0.6"
+                            VerticalAlignment="Center" 
+                            BorderThickness="0" 
+                            Height="24" Width="24"
+                            Background="Transparent"
+                            Style="{StaticResource FadeOutButton}"
+                            ToolTip="VPN Connections..."
+                            Command="{Binding Path=ShowVpnsCommand, Mode=OneWay}">
+
+                        <Image Source="/images/vpn.png" Width="24" />
                     </Button>
 
                     <Button Padding="0"
@@ -156,7 +185,6 @@
 
                         <Image Source="/images/clipboard.png"  Width="24" />
                     </Button>
-
 
                     <Button Padding="0" 
                             Margin="0,0,8,0"

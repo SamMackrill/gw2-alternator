@@ -1,18 +1,6 @@
-﻿using Point = System.Drawing.Point;
+﻿namespace guildwars2.tools.alternator.MVVM.model;
 
-namespace guildwars2.tools.alternator.MVVM.model;
 
-public class ClientStateChangedEventArgs : EventArgs
-{
-    public ClientStateChangedEventArgs(RunStage oldState, RunStage state)
-    {
-        OldState = oldState;
-        State = state;
-    }
-
-    public RunStage OldState { get; }
-    public RunStage State { get; }
-}
 [DebuggerDisplay("{" + nameof(DebugDisplay) + ",nq}")]
 public class Client : ObservableObject
 {
@@ -30,6 +18,18 @@ public class Client : ObservableObject
     private record struct EngineTuning(TimeSpan Pause, long MemoryUsage, long MinDiff, TimeSpan StuckDelay, int StuckTolerance);
 
     private EngineTuning tuning;
+
+    public class ClientStateChangedEventArgs : EventArgs
+    {
+        public ClientStateChangedEventArgs(RunStage oldState, RunStage state)
+        {
+            OldState = oldState;
+            State = state;
+        }
+
+        public RunStage OldState { get; }
+        public RunStage State { get; }
+    }
 
     public event EventHandler<ClientStateChangedEventArgs>? RunStatusChanged;
 
@@ -239,8 +239,8 @@ public class Client : ObservableObject
     }
 
 
-    private readonly Point errorDetectPoint = new(220, 550);
-    private readonly Color errorColor =  Color.FromArgb(25, 42, 58);
+    private readonly System.Drawing.Point errorDetectPoint = new(220, 550);
+    private readonly System.Drawing.Color errorColor = Color.FromArgb(25, 42, 58);
     private bool ErrorDetected(ErrorDetection errorDetection)
     {
         if (!Alive || errorDetection!=ErrorDetection.DelayAndPixel) return false;

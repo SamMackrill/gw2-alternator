@@ -191,7 +191,12 @@ public class ClientController
             return (line, time);
         }
 
-        var lines = new List<string> {$"Started\t{startOfRun}", $"Total Time\t{DateTime.Now.Subtract(startOfRun).TotalSeconds}\ts"};
+        var lines = new List<string>
+        {
+            $"Started\t{startOfRun}", 
+            $"Total Time\t{DateTime.Now.Subtract(startOfRun).TotalSeconds}\ts",
+            "Account\tStart\tAuthenticate\tLogin\tEnter\tExit",
+        };
 
         foreach (var client in clients.OrderBy(c => c.StartAt))
         {

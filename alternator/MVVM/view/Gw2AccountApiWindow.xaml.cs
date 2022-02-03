@@ -1,11 +1,11 @@
 ﻿namespace guildwars2.tools.alternator.MVVM.view;
 
 /// <summary>
-/// Interaction logic for Vpns.xaml
+/// Interaction logic for Gw2AccountApiWindow.xaml
 /// </summary>
-public partial class VpnsWindow
+public partial class Gw2AccountApiWindow
 {
-    public VpnsWindow()
+    public Gw2AccountApiWindow()
     {
         InitializeComponent();
     }

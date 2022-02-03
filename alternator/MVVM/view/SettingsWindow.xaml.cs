@@ -10,16 +10,6 @@ public partial class SettingsWindow
         InitializeComponent();
     }
 
-    private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-    {
-        DragMove();
-    }
-
-    private void CloseButton_Click(object sender, RoutedEventArgs e)
-    {
-        Close();
-    }
-
     private void window_Loaded(object sender, RoutedEventArgs e)
     {
         MinWidth = ActualWidth;

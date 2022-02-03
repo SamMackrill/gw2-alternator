@@ -11,6 +11,8 @@ public class MainViewModel : ObservableObject
     public IAsyncCommand? UpdateCommand { get; set; }
     public ICommandExtended? StopCommand { get; set; }
     public ICommandExtended? ShowSettingsCommand { get; }
+    public ICommandExtended? ShowApisCommand { get; }
+    public ICommandExtended? ShowVpnsCommand { get; }
     public ICommandExtended? CopyMetricsCommand { get; }
     public IAsyncCommand? CloseCommand { get; }
 
@@ -47,6 +49,8 @@ public class MainViewModel : ObservableObject
         UpdateCommand?.RaiseCanExecuteChanged();
         StopCommand?.RaiseCanExecuteChanged();
         ShowSettingsCommand?.RaiseCanExecuteChanged();
+        ShowApisCommand?.RaiseCanExecuteChanged();
+        ShowVpnsCommand?.RaiseCanExecuteChanged();
         CloseCommand?.RaiseCanExecuteChanged();
         OnPropertyChanged(nameof(CanRun));
     }
@@ -76,10 +80,10 @@ public class MainViewModel : ObservableObject
     public string ResetCountdown => DateTime.UtcNow.AddDays(1).Date.Subtract(DateTime.UtcNow).ToString(@"h'hr 'm'min'");
 
 
-    public Visibility VpnVisible =>  string.IsNullOrEmpty(authenticationThrottle.Vpn) ? Visibility.Hidden : Visibility.Visible;
+    public Visibility CurrentVpnVisible =>  string.IsNullOrEmpty(authenticationThrottle.Vpn) ? Visibility.Hidden : Visibility.Collapsed;
     public string? Vpn => authenticationThrottle.Vpn;
 
-    public Visibility ThrottleVisible => authenticationThrottle.FreeIn > 1 ? Visibility.Visible : Visibility.Hidden;
+    public Visibility ThrottleVisible => authenticationThrottle.FreeIn > 1 ? Visibility.Visible : Visibility.Collapsed;
     public string ThrottleDelay => authenticationThrottle.FreeIn.ToString(@"0's'");
 
     private bool forceSerialOverride;
@@ -259,7 +263,7 @@ public class MainViewModel : ObservableObject
         AsyncCommand CreateLaunchCommand(LaunchType launchType, Action? tidyUp) =>
             new(async () =>
             {
-                await LaunchMultipleAccounts(launchType, ForceAllOverride, ForceSerialOverride, IgnoreVpnOverride);
+                await LaunchMultipleAccounts(launchType, ForceAllOverride, ForceSerialOverride, IgnoreVpnOverride || settingsController.Settings!.AlwaysIgnoreVpn);
                 tidyUp?.Invoke();
             }, _ => CanRun(launchType));
 
@@ -281,12 +285,32 @@ public class MainViewModel : ObservableObject
 
         ShowSettingsCommand = new RelayCommand<object>(_ =>
         {
-            var settingsView = new SettingsWindow
+            var window = new SettingsWindow
             {
                 DataContext = SettingsVM,
                 Owner = Application.Current.MainWindow
             };
-            settingsView.ShowDialog();
+            window.ShowDialog();
+        });
+
+        ShowApisCommand = new RelayCommand<object>(_ =>
+        {
+            var window = new Gw2AccountApiWindow()
+            {
+                DataContext = accountCollection,
+                Owner = Application.Current.MainWindow
+            };
+            window.ShowDialog();
+        });
+
+        ShowVpnsCommand = new RelayCommand<object>(_ =>
+        {
+            var window = new VpnsWindow()
+            {
+                DataContext = vpnCollection,
+                Owner = Application.Current.MainWindow
+            };
+            window.ShowDialog();
         });
 
         CopyMetricsCommand = new RelayCommand<object>(_ =>

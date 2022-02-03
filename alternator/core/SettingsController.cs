@@ -56,6 +56,7 @@ public class SettingsController : ObservableObject
             var settingsFromFile = JsonSerializer.Deserialize<Settings>(stream);
             Logger.Debug("Settings loaded from {0}", settingsJson);
             Settings = settingsFromFile ?? DefaultSettings;
+            return;
         }
         catch (Exception e)
         {

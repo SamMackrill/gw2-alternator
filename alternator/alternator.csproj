@@ -22,10 +22,12 @@
     <None Remove="images\alternate_orange.png" />
     <None Remove="images\clipboard.png" />
     <None Remove="images\close-window.png" />
+    <None Remove="images\cloud-download.png" />
     <None Remove="images\folder.png" />
     <None Remove="images\minimize-window.png" />
     <None Remove="images\settings3.png" />
     <None Remove="images\undo.png" />
+    <None Remove="images\vpn.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -47,10 +49,12 @@
     <Resource Include="images\alternate_orange.png" />
     <Resource Include="images\clipboard.png" />
     <Resource Include="images\close-window.png" />
+    <Resource Include="images\cloud-download.png" />
     <Resource Include="images\folder.png" />
     <Resource Include="images\minimize-window.png" />
     <Resource Include="images\settings3.png" />
     <Resource Include="images\undo.png" />
+    <Resource Include="images\vpn.png" />
   </ItemGroup>
 
   <ItemGroup>

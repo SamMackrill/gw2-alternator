@@ -30,6 +30,7 @@ public interface IAccount : IEquatable<IAccount>
     string? StatusMessage { get; }
     bool Done { get; set; }
     void UpdateVpn(VpnDetails vpn, bool isChecked);
+    void SetCollected();
 }
 
 [Serializable]
@@ -37,6 +38,8 @@ public interface IAccount : IEquatable<IAccount>
 public class Account : ObservableObject, IAccount
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+    public EventHandler? AccountCollected; 
 
     private string name;
     public string Name
@@ -108,6 +111,16 @@ public class Account : ObservableObject, IAccount
                 OnPropertyChanged(nameof(Vpns));
             }
         }
+    }
+
+    Task? apiLookup;
+
+    public void SetCollected()
+    {
+        LastCollection = DateTime.UtcNow;
+        AccountCollected?.Invoke(this, EventArgs.Empty);
+        apiLookup?.Wait();
+        apiLookup = FetchAccountDetails(new CancellationToken());
     }
 
     [JsonIgnore]

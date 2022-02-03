@@ -5,7 +5,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border Background="Transparent">
+                    <Border Background="Transparent" BorderThickness="0">
                         <ContentPresenter/>
                     </Border>
                 </ControlTemplate>
