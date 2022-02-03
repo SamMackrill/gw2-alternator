@@ -34,7 +34,8 @@
             <DataGridTextColumn Header="Character" Binding="{Binding Character}"/>
             <DataGridTextColumn Header="Age" Binding="{Binding Age}" />
 
-            <DataGridTemplateColumn Header="VPNs">
+            <DataGridTemplateColumn Header="VPNs"
+                Visibility="{Binding Data.VpnVisibility, Source={StaticResource proxy}}">
                 <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate>
                         <ComboBox ItemsSource="{Binding Vpns}" 

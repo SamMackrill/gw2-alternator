@@ -219,6 +219,7 @@
                         />
                         <CheckBox Content="Ignore VPN" 
                                   Style="{StaticResource CheckBoxTheme}"
+                                  Visibility="{Binding VpnVisibility}"
                                   IsChecked="{Binding IgnoreVpnOverride}"
                         />
                     </StackPanel>

@@ -2,11 +2,13 @@
 
 public class AccountsViewModel : ObservableObject
 {
+    public SettingsController SettingsController { get; }
 
     public ObservableCollectionEx<AccountViewModel> Accounts { get; }
 
-    public AccountsViewModel()
+    public AccountsViewModel(SettingsController settingsController)
     {
+        SettingsController = settingsController;
         Accounts = new ObservableCollectionEx<AccountViewModel>();
     }
 
@@ -29,6 +31,7 @@ public class AccountsViewModel : ObservableObject
        Accounts.Clear();
     }
 
+    public Visibility VpnVisibility => SettingsController.Settings?.AlwaysIgnoreVpn ?? true ? Visibility.Hidden : Visibility.Visible;
     public Visibility ApiVisibility => Accounts.Any(a => !string.IsNullOrEmpty(a.Account.ApiKey)) ? Visibility.Visible : Visibility.Hidden;
 
 }

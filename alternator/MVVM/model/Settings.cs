@@ -78,4 +78,11 @@ public class Settings : ObservableObject
         set => SetProperty(ref experimentalErrorDetection, value);
     }
 
+    private bool alwaysIgnoreVpn;
+    public bool AlwaysIgnoreVpn
+    {
+        get => alwaysIgnoreVpn;
+        set => SetProperty(ref alwaysIgnoreVpn, value);
+    }
+
 }

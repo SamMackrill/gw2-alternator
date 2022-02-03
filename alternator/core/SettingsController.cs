@@ -119,21 +119,31 @@ public class SettingsController : ObservableObject
         }
     }
 
-    public static Settings DefaultSettings =>
-        new()
+    public static Settings DefaultSettings
+    {
+        get
         {
-            Gw2Folder = null,
-            MaxLoginInstances = 4,
-            AccountBand1 = 10,
-            AccountBand1Delay = 5,
-            AccountBand2 = 24,
-            AccountBand2Delay = 20,
-            AccountBand3 = 40,
-            AccountBand3Delay = 45,
-            StuckTimeout = 30,
-            VpnAccountCount = 10,
-            ExperimentalErrorDetection = ErrorDetection.Delay,
-        };
+            var settings = new Settings();
+            Reset(settings);
+            return settings;
+        }
+    }
+
+    private static void Reset(Settings settings)
+    {
+        settings.Gw2Folder = null;
+        settings.MaxLoginInstances = 4;
+        settings.AccountBand1 = 10;
+        settings.AccountBand1Delay = 5;
+        settings.AccountBand2 = 24;
+        settings.AccountBand2Delay = 20;
+        settings.AccountBand3 = 40;
+        settings.AccountBand3Delay = 45;
+        settings.StuckTimeout = 30;
+        settings.VpnAccountCount = 10;
+        settings.ExperimentalErrorDetection = ErrorDetection.Delay;
+        settings.AlwaysIgnoreVpn = false;
+    }
 
     public string MetricsFile => Path.Combine(SourceFolder.FullName, "gw2-alternator-metrics.txt");
     public string UniqueMetricsFile => Path.Combine(SourceFolder.FullName, $"gw2-alternator-metrics_{DateTime.UtcNow:yyyy-dd-MM_HH-mm-ss}");
@@ -150,5 +160,12 @@ public class SettingsController : ObservableObject
         if (valueAttribute != null && Directory.Exists(valueAttribute.Value)) Settings.Gw2Folder = valueAttribute.Value;
         if (Directory.Exists(@"C:\Program Files (x86)\Guild Wars 2")) Settings.Gw2Folder = @"C:\Program Files (x86)\Guild Wars 2";
 
+    }
+
+    public void ResetAll()
+    {
+        Settings ??= new Settings();
+        Reset(Settings);
+        DiscoverGw2ExeLocation();
     }
 }

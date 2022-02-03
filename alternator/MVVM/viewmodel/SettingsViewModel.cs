@@ -8,7 +8,10 @@ public class SettingsViewModel : ObservableObject
     private readonly AccountCollection accountCollection;
     private Func<string>? GetVersion { get; }
 
-    private Settings Settings => settingsController.Settings!;
+    private Settings Settings
+    {
+        get => settingsController.Settings!;
+    }
 
     public SettingsViewModel(SettingsController settingsController, AccountCollection accountCollection, Func<string>? getVersion)
     {
@@ -88,6 +91,12 @@ public class SettingsViewModel : ObservableObject
         set => Settings.ExperimentalErrorDetection = value;
     }
 
+    public bool AlwaysIgnoreVpn
+    {
+        get => Settings.AlwaysIgnoreVpn;
+        set => Settings.AlwaysIgnoreVpn = value;
+    }
+
     public Array ErrorDetectionArray => Enum.GetValues(typeof(ErrorDetection));
 
     public string Title => $"GW2 alternator Settings V{GetVersion?.Invoke() ?? "?.?.?"}";
@@ -150,6 +159,15 @@ public class SettingsViewModel : ObservableObject
     {
         var defaultSettings = SettingsController.DefaultSettings;
         Settings.ExperimentalErrorDetection = defaultSettings.ExperimentalErrorDetection;
+    });
+    public RelayCommand<object> ResetAlwaysIgnoreVpnCommand => new(_ =>
+    {
+        var defaultSettings = SettingsController.DefaultSettings;
+        Settings.AlwaysIgnoreVpn = defaultSettings.AlwaysIgnoreVpn;
+    });
+    public RelayCommand<object> ResetAllCommand => new(_ =>
+    {
+        settingsController.ResetAll();
     });
 
     public RelayCommand<object> ImportFromLaunchBuddyCommand => new(_ =>

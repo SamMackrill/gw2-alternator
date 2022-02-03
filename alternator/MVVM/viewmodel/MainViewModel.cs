@@ -96,6 +96,9 @@ public class MainViewModel : ObservableObject
         set => SetProperty(ref forceAllOverride, value);
     }
 
+
+    public Visibility VpnVisibility => settingsController.Settings?.AlwaysIgnoreVpn ?? true ? Visibility.Hidden : Visibility.Visible;
+
     private bool ignoreVpnOverride;
     public bool IgnoreVpnOverride
     {
@@ -204,7 +207,7 @@ public class MainViewModel : ObservableObject
 
 
         SettingsVM = new SettingsViewModel(settingsController, accountCollection, () => Version);
-        AccountsVM = new AccountsViewModel();
+        AccountsVM = new AccountsViewModel(settingsController);
 
         async Task LaunchMultipleAccounts(LaunchType launchType, bool all, bool serial, bool ignoreVpn)
         {
@@ -221,11 +224,11 @@ public class MainViewModel : ObservableObject
                     _ => 1
                 };
 
-                apiFetchCancellation = new CancellationTokenSource();
-                apiFetchCancellation.Token.ThrowIfCancellationRequested();
+                launchCancellation = new CancellationTokenSource();
+                launchCancellation.Token.ThrowIfCancellationRequested();
                 var launcher = new ClientController(applicationFolder, settingsController, authenticationThrottle, vpnCollection, launchType);
                 launcher.MetricsUpdated += Launcher_MetricsUpdated;
-                await launcher.LaunchMultiple(AccountsVM.SelectedAccounts.ToList(), accountCollection, all, ignoreVpn, maxInstances, this.apiFetchCancellation);
+                await launcher.LaunchMultiple(AccountsVM.SelectedAccounts.ToList(), accountCollection, all, ignoreVpn, maxInstances, launchCancellation);
 
                 await SaveCollections(accountCollection, vpnCollection);
             }
@@ -250,7 +253,7 @@ public class MainViewModel : ObservableObject
         StopCommand = new RelayCommand<object>(_ =>
         {
             Stopping = true;
-            this.apiFetchCancellation?.Cancel();
+            launchCancellation?.Cancel();
         }, _ => Running);
 
         CloseCommand = new AsyncCommand(async () =>

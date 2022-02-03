@@ -191,7 +191,7 @@ public class ClientController
             return (line, time);
         }
 
-        var lines = new List<string>();
+        var lines = new List<string> {$"Started\t{startOfRun}", $"Total Time\t{DateTime.Now.Subtract(startOfRun).TotalSeconds}\ts"};
 
         foreach (var client in clients.OrderBy(c => c.StartAt))
         {
