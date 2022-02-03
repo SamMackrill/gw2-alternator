@@ -9,8 +9,26 @@ public class AccountsViewModel : ObservableObject
     public AccountsViewModel(SettingsController settingsController)
     {
         SettingsController = settingsController;
+        SettingsController.PropertyChanged += SettingsController_PropertyChanged; 
         Accounts = new ObservableCollectionEx<AccountViewModel>();
     }
+
+    private readonly Dictionary<string, List<string>> propertyConverter = new()
+    {
+        { "AlwaysIgnoreVpn", new() { "VpnVisibility" } },
+    };
+
+    private void SettingsController_PropertyChanged(object? sender, PropertyChangedEventArgs args)
+    {
+        if (args.PropertyName == null) return;
+        var propertyNames = new List<string> { args.PropertyName };
+        if (propertyConverter.ContainsKey(args.PropertyName)) propertyNames.AddRange(propertyConverter[args.PropertyName]);
+        foreach (var propertyName in propertyNames)
+        {
+            OnPropertyChanged(propertyName);
+        }
+    }
+
 
     public void Add(IEnumerable<IAccount>? accounts, VpnCollection vpnCollection)
     {

@@ -97,7 +97,7 @@ public class MainViewModel : ObservableObject
     }
 
 
-    public Visibility VpnVisibility => settingsController.Settings?.AlwaysIgnoreVpn ?? true ? Visibility.Hidden : Visibility.Visible;
+    public Visibility VpnVisibility => settingsController.Settings?.AlwaysIgnoreVpn ?? true ? Visibility.Collapsed : Visibility.Visible;
 
     private bool ignoreVpnOverride;
     public bool IgnoreVpnOverride
@@ -185,6 +185,21 @@ public class MainViewModel : ObservableObject
         return canRun;
     }
 
+    private readonly Dictionary<string, List<string>> propertyConverter = new()
+    {
+        { "AlwaysIgnoreVpn", new() { "VpnVisibility" } },
+    };
+
+    private void SettingsController_PropertyChanged(object? sender, PropertyChangedEventArgs args)
+    {
+        if (args.PropertyName == null) return;
+        var propertyNames = new List<string> { args.PropertyName };
+        if (propertyConverter.ContainsKey(args.PropertyName)) propertyNames.AddRange(propertyConverter[args.PropertyName]);
+        foreach (var propertyName in propertyNames)
+        {
+            OnPropertyChanged(propertyName);
+        }
+    }
 
     public MainViewModel(
         DirectoryInfo applicationFolder, 
@@ -194,6 +209,8 @@ public class MainViewModel : ObservableObject
         VpnCollection vpnCollection)
     {
         this.settingsController = settingsController;
+        settingsController.PropertyChanged += SettingsController_PropertyChanged;
+
         this.accountCollection = accountCollection;
         this.vpnCollection = vpnCollection;
 

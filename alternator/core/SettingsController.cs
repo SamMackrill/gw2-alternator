@@ -13,18 +13,32 @@ public enum ErrorDetection
 
 public class SettingsController : ObservableObject
 {
-    public FileSystemInfo SourceFolder { get; }
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
     private const string SettingsJsonFile = "settings.json";
 
+    private FileSystemInfo SourceFolder { get; }
     private readonly string settingsJson;
     private readonly SemaphoreSlim semaphore;
 
     public FileInfo? DatFile { get; set; }
     public FileInfo? GfxSettingsFile { get; set; }
-    public Settings? Settings { get; private set; }
 
+    private Settings? settings;
+    public Settings? Settings
+    {
+        get => settings;
+        private set
+        {
+            settings = value;
+            if (settings != null) settings.PropertyChanged += Settings_PropertyChanged;
+        }
+    }
+
+    private void Settings_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        OnPropertyChanged(e.PropertyName);
+    }
 
     public SettingsController(FileSystemInfo folderPath)
     {
@@ -39,30 +53,9 @@ public class SettingsController : ObservableObject
         {
             semaphore.Wait();
             using var stream = File.OpenRead(settingsJson);
-            var settings = JsonSerializer.Deserialize<Settings>(stream);
+            var settingsFromFile = JsonSerializer.Deserialize<Settings>(stream);
             Logger.Debug("Settings loaded from {0}", settingsJson);
-            Settings = settings ?? DefaultSettings;
-        }
-        catch (Exception e)
-        {
-            Logger.Error(e, $"Loading Settings from {settingsJson}");
-        }
-        finally
-        {
-            semaphore.Release();
-        }
-        Settings = DefaultSettings;
-    }
-
-    public async Task LoadAsync()
-    {
-        try
-        {
-            await semaphore.WaitAsync();
-            await using var stream = File.OpenRead(settingsJson);
-            var settings = await JsonSerializer.DeserializeAsync<Settings>(stream);
-            Logger.Debug("Settings loaded from {0}", settingsJson);
-            Settings = settings ?? DefaultSettings;
+            Settings = settingsFromFile ?? DefaultSettings;
         }
         catch (Exception e)
         {
