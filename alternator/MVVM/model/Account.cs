@@ -141,6 +141,7 @@ public class Account : ObservableObject, IAccount
         try
         {
             var details = await GetAccountDetails(new CancellationToken());
+            SetFromApiDetails(details);
             return $"{details.DisplayName} OK";
         }
         catch (Exception e)
@@ -276,13 +277,17 @@ public class Account : ObservableObject, IAccount
     public async Task FetchAccountDetails(CancellationToken cancellationToken)
     {
         var details = await GetAccountDetails(cancellationToken);
+        SetFromApiDetails(details);
+    }
+
+    private void SetFromApiDetails(AccountDetails details)
+    {
         CreatedAt = details.CreatedAt;
         DisplayName = details.DisplayName;
         Character = details.Character;
 
         SetCount("MysticCoin", details.MysticCoinCount);
         SetCount("Laurel", details.LaurelCount);
-
         Logger.Debug("{0} {1} has {2} Laurels and {3} Mystic Coins", Name, Character, details.LaurelCount, details.MysticCoinCount);
     }
 
