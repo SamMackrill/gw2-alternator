@@ -30,7 +30,7 @@ public class ClientController
         loginSemaphore = new SemaphoreSlim(0, 1);
     }
 
-    public record VpnAccounts(VpnDetails Vpn, List<IAccount> Accounts);
+    private record VpnAccounts(VpnDetails Vpn, List<IAccount> Accounts);
 
     public async Task LaunchMultiple(
         List<IAccount> selectedAccounts,
@@ -76,8 +76,8 @@ public class ClientController
                 AddNonVpnAccounts(accountsByVpnDetails, accounts);
 
                 var vpnSets = accountsByVpnDetails
-                    .OrderBy(s => s.Vpn!.Available(now))
-                    .ThenBy(s => s.Vpn!.IsReal ? 1 : 0)
+                    .OrderBy(s => s.Vpn.Available(now))
+                    .ThenBy(s => s.Vpn.IsReal ? 1 : 0)
                     .ThenByDescending(s => s.Accounts.Count)
                     .ToList();
 

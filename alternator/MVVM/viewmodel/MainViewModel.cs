@@ -26,6 +26,7 @@ public class MainViewModel : ObservableObject
 
     public AccountsViewModel AccountsVM { get; set; }
     public SettingsViewModel SettingsVM { get; set; }
+    public AccountApisViewModel AccountApisVM { get; set; }
 
     private bool running;
     private bool Running
@@ -229,6 +230,7 @@ public class MainViewModel : ObservableObject
 
         SettingsVM = new SettingsViewModel(settingsController, accountCollection, () => Version);
         AccountsVM = new AccountsViewModel(settingsController);
+        AccountApisVM = new AccountApisViewModel();
 
         async Task LaunchMultipleAccounts(LaunchType launchType, bool all, bool serial, bool ignoreVpn)
         {
@@ -297,9 +299,10 @@ public class MainViewModel : ObservableObject
         {
             var window = new Gw2AccountApiWindow()
             {
-                DataContext = accountCollection,
+                DataContext = AccountApisVM,
                 Owner = Application.Current.MainWindow
             };
+            accountCollection.SetUndo();
             window.ShowDialog();
         });
 
@@ -377,6 +380,7 @@ public class MainViewModel : ObservableObject
 
         AccountsVM.Clear();
         AccountsVM.Add(accountCollection, vpnCollection);
+        AccountApisVM.Add(accountCollection.Accounts);
         accountCollection.Ready = true;
 
         RefreshRunState();
@@ -404,7 +408,7 @@ public class MainViewModel : ObservableObject
         OnPropertyChanged($"{args.PropertyName}Visible");
     }
 
-    private async Task FetchApiData(List<Account>? accounts, CancellationToken cancellationToken)
+    private async Task FetchApiData(List<IAccount>? accounts, CancellationToken cancellationToken)
     {
         if (accounts==null) return;
 

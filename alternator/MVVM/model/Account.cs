@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 
 namespace guildwars2.tools.alternator.MVVM.model;
 
@@ -6,9 +7,9 @@ public interface IAccount : IEquatable<IAccount>
 {
     string Name { get; }
     string? DisplayName { get; set; }
-    string? Character { get; }
+    string? Character { get; set; }
     string? LoginFilePath { get; set; }
-    string? ApiKey { get; }
+    string? ApiKey { get; set; }
     ObservableCollectionEx<Currency>? Counts { get; set; }
     ObservableCollectionEx<string>? Vpns { get; }
     bool HasVpn { get; }
@@ -20,7 +21,6 @@ public interface IAccount : IEquatable<IAccount>
     bool UpdateRequired { get; }
     Task SwapFilesAsync(FileInfo gw2LocalDat, FileInfo gw2GfxSettings, FileInfo referenceGfxSettingsFile);
     int? GetCurrency(string currencyName);
-    void SetCount(string countName, int value);
     event PropertyChangedEventHandler? PropertyChanged;
     // Client
     Client NewClient();
@@ -31,6 +31,11 @@ public interface IAccount : IEquatable<IAccount>
     bool Done { get; set; }
     void UpdateVpn(VpnDetails vpn, bool isChecked);
     void SetCollected();
+    Task<string> TestApiKey();
+    bool CheckApiKeyValid(string pasteText);
+    void SetUndo();
+    void Undo();
+    Task FetchAccountDetails(CancellationToken cancellationToken);
 }
 
 [Serializable]
@@ -78,6 +83,8 @@ public class Account : ObservableObject, IAccount
         get => apiKey;
         set => SetProperty(ref apiKey, value);
     }
+    private string? apiKeyUndo;
+
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public ObservableCollectionEx<Currency>? Counts { get; set; }
@@ -121,6 +128,30 @@ public class Account : ObservableObject, IAccount
         AccountCollected?.Invoke(this, EventArgs.Empty);
         apiLookup?.Wait();
         apiLookup = FetchAccountDetails(new CancellationToken());
+    }
+
+    private Regex apiKeyMatch = new Regex(@"[\da-z]{8}(?>-[\da-z]{4}){3}-[\da-z]{20}(?>-[\da-z]{4}){3}-[\da-z]{12}",
+          RegexOptions.Compiled 
+        | RegexOptions.CultureInvariant 
+        | RegexOptions.IgnoreCase);
+    public async Task<string> TestApiKey()
+    {
+        if (string.IsNullOrWhiteSpace(apiKey)) return "Blank";
+        if (!apiKeyMatch.IsMatch(apiKey)) return "Invalid Format";
+        try
+        {
+            var details = await GetAccountDetails(new CancellationToken());
+            return $"{details.DisplayName} OK";
+        }
+        catch (Exception e)
+        {
+            return $"Failed: {e.Message}";
+        }
+    }
+
+    public bool CheckApiKeyValid(string text)
+    {
+        return !string.IsNullOrWhiteSpace(text) && apiKeyMatch.IsMatch(text);
     }
 
     [JsonIgnore]
@@ -244,7 +275,31 @@ public class Account : ObservableObject, IAccount
 
     public async Task FetchAccountDetails(CancellationToken cancellationToken)
     {
+        var details = await GetAccountDetails(cancellationToken);
+        CreatedAt = details.CreatedAt;
+        DisplayName = details.DisplayName;
+        Character = details.Character;
+
+        SetCount("MysticCoin", details.MysticCoinCount);
+        SetCount("Laurel", details.LaurelCount);
+
+        Logger.Debug("{0} {1} has {2} Laurels and {3} Mystic Coins", Name, Character, details.LaurelCount, details.MysticCoinCount);
+    }
+
+    public record struct AccountDetails
+    {
+        public int LaurelCount { get; set; }
+        public int MysticCoinCount { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public string DisplayName { get; set; }
+        public string Character { get; set; }
+    }
+
+    public async Task<AccountDetails> GetAccountDetails(CancellationToken cancellationToken)
+    {
         Logger.Debug("{0} Fetching details from GW2 API", Name);
+
+        var details = new AccountDetails();
 
         var apiConnection = new Gw2Sharp.Connection(ApiKey!);
         using var apiClient = new Gw2Sharp.Gw2Client(apiConnection);
@@ -257,19 +312,19 @@ public class Account : ObservableObject, IAccount
         var materialsReturnTask = webApiClient.Account.Materials.GetAsync(cancellationToken);
 
         var accountReturn = await accountReturnTask;
-        CreatedAt = accountReturn.Created.UtcDateTime;
-        DisplayName = accountReturn.Name;
+        details.CreatedAt = accountReturn.Created.UtcDateTime;
+        details.DisplayName = accountReturn.Name;
 
         var wallet = await walletReturnTask;
 
-        int laurelCount = wallet.FirstOrDefault(c => c is {Id: LaurelId})?.Value ?? 0;
+        var laurelCount = wallet.FirstOrDefault(c => c is {Id: LaurelId})?.Value ?? 0;
 
         var characters = await charactersReturnTask;
         var prime = characters.FirstOrDefault();
-        int mysticCoinCount = 0;
+        var mysticCoinCount = 0;
         if (prime != null)
         {
-            Character = prime.Name;
+            details.Character = prime.Name;
 
             var allSlots = prime.Bags?
                 .SelectMany(bag => bag?.Inventory ?? Array.Empty<Gw2Sharp.WebApi.V2.Models.AccountItem>())
@@ -301,11 +356,10 @@ public class Account : ObservableObject, IAccount
         var materials = await materialsReturnTask;
         mysticCoinCount += (materials.FirstOrDefault(m => m is {Id: MysticCoinId})?.Count).GetValueOrDefault(0);
 
-        SetCount("MysticCoin", mysticCoinCount);
-        SetCount("Laurel", laurelCount);
+        details.LaurelCount = laurelCount;
+        details.MysticCoinCount = mysticCoinCount;
 
-        Logger.Debug("{0} {1} has {2} Laurels and {3} Mystic Coins", Name, Character, laurelCount, mysticCoinCount);
-
+        return details;
     }
 
     private void LinkFiles(FileSystemInfo from, FileSystemInfo to)
@@ -368,5 +422,15 @@ public class Account : ObservableObject, IAccount
     public bool Equals(IAccount? other)
     {
         return other != null && Name.Equals(other.Name);
+    }
+
+    public void SetUndo()
+    {
+        apiKeyUndo = ApiKey;
+    }
+
+    public void Undo()
+    {
+        ApiKey = apiKeyUndo;
     }
 }

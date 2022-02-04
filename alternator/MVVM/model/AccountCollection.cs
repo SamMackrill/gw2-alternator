@@ -10,7 +10,7 @@ public class AccountCollection : JsonCollection<Account>
 
     private const string AccountsJsonFile = "accounts.json";
 
-    public List<Account>? Accounts => Items;
+    public List<IAccount>? Accounts => Items?.Cast<IAccount>().ToList();
 
     public override event EventHandler? Loaded;
     public override event EventHandler? LoadFailed;
@@ -602,13 +602,12 @@ public class AccountCollection : JsonCollection<Account>
 
     public static Dictionary<string, List<IAccount>> AccountsByVpn(List<IAccount> accounts, bool ignoreVpn)
     {
-        Dictionary<string, List<IAccount>> vpnAccounts;
         if (ignoreVpn)
         {
             return new Dictionary<string, List<IAccount>> {{"", accounts}};
         }
 
-        vpnAccounts = accounts
+        var vpnAccounts = accounts
             .Where(a => a.HasVpn)
             .SelectMany(a => a.Vpns!, (a, vpn) => new { vpn, a })
             .GroupBy(t => t.vpn, t => t.a)
@@ -618,5 +617,14 @@ public class AccountCollection : JsonCollection<Account>
         if (nonVpnAccounts.Any()) vpnAccounts.Add("", nonVpnAccounts);
 
         return vpnAccounts;
+    }
+
+    public void SetUndo()
+    {
+        if (Accounts == null) return;
+        foreach (var account in Accounts)
+        {
+            account.SetUndo();
+        }
     }
 }

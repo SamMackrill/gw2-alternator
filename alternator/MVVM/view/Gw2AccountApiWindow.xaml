@@ -4,17 +4,19 @@
                   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                   xmlns:local="clr-namespace:guildwars2.tools.alternator.MVVM.view"
+                  xmlns:viewmodel="clr-namespace:guildwars2.tools.alternator.MVVM.viewmodel"
                   mc:Ignorable="d"
-                  Title="VPN Connections"
+                  Title="Account APIs"
                   Background="Transparent"
                   WindowStyle="None"
                   AllowsTransparency="True"
                   ResizeMode="CanResize"
-                  MinWidth="420"
+                  MinWidth="660"
                   MinHeight="40"
                   SizeToContent="WidthAndHeight"
                   MouseLeftButtonDown="Window_MouseLeftButtonDown"
-                  >
+                  d:DataContext="{d:DesignInstance Type=viewmodel:AccountApisViewModel}"
+                  d:DesignHeight="300" >
     <Window.Resources>
 
         <Style x:Key="RectBorderStyle" TargetType="Rectangle">
@@ -37,23 +39,11 @@
 
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="13"/>
-                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="13"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="2"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="2"/>
@@ -82,9 +72,75 @@
 
                 <Label Padding="0" 
                        FontWeight="DemiBold"
-                       Content="{Binding Path=Title, FallbackValue='GW2 API Keys'}" />
+                       Content="GW2 API Keys" />
 
             </DockPanel>
+
+            <DataGrid Grid.Row="2"  Grid.Column="1"
+                      Background="Transparent"
+                      AutoGenerateColumns="False"
+                      Margin="5"
+                      CanUserSortColumns="True"
+                      CanUserResizeColumns="True"
+                      CanUserReorderColumns="False"
+                      GridLinesVisibility="All"
+                      RowHeaderWidth="0"
+                      SelectionMode="Extended"
+                      IsReadOnly="False"
+                      SelectionUnit="FullRow"
+                      BorderThickness="0"
+                      d:ItemsSource="{d:SampleData}"
+                      ItemsSource="{Binding AccountApis}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Account" 
+                                        Binding="{Binding AccountName}" />
+                    <DataGridTextColumn Header="API Key"
+                                        FontFamily="Consolas"
+                                        Binding="{Binding ApiKey, FallbackValue='XXX-YYY-ZZZ' }"/>
+                    <DataGridTemplateColumn Header="Paste">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button DockPanel.Dock="Right"  
+                                        Padding="0" 
+                                        Opacity="0.6"
+                                        VerticalAlignment="Center"
+                                        HorizontalAlignment="Left"
+                                        BorderThickness="0" 
+                                        Background="Transparent"
+                                        Style="{StaticResource FadeOutButton}"
+                                        ToolTip="Paste from Clipboard."
+                                        Command="{Binding Path=PasteApiKeyCommand, Mode=OneWay}">
+                                    <Image Source="/images/clipboard.png" Width="18" />
+                                </Button>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="Undo">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button DockPanel.Dock="Right"  
+                                        Padding="0" 
+                                        Opacity="0.6"
+                                        VerticalAlignment="Center"
+                                        HorizontalAlignment="Left"
+                                        BorderThickness="0" 
+                                        Background="Transparent"
+                                        Style="{StaticResource FadeOutButton}"
+                                        ToolTip="Undo."
+                                        Command="{Binding Path=UndoApiKeyCommand, Mode=OneWay}">
+                                    <Image Source="/images/undo.png" Width="18" />
+                                </Button>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Status" 
+                                        Binding="{Binding Status}" />
+                </DataGrid.Columns>
+
+            </DataGrid>
+
         </Grid>
 
     </Border>

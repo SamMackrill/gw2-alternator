@@ -3,10 +3,11 @@
 /// <summary>
 /// Interaction logic for Accounts.xaml
 /// </summary>
-public partial class Accounts : UserControl
+public partial class Accounts
 {
     public Accounts()
     {
         InitializeComponent();
     }
+
 }

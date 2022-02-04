@@ -6,6 +6,7 @@ public class AccountVpnViewModel : ObservableObject
 {
     private IAccount account;
 
+    private bool isChecked;
     public bool IsChecked
     {
         get => isChecked;
@@ -19,7 +20,6 @@ public class AccountVpnViewModel : ObservableObject
     public string Display => vpn.ToString();
 
     private readonly VpnDetails vpn;
-    private bool isChecked;
 
     public AccountVpnViewModel(VpnDetails vpn, IAccount account)
     {
