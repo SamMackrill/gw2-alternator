@@ -34,7 +34,6 @@ public class AccountCollection : JsonCollection<Account>
                 await JsonSerializer.SerializeAsync(stream, Items, new JsonSerializerOptions { AllowTrailingCommas = true, WriteIndented = true });
             }
 
-            await Task.Delay(1000);
             Logger.Debug("Accounts saved to {0}", vpnJson);
         }
         finally

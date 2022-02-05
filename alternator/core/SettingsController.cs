@@ -82,7 +82,6 @@ public class SettingsController : ObservableObject
                  JsonSerializer.Serialize(stream, Settings, new JsonSerializerOptions { AllowTrailingCommas = true, WriteIndented = true });
             }
 
-            Task.Delay(1000);
             Logger.Debug("Settings saved to {0}", settingsJson);
         }
         finally
@@ -104,7 +103,6 @@ public class SettingsController : ObservableObject
                 await JsonSerializer.SerializeAsync(stream, Settings, new JsonSerializerOptions { AllowTrailingCommas = true, WriteIndented = true });
             }
 
-            await Task.Delay(1000);
             Logger.Debug("Settings saved to {0}", settingsJson);
         }
         finally

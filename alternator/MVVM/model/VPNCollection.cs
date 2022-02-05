@@ -25,7 +25,6 @@ public class VpnCollection : JsonCollection<VpnDetails>
                 await JsonSerializer.SerializeAsync(stream, Items, new JsonSerializerOptions { AllowTrailingCommas = true, WriteIndented = true });
             }
 
-            await Task.Delay(1000);
             Logger.Debug("VPNs saved to {0}", vpnJson);
         }
         finally

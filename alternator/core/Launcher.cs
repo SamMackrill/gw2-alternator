@@ -47,6 +47,7 @@ public class Launcher
 
         async Task? ReleaseLogin(CancellationToken cancellationToken)
         {
+            Logger.Debug("{0} login semaphore release", account.Name);
             try
             {
                 await authenticationThrottle.LoginDone(vpnDetails, client, launchType, cancellationToken);
