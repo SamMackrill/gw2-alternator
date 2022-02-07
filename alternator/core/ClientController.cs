@@ -193,7 +193,7 @@ public class ClientController
 
         var lines = new List<string>
         {
-            $"Started\t{startOfRun}", 
+            $"Started\t{startOfRun:d}\t{startOfRun:T}", 
             $"Total Time\t{DateTime.Now.Subtract(startOfRun).TotalSeconds}\ts",
             "Account\tStart\tAuthenticate\tLogin\tEnter\tExit",
         };

@@ -81,7 +81,7 @@ public class MainViewModel : ObservableObject
     public string ResetCountdown => DateTime.UtcNow.AddDays(1).Date.Subtract(DateTime.UtcNow).ToString(@"h'hr 'm'min'");
 
 
-    public Visibility CurrentVpnVisible =>  string.IsNullOrEmpty(authenticationThrottle.Vpn) ? Visibility.Hidden : Visibility.Collapsed;
+    public Visibility CurrentVpnVisible =>  string.IsNullOrEmpty(authenticationThrottle.Vpn) ? Visibility.Collapsed : Visibility.Visible;
     public string? Vpn => authenticationThrottle.Vpn;
 
     public Visibility ThrottleVisible => authenticationThrottle.FreeIn > 1 ? Visibility.Visible : Visibility.Collapsed;

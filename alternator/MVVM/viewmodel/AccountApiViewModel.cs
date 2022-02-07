@@ -70,6 +70,8 @@ public class AccountApiViewModel : ObservableObject
         }
     }
 
+    public bool IsSelected { get; set; }
+
     private string DebugDisplay => $"{account.Name} {account.ApiKey}";
 
 }
