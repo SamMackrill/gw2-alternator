@@ -2,7 +2,7 @@ name: "Deploy GW2 Alternator"
 
 on:
   push:
-    branch:
+    branches:
       - main
 
 env:
