@@ -42,4 +42,5 @@ jobs:
           artifacts: "publish/*.exe"
           generateReleaseNotes: true
           name: V${{ env.GitBuildVersionSimple }}
+          tag: V${{ env.GitBuildVersionSimple }}
           token: ${{ secrets.GITHUB_TOKEN }}
