@@ -66,7 +66,6 @@ Tool to help logging-in to multiple Guild Wars 2 alt accounts so as to harvest t
 - [ ] More robust login delay
 - [ ] Better GW2 State detection
    * e.g. when error occurs or when login is very slow
-- [ ] Fix Automation of releases
 - [ ] Decouple Client from Account
 - [ ] Improve Unit Testing
 - [ ] Improve error reporting

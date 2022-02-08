@@ -150,7 +150,6 @@ public class AccountCollection : JsonCollection<Account>
     }
 
     public bool CanImportFromLauncher => Directory.Exists(launchbuddyFolder);
-    public bool Ready { get; set; }
 
     public void ImportFromLauncher()
     {
