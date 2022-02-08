@@ -8,9 +8,10 @@ Tool to help logging-in to multiple Guild Wars 2 alt accounts so as to harvest t
 ## Features:
  * Import account details from GW2Launcher and/or GW2Launchbuddy
  * Automatically login to accounts with no user input
+   * Will retry automatically on failure
  * Assist with collection of rewards every few days
  * Application has no access to your GW2 authentication details
- * Whilst you can still use your PC while this is running focus will constntly be stolen and this can be annoying
+ * Whilst you can still use your PC while this is running focus will constantly be stolen and this can be annoying
 
 ## Getting Started
  * On application launch you will be asked to confirm admin access
@@ -30,10 +31,10 @@ Tool to help logging-in to multiple Guild Wars 2 alt accounts so as to harvest t
    * There is a hard limit of 40 accounts from a single IP address, resets every 8 hours
  * Use email aliases to set-up your accounts : https://support.google.com/a/users/answer/9308648?hl=en
  * Logging into many (>10? ) accounts on https://www.guildwars2.com/ may cause a lockout that takes 24 hours to clear
-   * /!\ Someting went wrong. Please try again in a few minutes
+   * /!\ Something went wrong. Please try again in a few minutes
    * Speculation: This is linked to using email aliases
    * Using a VPN seems not to help here
- * Logging into the game will becoume slower after multiple (>10?) accounts and may block entirely
+ * Logging into the game will become slower after multiple (>10?) accounts and may block entirely
   * Using a VPN will help
   * Waiting a few minutes (5?) will help
   * GW2-Alternator tries to counter this by slowing down the login attempts
@@ -50,27 +51,28 @@ Tool to help logging-in to multiple Guild Wars 2 alt accounts so as to harvest t
 
 ### VPN
  * If you create manual VPN configurations in Windows then alternator can use these automatically
+   * Ensure that the connection is a static IP or restricted to 255.255.255.0 subnet (for smooth GW2 authentication)
+   * [Shark VPN instructions](https://support.surfshark.com/hc/en-us/articles/360003144894-How-to-set-up-an-IKEv2-connection-manually-on-Windows-)
 
 ### Login Errors
  * Typical errors you may see (usually fixed by waiting 5 mins)
 ![Error](images/Login_Error.png)
 ![Undefined Error](images/Login_Error_Undefined.png)
 
-TO DO
- * Updates when the game version changes 
-   * You can use GW2Launcher or GW2Launchbuddy to do this
- * More robust login delay
- * Better GW2 State detection
+## TO DO
+- [ ] Updates when the game version changes 
+   * In the meantime use GW2Launcher or GW2Launchbuddy to do this
+- [ ] More robust login delay
+- [ ] Better GW2 State detection
    * e.g. when error occurs or when login is very slow
- * Fix Automation of releases
- * Decouple Client from Account
- * Improve Unit Testing
- * Improve error reporting
- * Investigate using GW2Launcher multiple Windows User accounts approach (this avoids Admin requirement)
- * Improved numeric settings input and validation
+- [ ] Fix Automation of releases
+- [ ] Decouple Client from Account
+- [ ] Improve Unit Testing
+- [ ] Improve error reporting
+- [ ] Investigate using GW2Launcher multiple Windows User accounts approach (this avoids Admin requirement)
+- [ ] Improved numeric settings input and validation
 
-
-Credits:
+## Credits:
 * GW2 Launchbuddy https://github.com/TheCheatsrichter/Gw2_Launchbuddy
 * GW2Launcher https://github.com/Healix/Gw2Launcher
 * GW2 API access using GW2Sharp https://github.com/Archomeda/Gw2Sharp
