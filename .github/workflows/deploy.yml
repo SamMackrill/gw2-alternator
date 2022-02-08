@@ -2,9 +2,8 @@ name: "Deploy GW2 Alternator"
 
 on:
   push:
-    tags:
-      - V*
-      - v*
+    branch:
+      - main
 
 env:
   PROJECT_PATH: alternator/alternator.csproj
@@ -42,4 +41,5 @@ jobs:
         with:
           artifacts: "publish/*.exe"
           generateReleaseNotes: true
+          name: V${{ env.GitBuildVersionSimple }}
           token: ${{ secrets.GITHUB_TOKEN }}
