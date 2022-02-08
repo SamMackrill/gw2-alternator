@@ -54,7 +54,7 @@ Tool to help logging-in to multiple Guild Wars 2 alt accounts so as to harvest t
 ### Login Errors
  * Typical errors you may see (usually fixed by waiting 5 mins)
 ![Error](images/Login_Error.png)
-![Undefined Error](images/Login_Error_Undefined.png.png)
+![Undefined Error](images/Login_Error_Undefined.png)
 
 TO DO
  * Updates when the game version changes 
