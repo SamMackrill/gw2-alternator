@@ -1,16 +1,18 @@
-gw2-alternator
+# gw2-alternator
+(If anybody wants to help I would be delighted!)
 
 Tool to help logging-in to multiple Guild Wars 2 alt accounts so as to harvest the daily rewards.
 
-[Running](images/running.png)
+![Running](images/running.png)
 
-Features:
+## Features:
  * Import account details from GW2Launcher and/or GW2Launchbuddy
  * Automatically login to accounts with no user input
  * Assist with collection of rewards every few days
  * Application has no access to your GW2 authentication details
+ * Whilst you can still use your PC while this is running focus will constntly be stolen and this can be annoying
 
-Getting Started
+## Getting Started
  * On application launch you will be asked to confirm admin access
    * This is just so symbolic links can be created (similar to GW2LaunchBuddy)
  * If you have no accounts defined then go to settings and import from GW2Launcher and/or GW2Launchbuddy
@@ -23,7 +25,7 @@ Getting Started
    * Use CTRL-click to unselect
  * To harvest it is best not to run the Login step that day as this will trigger the login throttling
 
- Working with Multiple Accounts
+ ## Working with Multiple Accounts
  * The anti-botting measures tend to make dealing with more than 10 accounts difficult
    * There is a hard limit of 40 accounts from a single IP address, resets every 8 hours
  * Use email aliases to set-up your accounts : https://support.google.com/a/users/answer/9308648?hl=en
@@ -38,15 +40,21 @@ Getting Started
     * However the delay required depend on the past login history and is difficult to guess
     * There are tuning parameters in Settings to help adjust this
 
-VPN
- * If you create manual VPN configurations in Windows then alternator can use these automatically
-
-Advanced
+## Advanced
  * Settings, Account details, metrics and logs are found here: %AppData%\gw2-alternator
+
+### GW2 API Key
  * Given a GW2 API key then Laurels and Mystic Coins will be counted (excludes unclaimed reward chests)
    * Account/Inventories/Characters/Wallet
+ ![Create Key](images/api_create.png)
 
-If anybody wants to help I would be delighted!
+### VPN
+ * If you create manual VPN configurations in Windows then alternator can use these automatically
+
+### Login Errors
+ * Typical errors you may see (usually fixed by waiting 5 mins)
+![Error](images/Login_Error.png)
+![Undefined Error](images/Login_Error_Undefined.png.png)
 
 TO DO
  * Updates when the game version changes 
