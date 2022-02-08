@@ -1,0 +1,19 @@
+{
+  "name": "gw2-alternator",
+  "version": "0.1.0",
+  "description": "Tool to help logging-in to multiple Guild Wars 2 alt accounts so as to harvest the daily rewards.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SamMackrill/gw2-alternator.git"
+  },
+  "author": "Sam Mackrill",
+  "license": "Unlicense",
+  "bugs": {
+    "url": "https://github.com/SamMackrill/gw2-alternator/issues"
+  },
+  "homepage": "https://github.com/SamMackrill/gw2-alternator"
+}

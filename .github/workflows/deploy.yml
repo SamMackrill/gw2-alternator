@@ -3,7 +3,8 @@ name: "Deploy GW2 Alternator"
 on:
   push:
     tags:
-      - "V*"
+      - V*
+      - v*
 
 env:
   PROJECT_PATH: alternator/alternator.csproj
@@ -19,7 +20,7 @@ jobs:
       - uses: dotnet/nbgv@master
         with:
           stamp: package.json
-          
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v1
         with:
