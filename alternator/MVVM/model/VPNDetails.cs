@@ -33,13 +33,24 @@ public class VpnConnectionMetrics
 
 [Serializable]
 [DebuggerDisplay("{" + nameof(DebugDisplay) + ",nq}")]
-public class VpnDetails : IEquatable<VpnDetails>
+public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private Settings? settings;
 
-    public string Id { get; set; }
-    public string ConnectionName { get; set; }
+    private string id;
+    public string Id
+    {
+        get => id;
+        set => SetProperty(ref id, value);
+    }
+
+    private string connectionName;
+    public string ConnectionName
+    {
+        get => connectionName;
+        set => SetProperty(ref connectionName, value);
+    }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public DateTime LastConnectionFail { get; set; }
@@ -222,5 +233,10 @@ public class VpnDetails : IEquatable<VpnDetails>
         if (count < settings.AccountBand2) return settings.AccountBand2Delay;
         if (count < settings.AccountBand3) return settings.AccountBand3Delay;
         return settings.AccountBand3Delay + 60;
+    }
+
+    public void Undo()
+    {
+        throw new NotImplementedException();
     }
 }

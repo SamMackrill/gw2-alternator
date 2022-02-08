@@ -17,6 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="images\add-row.png" />
     <None Remove="images\alternate.png" />
     <None Remove="images\alternate_orange-wide.png" />
     <None Remove="images\alternate_orange.png" />
@@ -42,6 +43,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="images\add-row.png" />
     <Resource Include="images\alternate.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>

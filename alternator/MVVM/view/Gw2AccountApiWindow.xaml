@@ -11,12 +11,13 @@
                   WindowStyle="None"
                   AllowsTransparency="True"
                   ResizeMode="CanResize"
-                  MinWidth="660"
+                  MinWidth="100"
                   MinHeight="40"
                   SizeToContent="WidthAndHeight"
                   MouseLeftButtonDown="Window_MouseLeftButtonDown"
                   d:DataContext="{d:DesignInstance Type=viewmodel:AccountApisViewModel}"
-                  d:DesignHeight="300" >
+                  d:DesignWidth="600"
+                  d:DesignHeight="200" >
     <Window.Resources>
 
         <Style x:Key="RectBorderStyle" TargetType="Rectangle">
@@ -30,26 +31,29 @@
 
     </Window.Resources>
 
-    <Border BorderBrush="{StaticResource ForegroundBrush}"
-            BorderThickness="2"
-            CornerRadius="20"
-            Background="{StaticResource BackgroundBrush}">
+    <Grid>
 
-        <Grid ShowGridLines="False">
+        <Border BorderBrush="{StaticResource ForegroundBrush}" 
+                BorderThickness="3" 
+                CornerRadius="20"
+                MouseLeftButtonDown="Window_MouseLeftButtonDown"
+                Background="{StaticResource BackgroundBrush}">
 
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="13"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="13"/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="2"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="2"/>
-            </Grid.RowDefinitions>
+            <Grid ShowGridLines="False">
 
-            <DockPanel x:Name="TitleBar"
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="13"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="13"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="2"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="2"/>
+                </Grid.RowDefinitions>
+
+                <DockPanel x:Name="TitleBar"
                        Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="5"
                        Background="{StaticResource BackgroundBrush}" 
                        Height="24" 
@@ -57,7 +61,7 @@
                        LastChildFill="true" 
                        Margin="0,0,10,0">
 
-                <Button DockPanel.Dock="Right"  
+                    <Button DockPanel.Dock="Right"  
                         Padding="0" 
                         Opacity="0.6"
                         VerticalAlignment="Center" 
@@ -67,16 +71,16 @@
                         Style="{StaticResource FadeOutButton}"
                         Click="CloseButton_Click"
                         >
-                    <Image Source="/images/close-window.png" Width="24" />
-                </Button>
+                        <Image Source="/images/close-window.png" Width="24" />
+                    </Button>
 
-                <Label Padding="0" 
+                    <Label Padding="0" 
                        FontWeight="DemiBold"
                        Content="GW2 API Keys" />
 
-            </DockPanel>
+                </DockPanel>
 
-            <DataGrid Grid.Row="2"  Grid.Column="1"
+                <DataGrid Grid.Row="2"  Grid.Column="1"
                       Background="Transparent"
                       AutoGenerateColumns="False"
                       Margin="5"
@@ -91,16 +95,16 @@
                       BorderThickness="0"
                       d:ItemsSource="{d:SampleData}"
                       ItemsSource="{Binding AccountApis}">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Account" 
-                                        Binding="{Binding AccountName}" />
-                    <DataGridTextColumn Header="API Key"
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Account" 
+                                        Binding="{Binding AccountName, Mode=OneWay}" />
+                        <DataGridTextColumn Header="API Key"
                                         FontFamily="Consolas"
                                         Binding="{Binding ApiKey, FallbackValue='XXX-YYY-ZZZ' }"/>
-                    <DataGridTemplateColumn Header="Paste">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Button DockPanel.Dock="Right"  
+                        <DataGridTemplateColumn Header="Paste">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button DockPanel.Dock="Right"  
                                         Padding="0" 
                                         Opacity="0.6"
                                         VerticalAlignment="Center"
@@ -110,16 +114,16 @@
                                         Style="{StaticResource FadeOutButton}"
                                         ToolTip="Paste from Clipboard."
                                         Command="{Binding Path=PasteApiKeyCommand, Mode=OneWay}">
-                                    <Image Source="/images/clipboard.png" Width="18" />
-                                </Button>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
+                                        <Image Source="/images/clipboard.png" Width="18" />
+                                    </Button>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
 
-                    </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="Undo">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Button DockPanel.Dock="Right"  
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Undo">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button DockPanel.Dock="Right"  
                                         Padding="0" 
                                         Opacity="0.6"
                                         VerticalAlignment="Center"
@@ -129,20 +133,70 @@
                                         Style="{StaticResource FadeOutButton}"
                                         ToolTip="Undo."
                                         Command="{Binding Path=UndoApiKeyCommand, Mode=OneWay}">
-                                    <Image Source="/images/undo.png" Width="18" />
-                                </Button>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
+                                        <Image Source="/images/undo.png" Width="18" />
+                                    </Button>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
 
-                    </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="Status" 
-                                        Binding="{Binding Status}" />
-                </DataGrid.Columns>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Status" 
+                                        Binding="{Binding Status, Mode=OneWay}" />
+                    </DataGrid.Columns>
 
-            </DataGrid>
+                </DataGrid>
 
-        </Grid>
+            </Grid>
 
-    </Border>
+        </Border>
+        <Rectangle x:Name="LeftSizeGrip"
+               Width="7"
+               HorizontalAlignment="Left"
+               Cursor="SizeWE"
+               Style="{StaticResource RectBorderStyle}" />
+        <Rectangle x:Name="RightSizeGrip"
+               Width="7"
+               HorizontalAlignment="Right"
+               Cursor="SizeWE"
+               Style="{StaticResource RectBorderStyle}" />
+        <Rectangle x:Name="TopSizeGrip"
+               Height="7"
+               VerticalAlignment="Top"
+               Cursor="SizeNS"
+               Style="{StaticResource RectBorderStyle}" />
+        <Rectangle x:Name="BottomSizeGrip"
+               Height="7"
+               VerticalAlignment="Bottom"
+               Cursor="SizeNS"
+               Style="{StaticResource RectBorderStyle}" />
+        <!--  Corners  -->
+        <Rectangle Name="TopLeftSizeGrip"
+               Width="12"
+               Height="12"
+               HorizontalAlignment="Left"
+               VerticalAlignment="Top"
+               Cursor="SizeNWSE"
+               Style="{StaticResource RectBorderStyle}" />
+        <Rectangle Name="BottomRightSizeGrip"
+               Width="12"
+               Height="12"
+               HorizontalAlignment="Right"
+               VerticalAlignment="Bottom"
+               Cursor="SizeNWSE"
+               Style="{StaticResource RectBorderStyle}" />
+        <Rectangle Name="TopRightSizeGrip"
+               Width="12"
+               Height="12"
+               HorizontalAlignment="Right"
+               VerticalAlignment="Top"
+               Cursor="SizeNESW"
+               Style="{StaticResource RectBorderStyle}" />
+        <Rectangle Name="BottomLeftSizeGrip"
+               Width="12"
+               Height="12"
+               HorizontalAlignment="Left"
+               VerticalAlignment="Bottom"
+               Cursor="SizeNESW"
+               Style="{StaticResource RectBorderStyle}" />
+    </Grid>
 
 </local:WindowBase>

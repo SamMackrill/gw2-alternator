@@ -7,7 +7,7 @@
         xmlns:viewmodel="clr-namespace:guildwars2.tools.alternator.MVVM.viewmodel"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=viewmodel:MainViewModel}"
-        Height="450" Width="1000"
+        Height="450" Width="1200"
         MinHeight="350" MinWidth="560"
         WindowStyle="None"
         ResizeMode="CanResize"
@@ -29,24 +29,24 @@
     </Window.Resources>
 
     <Grid>
-    <Border BorderBrush="{StaticResource ForegroundBrush}" 
+        <Border BorderBrush="{StaticResource ForegroundBrush}" 
             BorderThickness="3" 
             CornerRadius="20"
             MouseLeftButtonDown="Window_MouseLeftButtonDown"
             Background="{StaticResource BackgroundBrush}">
 
-        <Grid ShowGridLines="False">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition  Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="2"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+            <Grid ShowGridLines="False">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition  Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="2"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
 
-            <DockPanel x:Name="TitleBar" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" 
+                <DockPanel x:Name="TitleBar" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" 
                        Background="#242424" 
                        Height="24" 
                        HorizontalAlignment="Stretch"
@@ -54,54 +54,54 @@
                        LastChildFill="true" 
                        Margin="5,5,10,5">
 
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" Margin="0" VerticalAlignment="Center">
-                    <TextBlock FontSize="22" 
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" Margin="0" VerticalAlignment="Center">
+                        <TextBlock FontSize="22" 
                                HorizontalAlignment="Left"
                                VerticalAlignment="Center"
                                Padding="0"
                                Margin="0,0,-4,0"
                                Text="GW2" />
-                    <Image Source="/images/alternate_orange-wide.png" Height="24" Margin="0" />
-                    <TextBlock FontSize="22" 
+                        <Image Source="/images/alternate_orange-wide.png" Height="24" Margin="0" />
+                        <TextBlock FontSize="22" 
                                HorizontalAlignment="Left"
                                VerticalAlignment="Center"
                                Padding="0"
                                Margin="-5,0,0,0"
                                Text="Alternator" />
-                </StackPanel>
+                    </StackPanel>
 
-                <StackPanel Orientation="Horizontal" 
+                    <StackPanel Orientation="Horizontal" 
                             DockPanel.Dock="Left"
                             Margin="0" 
                             VerticalAlignment="Bottom">
 
-                    <TextBlock FontSize="22" 
+                        <TextBlock FontSize="22" 
                                Padding="0"
                                Margin="20,0,0,0"
                                FontWeight="DemiBold"
                                FontFamily="Consolas"
                                Text="{Binding TimeUtc, FallbackValue='00:00'}" />
-                    <TextBlock FontSize="22" 
+                        <TextBlock FontSize="22" 
                                Padding="0"
                                Margin="3,0,0,0"
                                FontWeight="DemiBold"
                                FontFamily="Consolas"
                                Text="UTC" />
 
-                    <TextBlock FontSize="22" 
+                        <TextBlock FontSize="22" 
                                Padding="0"
                                Margin="20,0,0,0"
                                FontWeight="DemiBold"
                                FontFamily="Consolas"
                                Text="Reset:" />
-                    <TextBlock FontSize="22" 
+                        <TextBlock FontSize="22" 
                                Padding="0"
                                Margin="4,0,0,0"
                                FontWeight="DemiBold"
                                FontFamily="Consolas"
                                Text="{Binding ResetCountdown, FallbackValue='8hr 12min'}" />
 
-                    <TextBlock FontSize="22" 
+                        <TextBlock FontSize="22" 
                                Padding="0"
                                Margin="20,0,0,0"
                                Background = "{StaticResource HighlightBrush}"
@@ -110,27 +110,27 @@
                                Visibility="{Binding CurrentVpnVisible}"
                                Text="{Binding Vpn, FallbackValue='NYK'}" />
 
-                    <TextBlock FontSize="22" 
+                        <TextBlock FontSize="22" 
                                Padding="0"
                                Margin="20,0,0,0"
                                FontFamily="Consolas"
                                Visibility="{Binding ThrottleVisible}"
                                Text="Throttle:" />
-                    <TextBlock FontSize="22" 
+                        <TextBlock FontSize="22" 
                                Padding="0"
                                Margin="4,0,0,0"
                                FontFamily="Consolas"
                                Visibility="{Binding ThrottleVisible}"
                                Text="{Binding ThrottleDelay, FallbackValue='37s'}" />
-                </StackPanel>
+                    </StackPanel>
 
-                <StackPanel Orientation="Horizontal" 
+                    <StackPanel Orientation="Horizontal" 
                             DockPanel.Dock="Right"
                             Margin="0" 
                             HorizontalAlignment="Right"
                             VerticalAlignment="Center">
 
-                    <Button Padding="0"
+                        <Button Padding="0"
                             Margin="0,0,8,0"
                             Opacity="0.6"
                             VerticalAlignment="Center" 
@@ -141,10 +141,10 @@
                             ToolTip="Settings..."
                             Command="{Binding Path=ShowSettingsCommand, Mode=OneWay}">
 
-                        <Image Source="/images/settings3.png" Width="24" />
-                    </Button>
+                            <Image Source="/images/settings3.png" Width="24" />
+                        </Button>
 
-                    <Button Padding="0"
+                        <Button Padding="0"
                             Margin="0,0,8,0"
                             Opacity="0.6"
                             VerticalAlignment="Center" 
@@ -156,9 +156,9 @@
                             Command="{Binding Path=ShowApisCommand, Mode=OneWay}">
 
                             <Image Source="/images/cloud-download.png" Width="24" />
-                    </Button>
+                        </Button>
 
-                    <Button Padding="0"
+                        <Button Padding="0"
                             Margin="0,0,8,0"
                             Opacity="0.6"
                             VerticalAlignment="Center" 
@@ -169,10 +169,10 @@
                             ToolTip="VPN Connections..."
                             Command="{Binding Path=ShowVpnsCommand, Mode=OneWay}">
 
-                        <Image Source="/images/vpn.png" Width="24" />
-                    </Button>
+                            <Image Source="/images/vpn.png" Width="24" />
+                        </Button>
 
-                    <Button Padding="0"
+                        <Button Padding="0"
                             Margin="0,0,8,0"
                             Opacity="0.6"
                             VerticalAlignment="Center" 
@@ -183,10 +183,10 @@
                             ToolTip="Copy Metrics to Clipboard"
                             Command="{Binding Path=CopyMetricsCommand, Mode=OneWay}">
 
-                        <Image Source="/images/clipboard.png"  Width="24" />
-                    </Button>
+                            <Image Source="/images/clipboard.png"  Width="24" />
+                        </Button>
 
-                    <Button Padding="0" 
+                        <Button Padding="0" 
                             Margin="0,0,8,0"
                             Opacity="0.6"
                             VerticalAlignment="Center" 
@@ -197,10 +197,10 @@
                             Click="MinimizeButton_Click"
                     >
 
-                        <Image Source="/images/minimize-window.png"  Width="24" />
-                    </Button>
+                            <Image Source="/images/minimize-window.png"  Width="24" />
+                        </Button>
 
-                    <Button  Padding="0" 
+                        <Button  Padding="0" 
                              Opacity="0.6"
                              VerticalAlignment="Center" 
                              BorderThickness="0" 
@@ -209,123 +209,123 @@
                              Style="{StaticResource FadeOutButton}"
                              Command="{Binding Path=CloseCommand, Mode=OneWay}"
                     >
-                        <Image Source="/images/close-window.png"  Width="24" />
-                    </Button>
+                            <Image Source="/images/close-window.png"  Width="24" />
+                        </Button>
 
-                </StackPanel>
-
-
-            </DockPanel>
+                    </StackPanel>
 
 
-            <StackPanel Grid.Row="2" Grid.Column="0">
-                <Border BorderThickness="1" 
+                </DockPanel>
+
+
+                <StackPanel Grid.Row="2" Grid.Column="0">
+                    <Border BorderThickness="1" 
                         CornerRadius="5"
                         Margin="4,10,2,0"
                         Background="{StaticResource BackgroundBrush}">
 
-                    <Border.BorderBrush>
-                        <VisualBrush>
-                            <VisualBrush.Visual>
-                                <Rectangle StrokeDashArray="3 3" 
+                        <Border.BorderBrush>
+                            <VisualBrush>
+                                <VisualBrush.Visual>
+                                    <Rectangle StrokeDashArray="3 3" 
                                            Stroke="{StaticResource ForegroundBrush}" 
                                            StrokeThickness="2"
                                            Width="{Binding RelativeSource={RelativeSource AncestorType={x:Type Border}}, Path=ActualWidth}"
                                            Height="{Binding RelativeSource={RelativeSource AncestorType={x:Type Border}}, Path=ActualHeight}"/>
-                            </VisualBrush.Visual>
-                        </VisualBrush>
-                    </Border.BorderBrush>
+                                </VisualBrush.Visual>
+                            </VisualBrush>
+                        </Border.BorderBrush>
 
-                    <StackPanel>
-                        <CheckBox Content="Force All" 
+                        <StackPanel>
+                            <CheckBox Content="Force All" 
                                   IsChecked="{Binding ForceAllOverride}"
                         />
-                        <CheckBox Content="Force Serial" 
+                            <CheckBox Content="Force Serial" 
                                   IsChecked="{Binding ForceSerialOverride}"
                         />
-                        <CheckBox Content="Ignore VPN" 
+                            <CheckBox Content="Ignore VPN" 
                                   Visibility="{Binding VpnVisibility}"
                                   IsChecked="{Binding IgnoreVpnOverride}"
                         />
-                    </StackPanel>
+                        </StackPanel>
 
-                </Border>
-                <RadioButton Command="{Binding LoginCommand}"
+                    </Border>
+                    <RadioButton Command="{Binding LoginCommand}"
                              d:IsChecked="True"
                              IsChecked="{Binding LoginChecked}"
                              Content="{Binding LoginText, FallbackValue=Login}"
                              Style="{StaticResource MenuButtonTheme}" />
-                <RadioButton Command="{Binding CollectCommand}"
+                    <RadioButton Command="{Binding CollectCommand}"
                              IsChecked="{Binding CollectChecked}"
                              Content="{Binding CollectText, FallbackValue=Collect}"
                              Style="{StaticResource MenuButtonTheme}" />
-                <RadioButton Command="{Binding UpdateCommand}"
+                    <RadioButton Command="{Binding UpdateCommand}"
                              IsChecked="{Binding UpdateChecked}"
                              Content="{Binding UpdateText, FallbackValue=Update}"
                              Style="{StaticResource MenuButtonTheme}" />
-                <RadioButton Command="{Binding StopCommand}"
+                    <RadioButton Command="{Binding StopCommand}"
                              IsChecked="{Binding StopChecked}"
                              Content="{Binding StopText, FallbackValue=Stop!}"
                              Style="{StaticResource MenuButtonTheme}" />
-            </StackPanel>
+                </StackPanel>
 
-            <view:Accounts Grid.Row="2" Grid.Column="1" 
+                <view:Accounts Grid.Row="2" Grid.Column="1" 
                            DataContext="{Binding AccountsVM}"
                            />
 
-        </Grid>
+            </Grid>
 
-    </Border>
+        </Border>
 
         <Rectangle x:Name="LeftSizeGrip"
-                   Width="7"
-                   HorizontalAlignment="Left"
-                   Cursor="SizeWE"
-                   Style="{StaticResource RectBorderStyle}" />
+               Width="7"
+               HorizontalAlignment="Left"
+               Cursor="SizeWE"
+               Style="{StaticResource RectBorderStyle}" />
         <Rectangle x:Name="RightSizeGrip"
-                   Width="7"
-                   HorizontalAlignment="Right"
-                   Cursor="SizeWE"
-                   Style="{StaticResource RectBorderStyle}" />
+               Width="7"
+               HorizontalAlignment="Right"
+               Cursor="SizeWE"
+               Style="{StaticResource RectBorderStyle}" />
         <Rectangle x:Name="TopSizeGrip"
-                   Height="7"
-                   VerticalAlignment="Top"
-                   Cursor="SizeNS"
-                   Style="{StaticResource RectBorderStyle}" />
+               Height="7"
+               VerticalAlignment="Top"
+               Cursor="SizeNS"
+               Style="{StaticResource RectBorderStyle}" />
         <Rectangle x:Name="BottomSizeGrip"
-                   Height="7"
-                   VerticalAlignment="Bottom"
-                   Cursor="SizeNS"
-                   Style="{StaticResource RectBorderStyle}" />
+               Height="7"
+               VerticalAlignment="Bottom"
+               Cursor="SizeNS"
+               Style="{StaticResource RectBorderStyle}" />
         <!--  Corners  -->
         <Rectangle Name="TopLeftSizeGrip"
-                   Width="12"
-                   Height="12"
-                   HorizontalAlignment="Left"
-                   VerticalAlignment="Top"
-                   Cursor="SizeNWSE"
-                   Style="{StaticResource RectBorderStyle}" />
+               Width="12"
+               Height="12"
+               HorizontalAlignment="Left"
+               VerticalAlignment="Top"
+               Cursor="SizeNWSE"
+               Style="{StaticResource RectBorderStyle}" />
         <Rectangle Name="BottomRightSizeGrip"
-                   Width="12"
-                   Height="12"
-                   HorizontalAlignment="Right"
-                   VerticalAlignment="Bottom"
-                   Cursor="SizeNWSE"
-                   Style="{StaticResource RectBorderStyle}" />
+               Width="12"
+               Height="12"
+               HorizontalAlignment="Right"
+               VerticalAlignment="Bottom"
+               Cursor="SizeNWSE"
+               Style="{StaticResource RectBorderStyle}" />
         <Rectangle Name="TopRightSizeGrip"
-                   Width="12"
-                   Height="12"
-                   HorizontalAlignment="Right"
-                   VerticalAlignment="Top"
-                   Cursor="SizeNESW"
-                   Style="{StaticResource RectBorderStyle}" />
+               Width="12"
+               Height="12"
+               HorizontalAlignment="Right"
+               VerticalAlignment="Top"
+               Cursor="SizeNESW"
+               Style="{StaticResource RectBorderStyle}" />
         <Rectangle Name="BottomLeftSizeGrip"
-                   Width="12"
-                   Height="12"
-                   HorizontalAlignment="Left"
-                   VerticalAlignment="Bottom"
-                   Cursor="SizeNESW"
-                   Style="{StaticResource RectBorderStyle}" />
+               Width="12"
+               Height="12"
+               HorizontalAlignment="Left"
+               VerticalAlignment="Bottom"
+               Cursor="SizeNESW"
+               Style="{StaticResource RectBorderStyle}" />
 
     </Grid>
 

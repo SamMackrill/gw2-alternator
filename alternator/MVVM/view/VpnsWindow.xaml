@@ -4,17 +4,19 @@
                   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                   xmlns:local="clr-namespace:guildwars2.tools.alternator.MVVM.view"
+                  xmlns:viewmodel="clr-namespace:guildwars2.tools.alternator.MVVM.viewmodel"
                   mc:Ignorable="d"
-                  Title="VPN Connections"
+                  Title="Account APIs"
                   Background="Transparent"
                   WindowStyle="None"
                   AllowsTransparency="True"
                   ResizeMode="CanResize"
-                  MinWidth="420"
+                  MinWidth="660"
                   MinHeight="40"
                   SizeToContent="WidthAndHeight"
                   MouseLeftButtonDown="Window_MouseLeftButtonDown"
-                  >
+                  d:DataContext="{d:DesignInstance Type=viewmodel:VpnConnectionsViewModel}"
+                  d:DesignHeight="300" >
     <Window.Resources>
 
         <Style x:Key="RectBorderStyle" TargetType="Rectangle">
@@ -28,47 +30,39 @@
 
     </Window.Resources>
 
-    <Border BorderBrush="{StaticResource ForegroundBrush}"
-            BorderThickness="2"
-            CornerRadius="20"
-            Background="{StaticResource BackgroundBrush}">
+    <Grid>
 
-        <Grid ShowGridLines="False">
+        <Border BorderBrush="{StaticResource ForegroundBrush}" 
+                BorderThickness="3" 
+                CornerRadius="20"
+                MouseLeftButtonDown="Window_MouseLeftButtonDown"
+                Background="{StaticResource BackgroundBrush}">
 
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="13"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="13"/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="2"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="2"/>
-            </Grid.RowDefinitions>
+            <Grid ShowGridLines="False">
 
-            <DockPanel x:Name="TitleBar"
-                       Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="5"
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="13"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="13"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="2"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="2"/>
+                </Grid.RowDefinitions>
+
+                <DockPanel x:Name="TitleBar"
+                       Grid.Row="1" Grid.Column="1"
                        Background="{StaticResource BackgroundBrush}" 
                        Height="24" 
                        HorizontalAlignment="Stretch" 
                        LastChildFill="true" 
                        Margin="0,0,10,0">
 
-                <Button DockPanel.Dock="Right"  
-                        Padding="0" 
+                    <Button DockPanel.Dock="Right"
+                        Margin="10,0,0,0"
+                        Padding="10" 
                         Opacity="0.6"
                         VerticalAlignment="Center" 
                         BorderThickness="0" 
@@ -77,16 +71,171 @@
                         Style="{StaticResource FadeOutButton}"
                         Click="CloseButton_Click"
                         >
-                    <Image Source="/images/close-window.png" Width="24" />
-                </Button>
+                        <Image Source="/images/close-window.png" Width="24" />
+                    </Button>
 
-                <Label Padding="0" 
+                    <Button DockPanel.Dock="Right"  
+                        Padding="0" 
+                        Opacity="0.6"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Left"
+                        BorderThickness="0" 
+                        Background="Transparent"
+                        Style="{StaticResource FadeOutButton}"
+                        ToolTip="Add new VPN connection."
+                        Command="{Binding Path=AddNewConnectionCommand, Mode=OneWay}">
+                        <Image Source="/images/add-row.png" Width="24" />
+                    </Button>
+
+                    <Label Padding="0" 
                        FontWeight="DemiBold"
-                       Content="{Binding Path=Title, FallbackValue='VPN Connections'}" />
+                       Content="VPN Connections" />
 
-            </DockPanel>
-        </Grid>
+                </DockPanel>
 
-    </Border>
+                <DataGrid Grid.Row="2"  Grid.Column="1"
+                      Background="Transparent"
+                      AutoGenerateColumns="False"
+                      Margin="5"
+                      CanUserSortColumns="True"
+                      CanUserResizeColumns="True"
+                      CanUserReorderColumns="False"
+                      GridLinesVisibility="All"
+                      RowHeaderWidth="0"
+                      SelectionMode="Extended"
+                      IsReadOnly="False"
+                      SelectionUnit="FullRow"
+                      BorderThickness="0"
+                      d:ItemsSource="{d:SampleData}"
+                      ItemsSource="{Binding VpnConnections}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="ID" 
+                                        Binding="{Binding Id}" />
+                        <DataGridTextColumn Header="Connection"
+                                        Binding="{Binding ConnectionName, FallbackValue='New York. New York' }"/>
+
+                        <DataGridTemplateColumn Header="Paste">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button DockPanel.Dock="Right"  
+                                        Padding="0" 
+                                        Opacity="0.6"
+                                        VerticalAlignment="Center"
+                                        HorizontalAlignment="Left"
+                                        BorderThickness="0" 
+                                        Background="Transparent"
+                                        Style="{StaticResource FadeOutButton}"
+                                        ToolTip="Paste from Clipboard."
+                                        Command="{Binding Path=PasteConnectionNameCommand, Mode=OneWay}">
+                                        <Image Source="/images/clipboard.png" Width="18" />
+                                    </Button>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+
+                        </DataGridTemplateColumn>
+
+                        <DataGridTemplateColumn Header="Undo">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button DockPanel.Dock="Right"  
+                                        Padding="0" 
+                                        Opacity="0.6"
+                                        VerticalAlignment="Center"
+                                        HorizontalAlignment="Left"
+                                        BorderThickness="0" 
+                                        Background="Transparent"
+                                        Style="{StaticResource FadeOutButton}"
+                                        ToolTip="Undo."
+                                        Command="{Binding Path=UndoConnectionNameCommand, Mode=OneWay}">
+                                        <Image Source="/images/undo.png" Width="18" />
+                                    </Button>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+
+                        </DataGridTemplateColumn>
+
+                        <DataGridTemplateColumn Header="Test">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button DockPanel.Dock="Right"  
+                                            Padding="0" 
+                                            Opacity="0.6"
+                                            VerticalAlignment="Center"
+                                            HorizontalAlignment="Left"
+                                            BorderThickness="0" 
+                                            Background="Transparent"
+                                            Style="{StaticResource FadeOutButton}"
+                                            ToolTip="Test VPN Connection."
+                                            Command="{Binding Path=TestConnectionCommand, Mode=OneWay}">
+                                        <Image Source="/images/vpn.png" Width="18" />
+                                    </Button>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+
+                        </DataGridTemplateColumn>
+
+                        <DataGridTextColumn Header="Status" 
+                                        Binding="{Binding Status, Mode=OneWay}" />
+                    </DataGrid.Columns>
+
+                </DataGrid>
+
+            </Grid>
+
+        </Border>
+
+
+        <Rectangle x:Name="LeftSizeGrip"
+                   Width="7"
+                   HorizontalAlignment="Left"
+                   Cursor="SizeWE"
+                   Style="{StaticResource RectBorderStyle}" />
+        <Rectangle x:Name="RightSizeGrip"
+                   Width="7"
+                   HorizontalAlignment="Right"
+                   Cursor="SizeWE"
+                   Style="{StaticResource RectBorderStyle}" />
+        <Rectangle x:Name="TopSizeGrip"
+                   Height="7"
+                   VerticalAlignment="Top"
+                   Cursor="SizeNS"
+                   Style="{StaticResource RectBorderStyle}" />
+        <Rectangle x:Name="BottomSizeGrip"
+                   Height="7"
+                   VerticalAlignment="Bottom"
+                   Cursor="SizeNS"
+                   Style="{StaticResource RectBorderStyle}" />
+        <!--  Corners  -->
+        <Rectangle Name="TopLeftSizeGrip"
+                   Width="12"
+                   Height="12"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Top"
+                   Cursor="SizeNWSE"
+                   Style="{StaticResource RectBorderStyle}" />
+        <Rectangle Name="BottomRightSizeGrip"
+                   Width="12"
+                   Height="12"
+                   HorizontalAlignment="Right"
+                   VerticalAlignment="Bottom"
+                   Cursor="SizeNWSE"
+                   Style="{StaticResource RectBorderStyle}" />
+        <Rectangle Name="TopRightSizeGrip"
+                   Width="12"
+                   Height="12"
+                   HorizontalAlignment="Right"
+                   VerticalAlignment="Top"
+                   Cursor="SizeNESW"
+                   Style="{StaticResource RectBorderStyle}" />
+        <Rectangle Name="BottomLeftSizeGrip"
+                   Width="12"
+                   Height="12"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Bottom"
+                   Cursor="SizeNESW"
+                   Style="{StaticResource RectBorderStyle}" />
+
+
+    </Grid>
 
 </local:WindowBase>

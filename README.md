@@ -2,6 +2,8 @@ gw2-alternator
 
 Tool to help logging-in to multiple Guild Wars 2 alt accounts so as to harvest the daily rewards.
 
+[Running](images/running.png)
+
 Features:
  * Import account details from GW2Launcher and/or GW2Launchbuddy
  * Automatically login to accounts with no user input
@@ -10,19 +12,21 @@ Features:
 
 Getting Started
  * On application launch you will be asked to confirm admin access
-   * This is so symbolic links can be created (similar to GW2LaunchBuddy)
+   * This is just so symbolic links can be created (similar to GW2LaunchBuddy)
  * If you have no accounts defined then go to settings and import from GW2Launcher and/or GW2Launchbuddy
  * Hit Login to login to all the accounts
-   * Only accounts not logged-in that day will launch (unless you clock Force all or make a selection)
+   * Only accounts not logged-in that day will launch (unless you click Force all or make a selection)
    * If you have > 20 accounts expect that some fail (they will retry automatically)
    * The first character on the account will be automatically selected, this will be the one that logged in most recently
    * Only accounts that have not logged-in since reset will launch
  * You can select accounts if you just want to launch a subset, this will ignore the filtering
+   * Use CTRL-click to unselect
  * To harvest it is best not to run the Login step that day as this will trigger the login throttling
 
  Working with Multiple Accounts
  * The anti-botting measures tend to make dealing with more than 10 accounts difficult
- * use email aliases to set-up your accounts : https://support.google.com/a/users/answer/9308648?hl=en
+   * There is a hard limit of 40 accounts from a single IP address, resets every 8 hours
+ * Use email aliases to set-up your accounts : https://support.google.com/a/users/answer/9308648?hl=en
  * Logging into many (>10? ) accounts on https://www.guildwars2.com/ may cause a lockout that takes 24 hours to clear
    * /!\ Someting went wrong. Please try again in a few minutes
    * Speculation: This is linked to using email aliases
@@ -34,9 +38,12 @@ Getting Started
     * However the delay required depend on the past login history and is difficult to guess
     * There are tuning parameters in Settings to help adjust this
 
+VPN
+ * If you create manual VPN configurations in Windows then alternator can use these automatically
+
 Advanced
- * Settings, Account details and logs are found here: %AppData%\gw2-alternator
- * Given a GW2 API key then Laurels and Mystic Coins will be counted
+ * Settings, Account details, metrics and logs are found here: %AppData%\gw2-alternator
+ * Given a GW2 API key then Laurels and Mystic Coins will be counted (excludes unclaimed reward chests)
    * Account/Inventories/Characters/Wallet
 
 If anybody wants to help I would be delighted!
@@ -44,7 +51,6 @@ If anybody wants to help I would be delighted!
 TO DO
  * Updates when the game version changes 
    * You can use GW2Launcher or GW2Launchbuddy to do this
- * VPN switching
  * More robust login delay
  * Better GW2 State detection
    * e.g. when error occurs or when login is very slow
@@ -53,7 +59,6 @@ TO DO
  * Improve Unit Testing
  * Improve error reporting
  * Investigate using GW2Launcher multiple Windows User accounts approach (this avoids Admin requirement)
- * Add way to set API key
  * Improved numeric settings input and validation
 
 

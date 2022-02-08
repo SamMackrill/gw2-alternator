@@ -35,6 +35,7 @@
             BorderThickness="2"
             CornerRadius="20"
             Background="{StaticResource BackgroundBrush}">
+
         <Grid ShowGridLines="False">
 
             <Grid.ColumnDefinitions>

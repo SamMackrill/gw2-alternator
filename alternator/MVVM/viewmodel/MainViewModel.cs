@@ -27,6 +27,7 @@ public class MainViewModel : ObservableObject
     public AccountsViewModel AccountsVM { get; set; }
     public SettingsViewModel SettingsVM { get; set; }
     public AccountApisViewModel AccountApisVM { get; set; }
+    public VpnConnectionsViewModel VpnConnectionsVM { get; set; }
 
     private bool running;
     private bool Running
@@ -231,6 +232,7 @@ public class MainViewModel : ObservableObject
         SettingsVM = new SettingsViewModel(settingsController, accountCollection, () => Version);
         AccountsVM = new AccountsViewModel(settingsController);
         AccountApisVM = new AccountApisViewModel();
+        VpnConnectionsVM = new VpnConnectionsViewModel();
 
         async Task LaunchMultipleAccounts(LaunchType launchType, bool all, bool serial, bool ignoreVpn)
         {
@@ -310,7 +312,7 @@ public class MainViewModel : ObservableObject
         {
             var window = new VpnsWindow()
             {
-                DataContext = vpnCollection,
+                DataContext = VpnConnectionsVM,
                 Owner = Application.Current.MainWindow
             };
             window.ShowDialog();
@@ -392,6 +394,7 @@ public class MainViewModel : ObservableObject
     private async ValueTask LoadVpns()
     {
         await vpnCollection.Load();
+        VpnConnectionsVM.Add(vpnCollection.Vpns);
         vpnCollection.Ready = true;
         RefreshRunState();
     }
