@@ -75,4 +75,9 @@ public class VpnCollection : JsonCollection<VpnDetails>
 
         return newVpnDetails;
     }
+
+    public void Remove(VpnDetails deadVpn)
+    {
+        Vpns?.Remove(deadVpn);
+    }
 }

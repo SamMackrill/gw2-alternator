@@ -21,6 +21,8 @@ public class VpnConnectionViewModel : ObservableObject
         set => vpnDetails.ConnectionName = value;
     }
 
+    public VpnDetails VpnDetails => vpnDetails;
+
     private string? status;
 
     public string? Status

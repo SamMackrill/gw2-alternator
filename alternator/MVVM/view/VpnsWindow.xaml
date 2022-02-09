@@ -103,6 +103,7 @@
                       CanUserSortColumns="True"
                       CanUserResizeColumns="True"
                       CanUserReorderColumns="False"
+                      CanUserDeleteRows="True"
                       GridLinesVisibility="None"
                       RowHeaderWidth="0"
                       SelectionMode="Extended"

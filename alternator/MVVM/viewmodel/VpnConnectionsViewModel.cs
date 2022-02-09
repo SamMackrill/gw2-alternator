@@ -5,16 +5,20 @@ public class VpnConnectionsViewModel : ObservableObject
 {
 
     public ICommandExtended? AddNewConnectionCommand { get; }
+    public ICommandExtended? DeleteCommand { get; }
 
     public ObservableCollectionEx<VpnConnectionViewModel> VpnConnections { get; }
 
     private readonly VpnCollection vpnCollection;
+    private readonly SettingsController settingsController;
 
-    public VpnConnectionsViewModel(VpnCollection vpnCollection)
+    public VpnConnectionsViewModel(VpnCollection vpnCollection, SettingsController settingsController)
     {
         this.vpnCollection = vpnCollection;
+        this.settingsController = settingsController;
 
         VpnConnections = new ObservableCollectionEx<VpnConnectionViewModel>();
+        VpnConnections.CollectionChanged += VpnConnections_CollectionChanged;
         connectionNames = new List<string>();
 
         AddNewConnectionCommand = new RelayCommand<object>(_ =>
@@ -23,6 +27,25 @@ public class VpnConnectionsViewModel : ObservableObject
             VpnConnections.Add(new VpnConnectionViewModel(newVpnDetails, this));
         });
 
+        DeleteCommand = new RelayCommand<object>(_ =>
+        {
+           foreach (var deadVpn in VpnConnections.Where(i => i.IsSelected).ToList())
+           {
+               VpnConnections.Remove(deadVpn);
+               vpnCollection.Remove(deadVpn.VpnDetails);
+           }
+           OnPropertyChanged(nameof(VpnConnections));
+        });
+
+    }
+
+    private void VpnConnections_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.Action != NotifyCollectionChangedAction.Remove || e.OldItems == null) return;
+        foreach (VpnConnectionViewModel deadVpn in e.OldItems)
+        {
+            vpnCollection.Remove(deadVpn.VpnDetails);
+        }
     }
 
     public void Update()
@@ -58,7 +81,7 @@ public class VpnConnectionsViewModel : ObservableObject
                 if (!phoneBook.Exists) return;
                 var lines = await File.ReadAllLinesAsync(phoneBook.FullName);
                 connectionNames.Clear();
-                connectionNames.AddRange(ExtractConnections(lines));
+                connectionNames.AddRange(ExtractConnections(lines, settingsController.Settings?.VpnMatch ?? @"\w+-\w+-st\d+\.prod\.surfshark\.com"));
             }
             finally
             {
@@ -71,9 +94,9 @@ public class VpnConnectionsViewModel : ObservableObject
     public bool HasConnections => ConnectionNames.Any();
 
     private static readonly Regex NameMatchPattern = new(@"^\[([^\]]+)\]", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-    private static readonly Regex PhoneNumberPattern = new(@"^PhoneNumber=\s*\w+-\w+-st\d+.prod.surfshark.com", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-    public static List<string> ExtractConnections(IEnumerable<string>? lines)
+    public static List<string> ExtractConnections(IEnumerable<string>? lines, string vpnMatch)
     {
+        var phoneNumberPattern = new Regex(@$"^PhoneNumber=\s*{vpnMatch}", RegexOptions.IgnoreCase);
         string? connectionName = null;
         var connections = new List<string>();
         foreach (var line in lines ?? new List<string>())
@@ -84,7 +107,7 @@ public class VpnConnectionsViewModel : ObservableObject
                 connectionName = nameMatch.Groups[1].Value;
                 continue;
             }
-            if (PhoneNumberPattern.IsMatch(line) && connectionName != null)
+            if (phoneNumberPattern.IsMatch(line) && connectionName != null)
             {
                 connections.Add(connectionName);
                 connectionName = null;
