@@ -135,6 +135,7 @@ public class SettingsController : ObservableObject
         settings.VpnAccountCount = 10;
         settings.ExperimentalErrorDetection = ErrorDetection.Delay;
         settings.AlwaysIgnoreVpn = false;
+        settings.VpnMatch = @"\w+-\w+-st\d+\.prod\.surfshark\.com";
     }
 
     public string MetricsFile => Path.Combine(SourceFolder.FullName, "gw2-alternator-metrics.txt");
@@ -151,7 +152,6 @@ public class SettingsController : ObservableObject
         var valueAttribute = installPath?.Attribute("Value");
         if (valueAttribute != null && Directory.Exists(valueAttribute.Value)) Settings.Gw2Folder = valueAttribute.Value;
         if (Directory.Exists(@"C:\Program Files (x86)\Guild Wars 2")) Settings.Gw2Folder = @"C:\Program Files (x86)\Guild Wars 2";
-
     }
 
     public void ResetAll()

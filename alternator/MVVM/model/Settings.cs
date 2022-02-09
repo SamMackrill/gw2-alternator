@@ -85,4 +85,11 @@ public class Settings : ObservableObject
         set => SetProperty(ref alwaysIgnoreVpn, value);
     }
 
+    private string? vpnMatch;
+    public string? VpnMatch
+    {
+        get => vpnMatch;
+        set => SetProperty(ref vpnMatch, value);
+    }
+
 }

@@ -94,6 +94,12 @@ public class SettingsViewModel : ObservableObject
         set => Settings.AlwaysIgnoreVpn = value;
     }
 
+    public string? VpnMatch
+    {
+        get => Settings.VpnMatch;
+        set => Settings.VpnMatch = value;
+    }
+
     public Array ErrorDetectionArray => Enum.GetValues(typeof(ErrorDetection));
 
     public string Title => $"GW2 alternator Settings V{GetVersion?.Invoke() ?? "?.?.?"}";
@@ -158,6 +164,11 @@ public class SettingsViewModel : ObservableObject
         Settings.ExperimentalErrorDetection = defaultSettings.ExperimentalErrorDetection;
     });
     public RelayCommand<object> ResetAlwaysIgnoreVpnCommand => new(_ =>
+    {
+        var defaultSettings = SettingsController.DefaultSettings;
+        Settings.AlwaysIgnoreVpn = defaultSettings.AlwaysIgnoreVpn;
+    });
+    public RelayCommand<object> ResetVpnMatchCommand => new(_ =>
     {
         var defaultSettings = SettingsController.DefaultSettings;
         Settings.AlwaysIgnoreVpn = defaultSettings.AlwaysIgnoreVpn;
