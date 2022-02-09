@@ -44,9 +44,12 @@ Tool to help logging-in to multiple Guild Wars 2 alt accounts so as to harvest t
 ## Advanced
  * Settings, Account details, metrics and logs are found here: %AppData%\gw2-alternator
 
+![Metrics](images/AccountLoginMetrics.png)
+
 ### GW2 API Key
  * Given a GW2 API key then Laurels and Mystic Coins will be counted (excludes unclaimed reward chests)
    * Account/Inventories/Characters/Wallet
+
  ![Create Key](images/api_create.png)
 
 ### VPN
@@ -57,6 +60,7 @@ Tool to help logging-in to multiple Guild Wars 2 alt accounts so as to harvest t
 
 ### Login Errors
  * Typical errors you may see (usually fixed by waiting 5 mins)
+
 ![Error](images/Login_Error.png)
 ![Undefined Error](images/Login_Error_Undefined.png)
 
