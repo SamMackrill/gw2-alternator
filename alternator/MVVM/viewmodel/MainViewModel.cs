@@ -136,10 +136,9 @@ public class MainViewModel : ObservableObject
         {
             var assembly = System.Reflection.Assembly.GetExecutingAssembly();
 
-            var v = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString();
+            var v = assembly.GetName().Version?.ToString(3);
 
-            var fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
-            return fvi.FileVersion ?? "dev";
+            return v ?? "Dev";
         }
     }
 
