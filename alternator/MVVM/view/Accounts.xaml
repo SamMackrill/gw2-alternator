@@ -4,10 +4,15 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewmodel="clr-namespace:guildwars2.tools.alternator.MVVM.viewmodel"
+             xmlns:core="clr-namespace:guildwars2.tools.alternator.core"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance Type=viewmodel:AccountsViewModel}"
              d:DesignHeight="300" >
 
+
+    <UserControl.Resources>
+        <core:BindingProxy x:Key="proxy" Data="{Binding}" />
+    </UserControl.Resources>
 
     <DataGrid Background="Transparent"
               Margin="20"
@@ -23,11 +28,7 @@
               BorderThickness="0"
               d:ItemsSource="{d:SampleData}"
               ItemsSource="{Binding Accounts}"
-              xmlns:core="clr-namespace:guildwars2.tools.alternator.core">
-
-        <DataGrid.Resources>
-            <core:BindingProxy x:Key="Proxy" Data="{Binding}"/>
-        </DataGrid.Resources>
+              >
 
         <DataGrid.Columns>
             <DataGridTextColumn Header="Account" Binding="{Binding AccountName}" />
@@ -35,7 +36,7 @@
             <DataGridTextColumn Header="Age" Binding="{Binding Age}" />
 
             <DataGridTemplateColumn Header="VPNs"
-                Visibility="{Binding Data.(viewmodel:AccountsViewModel.VpnVisibility), Source={StaticResource Proxy}}">
+                                    Visibility="{Binding Data.VpnVisibility, Source={StaticResource proxy}}">
                 <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate>
                         <ComboBox ItemsSource="{Binding Vpns}" 
@@ -60,9 +61,9 @@
             <DataGridTextColumn Header="Last Collected" Binding="{Binding Collected}"/>
             <DataGridTextColumn Header="Collect?" Binding="{Binding CollectionRequired}"/>
             <DataGridTextColumn Header="Laurels" Binding="{Binding LaurelCount, FallbackValue=?}"
-                                Visibility="{Binding Data.(viewmodel:AccountsViewModel.ApiVisibility), Source={StaticResource Proxy}}"/>
+                                Visibility="{Binding Data.ApiVisibility, Source={StaticResource proxy}}" />
             <DataGridTextColumn Header="MC" Binding="{Binding MysticCoinCount, FallbackValue=?}"
-                                Visibility="{Binding Data.(viewmodel:AccountsViewModel.ApiVisibility), Source={StaticResource Proxy}}" />
+                                Visibility="{Binding Data.ApiVisibility, Source={StaticResource proxy}}" />
 
             <DataGridTextColumn Header="Status" Binding="{Binding RunStatus}" >
 

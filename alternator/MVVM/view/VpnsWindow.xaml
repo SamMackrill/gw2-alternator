@@ -112,10 +112,6 @@
                       d:ItemsSource="{d:SampleData}"
                       ItemsSource="{Binding VpnConnections}">
 
-                    <DataGrid.Resources>
-                        <core:BindingProxy x:Key="Proxy" Data="{Binding}"/>
-                    </DataGrid.Resources>
-
                     <DataGrid.Columns>
                         <DataGridTextColumn 
                             Header="ID" 
@@ -124,7 +120,8 @@
                         <DataGridTemplateColumn Header="Connection">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <ComboBox ItemsSource="{Binding ConnectionNames}" 
+                                    <ComboBox 
+                                              ItemsSource="{Binding Path=DataContext.ConnectionNames, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
                                               IsEditable="True" 
                                               IsReadOnly="True"
                                               SelectedItem="{Binding ConnectionName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"

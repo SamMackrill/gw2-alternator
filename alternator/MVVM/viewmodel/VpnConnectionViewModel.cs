@@ -29,11 +29,6 @@ public class VpnConnectionViewModel : ObservableObject
         set => SetProperty(ref status, value);
     }
 
-    public List<string> ConnectionNames => parent.ConnectionNames
-        .Where(c => !c.Equals(ConnectionName))
-        .OrderBy(c => c)
-        .ToList();
-
     public VpnConnectionViewModel(VpnDetails vpnDetails, VpnConnectionsViewModel parent)
     {
         this.vpnDetails = vpnDetails;

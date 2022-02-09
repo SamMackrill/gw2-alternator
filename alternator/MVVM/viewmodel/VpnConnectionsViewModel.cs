@@ -15,7 +15,7 @@ public class VpnConnectionsViewModel : ObservableObject
         this.vpnCollection = vpnCollection;
 
         VpnConnections = new ObservableCollectionEx<VpnConnectionViewModel>();
-        ConnectionNames = new List<string>();
+        connectionNames = new List<string>();
 
         AddNewConnectionCommand = new RelayCommand<object>(_ =>
         {
@@ -36,7 +36,9 @@ public class VpnConnectionsViewModel : ObservableObject
     private Task? lookupTask;
     private CancellationTokenSource? cancellationTokenSource;
 
-    public List<string> ConnectionNames { get; private init; }
+    private readonly List<string> connectionNames;
+
+    public IEnumerable<string> ConnectionNames => connectionNames.OrderBy(c => c);
 
     public void LookupConnections()
     {
@@ -55,8 +57,8 @@ public class VpnConnectionsViewModel : ObservableObject
                 var phoneBook = new FileInfo(Path.Combine(appData, @"Microsoft\Network\Connections\Pbk\rasphone.pbk"));
                 if (!phoneBook.Exists) return;
                 var lines = await File.ReadAllLinesAsync(phoneBook.FullName);
-                ConnectionNames.Clear();
-                ConnectionNames.AddRange(ExtractConnections(lines));
+                connectionNames.Clear();
+                connectionNames.AddRange(ExtractConnections(lines));
             }
             finally
             {
