@@ -135,6 +135,9 @@ public class MainViewModel : ObservableObject
         get
         {
             var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+
+            var v = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString();
+
             var fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
             return fvi.FileVersion ?? "dev";
         }
@@ -232,7 +235,7 @@ public class MainViewModel : ObservableObject
         SettingsVM = new SettingsViewModel(settingsController, accountCollection, () => Version);
         AccountsVM = new AccountsViewModel(settingsController);
         AccountApisVM = new AccountApisViewModel();
-        VpnConnectionsVM = new VpnConnectionsViewModel(vpnCollection);
+        VpnConnectionsVM = new VpnConnectionsViewModel(vpnCollection, settingsController);
 
         async Task LaunchMultipleAccounts(LaunchType launchType, bool all, bool serial, bool ignoreVpn)
         {
