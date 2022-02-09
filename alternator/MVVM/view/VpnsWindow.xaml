@@ -5,18 +5,21 @@
                   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                   xmlns:local="clr-namespace:guildwars2.tools.alternator.MVVM.view"
                   xmlns:viewmodel="clr-namespace:guildwars2.tools.alternator.MVVM.viewmodel"
+                  xmlns:core="clr-namespace:guildwars2.tools.alternator.core"
                   mc:Ignorable="d"
                   Title="Account APIs"
                   Background="Transparent"
                   WindowStyle="None"
                   AllowsTransparency="True"
                   ResizeMode="CanResize"
-                  MinWidth="660"
+                  MinWidth="200"
                   MinHeight="40"
                   SizeToContent="WidthAndHeight"
                   MouseLeftButtonDown="Window_MouseLeftButtonDown"
                   d:DataContext="{d:DesignInstance Type=viewmodel:VpnConnectionsViewModel}"
-                  d:DesignHeight="300" >
+                  d:DesignHeight="200" 
+                  d:DesignWidth="360" 
+                  >
     <Window.Resources>
 
         <Style x:Key="RectBorderStyle" TargetType="Rectangle">
@@ -53,7 +56,7 @@
                 </Grid.RowDefinitions>
 
                 <DockPanel x:Name="TitleBar"
-                       Grid.Row="1" Grid.Column="1"
+                       Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2"
                        Background="{StaticResource BackgroundBrush}" 
                        Height="24" 
                        HorizontalAlignment="Stretch" 
@@ -100,7 +103,7 @@
                       CanUserSortColumns="True"
                       CanUserResizeColumns="True"
                       CanUserReorderColumns="False"
-                      GridLinesVisibility="All"
+                      GridLinesVisibility="None"
                       RowHeaderWidth="0"
                       SelectionMode="Extended"
                       IsReadOnly="False"
@@ -108,30 +111,27 @@
                       BorderThickness="0"
                       d:ItemsSource="{d:SampleData}"
                       ItemsSource="{Binding VpnConnections}">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="ID" 
-                                        Binding="{Binding Id}" />
-                        <DataGridTextColumn Header="Connection"
-                                        Binding="{Binding ConnectionName, FallbackValue='New York. New York' }"/>
 
-                        <DataGridTemplateColumn Header="Paste">
+                    <DataGrid.Resources>
+                        <core:BindingProxy x:Key="Proxy" Data="{Binding}"/>
+                    </DataGrid.Resources>
+
+                    <DataGrid.Columns>
+                        <DataGridTextColumn 
+                            Header="ID" 
+                            Binding="{Binding Id}" />
+
+                        <DataGridTemplateColumn Header="Connection">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Button DockPanel.Dock="Right"  
-                                        Padding="0" 
-                                        Opacity="0.6"
-                                        VerticalAlignment="Center"
-                                        HorizontalAlignment="Left"
-                                        BorderThickness="0" 
-                                        Background="Transparent"
-                                        Style="{StaticResource FadeOutButton}"
-                                        ToolTip="Paste from Clipboard."
-                                        Command="{Binding Path=PasteConnectionNameCommand, Mode=OneWay}">
-                                        <Image Source="/images/clipboard.png" Width="18" />
-                                    </Button>
+                                    <ComboBox ItemsSource="{Binding ConnectionNames}" 
+                                              IsEditable="True" 
+                                              IsReadOnly="True"
+                                              SelectedItem="{Binding ConnectionName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              Text="{Binding ConnectionName, Mode=OneWay}">
+                                    </ComboBox>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
-
                         </DataGridTemplateColumn>
 
                         <DataGridTemplateColumn Header="Undo">

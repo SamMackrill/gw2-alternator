@@ -54,7 +54,7 @@
                 </Grid.RowDefinitions>
 
                 <DockPanel x:Name="TitleBar"
-                       Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="5"
+                       Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2"
                        Background="{StaticResource BackgroundBrush}" 
                        Height="24" 
                        HorizontalAlignment="Stretch" 
@@ -87,7 +87,7 @@
                       CanUserSortColumns="True"
                       CanUserResizeColumns="True"
                       CanUserReorderColumns="False"
-                      GridLinesVisibility="All"
+                      GridLinesVisibility="None"
                       RowHeaderWidth="0"
                       SelectionMode="Extended"
                       IsReadOnly="False"

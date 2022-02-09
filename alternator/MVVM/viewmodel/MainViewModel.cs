@@ -232,7 +232,7 @@ public class MainViewModel : ObservableObject
         SettingsVM = new SettingsViewModel(settingsController, accountCollection, () => Version);
         AccountsVM = new AccountsViewModel(settingsController);
         AccountApisVM = new AccountApisViewModel();
-        VpnConnectionsVM = new VpnConnectionsViewModel();
+        VpnConnectionsVM = new VpnConnectionsViewModel(vpnCollection);
 
         async Task LaunchMultipleAccounts(LaunchType launchType, bool all, bool serial, bool ignoreVpn)
         {
@@ -310,6 +310,7 @@ public class MainViewModel : ObservableObject
 
         ShowVpnsCommand = new RelayCommand<object>(_ =>
         {
+            VpnConnectionsVM.LookupConnections();
             var window = new VpnsWindow()
             {
                 DataContext = VpnConnectionsVM,
@@ -394,7 +395,7 @@ public class MainViewModel : ObservableObject
     private async ValueTask LoadVpns()
     {
         await vpnCollection.Load();
-        VpnConnectionsVM.Add(vpnCollection.Vpns);
+        VpnConnectionsVM.Update();
         vpnCollection.Ready = true;
         RefreshRunState();
     }

@@ -49,7 +49,7 @@ public class AccountApiViewModel : ObservableObject
 
     private readonly Dictionary<string, List<string>> propertyConverter = new()
     {
-        { "Name", new() { "AccountName" } },
+        { "Name", new() { nameof(AccountName) } },
     };
 
 

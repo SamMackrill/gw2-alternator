@@ -13,12 +13,12 @@ public class AccountViewModel : ObservableObject
 
     private readonly Dictionary<string, List<string>> propertyConverter = new()
     {
-        { "Name",           new() {"AccountName"  } },
-        { "LastLogin",      new() { "Login"       } },
-        { "LastCollection", new() { "Collected"   } },
-        { "CreatedAt",      new() { "Age"         } },
-        { "StatusMessage",  new() { "TooltipText" } },
-        { "Vpns",           new() { "VpnsDisplay" } },
+        { "Name",           new() { nameof(AccountName) } },
+        { "LastLogin",      new() { nameof(Login)       } },
+        { "LastCollection", new() { nameof(Collected)   } },
+        { "CreatedAt",      new() { nameof(Age)         } },
+        { "StatusMessage",  new() { nameof(TooltipText) } },
+        { "Vpns",           new() { nameof(VpnsDisplay) } },
     };
 
     private void ModelPropertyChanged(object? sender, PropertyChangedEventArgs args)

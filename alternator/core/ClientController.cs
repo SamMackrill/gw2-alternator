@@ -109,10 +109,10 @@ public class ClientController
                     try
                     {
                         if (!vpnsUsed.Contains(vpn)) vpnsUsed.Add(vpn);
-                        var success = await vpn.Connect(cancellationTokenSource.Token);
-                        if (!success)
+                        var status = await vpn.Connect(cancellationTokenSource.Token);
+                        if (status != null)
                         {
-                            Logger.Error($"VPN {vpn} Connection {vpn}");
+                            Logger.Error($"VPN {vpn} Connection {vpn} : {status}");
                             continue;
                         }
 
@@ -134,10 +134,10 @@ public class ClientController
                     }
                     finally
                     {
-                        var success = await vpn.Disconnect(cancellationTokenSource.Token);
-                        if (!success)
+                        var status = await vpn.Disconnect(cancellationTokenSource.Token);
+                        if (status != null)
                         {
-                            Logger.Error($"VPN {vpn} Disconnection failed.");
+                            Logger.Error($"VPN {vpn} Disconnection failed : {status}");
                         }
                         else
                         {

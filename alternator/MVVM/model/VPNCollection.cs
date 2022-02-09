@@ -30,6 +30,7 @@ public class VpnCollection : JsonCollection<VpnDetails>
         finally
         {
             semaphore.Release();
+            OnPropertyChanged(nameof(Vpns));
         }
     }
 
@@ -63,5 +64,15 @@ public class VpnCollection : JsonCollection<VpnDetails>
     public List<AccountVpnViewModel> GetAccountVpns(IAccount account)
     {
         return Vpns?.Select(v => new AccountVpnViewModel(v, account)).ToList() ?? new List<AccountVpnViewModel>();
+    }
+
+    public VpnDetails AddNew()
+    {
+        var newVpnDetails = new VpnDetails { Id = "New" };
+        Items ??= new List<VpnDetails>();
+        Items.Add(newVpnDetails);
+        OnPropertyChanged(nameof(Vpns));
+
+        return newVpnDetails;
     }
 }

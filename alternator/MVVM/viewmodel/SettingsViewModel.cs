@@ -8,10 +8,7 @@ public class SettingsViewModel : ObservableObject
     private readonly AccountCollection accountCollection;
     private Func<string>? GetVersion { get; }
 
-    private Settings Settings
-    {
-        get => settingsController.Settings!;
-    }
+    private Settings Settings => settingsController.Settings!;
 
     public SettingsViewModel(SettingsController settingsController, AccountCollection accountCollection, Func<string>? getVersion)
     {

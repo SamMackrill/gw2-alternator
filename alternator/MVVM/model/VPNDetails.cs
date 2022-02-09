@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Net.Http;
 using System.Text.Json.Serialization;
 
 namespace guildwars2.tools.alternator.MVVM.model;
@@ -45,8 +46,8 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
         set => SetProperty(ref id, value);
     }
 
-    private string connectionName;
-    public string ConnectionName
+    private string? connectionName;
+    public string? ConnectionName
     {
         get => connectionName;
         set => SetProperty(ref connectionName, value);
@@ -119,30 +120,32 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
 
     private VpnConnectionMetrics currentConnectionMetrics;
 
-    public async Task<bool> Connect(CancellationToken cancellationToken)
+    public async Task<string?> Connect(CancellationToken cancellationToken)
     {
         currentConnectionMetrics = new VpnConnectionMetrics(Id);
         Connections.Add(currentConnectionMetrics);
-        if (!await RunRasdial("Connecting to", "", true, cancellationToken)) return false;
+
+        var status = await RunRasdial("Connecting to", "", true, cancellationToken);
+        if (status != null) return status;
+
         currentConnectionMetrics.Connected();
-
-        string hostName = Dns.GetHostName();
-        var hostEntry = await Dns.GetHostEntryAsync(hostName, cancellationToken);
-
-        return true;
+        return null;
     }
 
-    public async Task<bool> Disconnect(CancellationToken cancellationToken)
+    public async Task<string?> Disconnect(CancellationToken cancellationToken)
     {
         currentConnectionMetrics.DisconnectStart();
-        if (!await RunRasdial("Disconnecting from", @" /d", false, cancellationToken)) return false;
+
+        var status = await RunRasdial("Disconnecting from", @" /d", false, cancellationToken);
+        if (status != null) return status;
+
         currentConnectionMetrics.Disconnected();
-        return true;
+        return null;
     }
 
-    private async Task<bool> RunRasdial(string display, string arg, bool record, CancellationToken cancellationToken)
+    private async Task<string?> RunRasdial(string display, string arg, bool record, CancellationToken cancellationToken)
     {
-        if (!IsReal) return true;
+        if (!IsReal) return null;
 
         Logger.Info($"{display} VPN {ToString()}");
         var psi = new ProcessStartInfo("rasdial", $@"""{ConnectionName}""{arg}")
@@ -160,7 +163,7 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
                 LastConnectionFail = DateTime.Now;
                 LastConnectionFailCode = -999;
             }
-            return false;
+            return $"{display} VPN Process null";
         }
 
         _ = Task.Run(() => ReadStream(vpnProcess.StandardOutput, s => Logger.Debug($"VPN: {s}")), cancellationToken);
@@ -175,12 +178,12 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
                 LastConnectionFail = DateTime.Now;
                 LastConnectionFailCode = vpnProcess.ExitCode;
             }
-            return false;
+            return $"{display} VPN Error={vpnProcess.ExitCode}";
         }
 
         if (record) LastConnectionSuccess = DateTime.Now;
         await Task.Delay(new TimeSpan(0, 0, 1), cancellationToken);
-        return true;
+        return null;
     }
 
     private void ReadStream(TextReader textReader, Action<string> callback)
@@ -238,5 +241,19 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
     public void Undo()
     {
         throw new NotImplementedException();
+    }
+
+    public async Task<string> Test(CancellationToken token)
+    {
+        var status = await Connect(token);
+        if (status != null) return status;
+
+        var webClient = new HttpClient();
+        var pubIp = await webClient.GetStringAsync("https://api.ipify.org", token);
+
+        status = await Disconnect(token);
+        if (status != null) return status;
+
+        return $"OK IP={pubIp}";
     }
 }

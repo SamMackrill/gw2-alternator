@@ -15,7 +15,7 @@ public class AccountsViewModel : ObservableObject
 
     private readonly Dictionary<string, List<string>> propertyConverter = new()
     {
-        { "AlwaysIgnoreVpn", new() { "VpnVisibility" } },
+        { "AlwaysIgnoreVpn", new() { nameof(VpnVisibility) } },
     };
 
     private void SettingsController_PropertyChanged(object? sender, PropertyChangedEventArgs args)
