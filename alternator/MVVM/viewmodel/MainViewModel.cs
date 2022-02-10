@@ -189,7 +189,7 @@ public class MainViewModel : ObservableObject
     bool CanRun(LaunchType launchType)
     {
         var canRun = !Running && settingsController.Settings != null && accountCollection.Ready && vpnCollection.Ready;
-        Logger.Debug("{0} {1} ? {2}", nameof(CanRun), launchType, canRun);
+        //Logger.Debug("{0} {1} ? {2}", nameof(CanRun), launchType, canRun);
         return canRun;
     }
 
