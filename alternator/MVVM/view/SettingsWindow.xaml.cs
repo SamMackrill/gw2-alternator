@@ -9,11 +9,4 @@ public partial class SettingsWindow
     {
         InitializeComponent();
     }
-
-    private void window_Loaded(object sender, RoutedEventArgs e)
-    {
-        MinWidth = ActualWidth;
-        MinHeight = ActualHeight;
-        MaxHeight = ActualHeight;
-    }
 }

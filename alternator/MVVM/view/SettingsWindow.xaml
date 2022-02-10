@@ -5,17 +5,17 @@
                   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                   xmlns:viewmodel="clr-namespace:guildwars2.tools.alternator.MVVM.viewmodel"
                   xmlns:view="clr-namespace:guildwars2.tools.alternator.MVVM.view"
-                  d:DataContext="{d:DesignInstance viewmodel:SettingsViewModel}"
                   mc:Ignorable="d"
+                  d:DataContext="{d:DesignInstance viewmodel:SettingsViewModel}"
+                  d:DesignWidth="400"
                   Title="Settings"
                   Background="Transparent"
                   WindowStyle="None"
                   AllowsTransparency="True"
                   ResizeMode="CanResize"
                   ResizeOrientation="HorizontalOnly"
-                  MinWidth="420"
+                  MinWidth="340"
                   SizeToContent="WidthAndHeight"
-                  Loaded="window_Loaded"
 >
 
     <Grid>
