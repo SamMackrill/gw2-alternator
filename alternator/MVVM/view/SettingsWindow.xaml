@@ -4,67 +4,56 @@
                   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                   xmlns:viewmodel="clr-namespace:guildwars2.tools.alternator.MVVM.viewmodel"
-                  xmlns:alternator="clr-namespace:guildwars2.tools.alternator"
                   xmlns:view="clr-namespace:guildwars2.tools.alternator.MVVM.view"
-                  d:DataContext="{d:DesignInstance viewmodel:SettingsViewModel}"
                   mc:Ignorable="d"
+                  d:DataContext="{d:DesignInstance viewmodel:SettingsViewModel}"
+                  d:DesignWidth="400"
                   Title="Settings"
                   Background="Transparent"
                   WindowStyle="None"
                   AllowsTransparency="True"
                   ResizeMode="CanResize"
-                  MinWidth="420"
+                  ResizeOrientation="HorizontalOnly"
+                  MinWidth="340"
                   SizeToContent="WidthAndHeight"
-                  Loaded="window_Loaded"
-                  MouseLeftButtonDown="Window_MouseLeftButtonDown"
 >
-    <Window.Resources>
 
-        <Style x:Key="RectBorderStyle" TargetType="Rectangle">
-            <Setter Property="Focusable" Value="False" />
-            <Setter Property="Fill" Value="Transparent" />
-            <Setter Property="Tag" Value="{Binding RelativeSource={RelativeSource AncestorType=Window}}" />
-            <EventSetter Event="MouseLeftButtonDown" Handler="Resize_Init"/>
-            <EventSetter Event="MouseLeftButtonUp" Handler="Resize_End"/>
-            <EventSetter Event="MouseMove" Handler="Resizing_Form"/>
-        </Style>
+    <Grid>
 
-    </Window.Resources>
-
-    <Border BorderBrush="{StaticResource ForegroundBrush}"
+        <Border BorderBrush="{StaticResource ForegroundBrush}"
             BorderThickness="2"
             CornerRadius="20"
             Background="{StaticResource BackgroundBrush}">
 
-        <Grid ShowGridLines="False">
+            <Grid ShowGridLines="False">
 
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="13"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="13"/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="2"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="2"/>
-            </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="13"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="13"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="2"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="2"/>
+                </Grid.RowDefinitions>
 
-            <DockPanel x:Name="TitleBar"
+                <DockPanel x:Name="TitleBar"
                        Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="5"
                        Background="{StaticResource BackgroundBrush}" 
                        Height="24" 
@@ -72,7 +61,7 @@
                        LastChildFill="true" 
                        Margin="0,0,10,0">
 
-                <Button DockPanel.Dock="Right"  
+                    <Button DockPanel.Dock="Right"  
                         Padding="0"
                         Margin="4,0,2,0" 
                         Opacity="0.6"
@@ -83,10 +72,10 @@
                         Style="{StaticResource FadeOutButton}"
                         Click="CloseButton_Click"
                 >
-                    <Image Source="/images/close-window.png" Width="24" />
-                </Button>
+                        <Image Source="/images/close-window.png" Width="24" />
+                    </Button>
 
-                <Button DockPanel.Dock="Right"
+                    <Button DockPanel.Dock="Right"
                         Margin="4,0,0,0" 
                         Opacity="0.6"
                         VerticalAlignment="Center" 
@@ -96,24 +85,24 @@
                         Style="{StaticResource FadeOutButton}"
                         Command="{Binding Path=ResetAllCommand, Mode=OneWay}" >
 
-                    <Image Source="/images/undo.png" ToolTip="Reset all to default" Width="16" />
-                </Button>
+                        <Image Source="/images/undo.png" ToolTip="Reset all to default" Width="16" />
+                    </Button>
 
-                <Label Padding="0" 
+                    <Label Padding="0" 
                        FontWeight="DemiBold"
                        Content="{Binding Path=Title, FallbackValue=Settings}" />
 
-            </DockPanel>
+                </DockPanel>
 
-            <Label Padding="0" Grid.Row="2" Grid.Column="1"
+                <Label Padding="0" Grid.Row="2" Grid.Column="1"
                    Content="GW2 Folder:" />
-            <TextBox Grid.Row="2" Grid.Column="2"
+                <TextBox Grid.Row="2" Grid.Column="2"
                      BorderThickness="1"
                      Margin="4,4,0,0"
                      MinWidth="100"
                      HorizontalAlignment="Stretch"
                      Text="{Binding Path=Gw2Folder, Mode=TwoWay, FallbackValue='c:/a/b'}" />
-            <Button Grid.Row="2" Grid.Column="3"  
+                <Button Grid.Row="2" Grid.Column="3"  
                     Margin="4,0,0,0" 
                     Opacity="0.6"
                     VerticalAlignment="Center" 
@@ -123,9 +112,9 @@
                     Style="{StaticResource FadeOutButton}"
                     Command="{Binding Path=ResetGw2FolderCommand, Mode=OneWay}" >
 
-                <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
-            </Button>
-            <Button Grid.Row="2" Grid.Column="4"  
+                    <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
+                </Button>
+                <Button Grid.Row="2" Grid.Column="4"  
                     Margin="4,0,0,0" 
                     Opacity="0.6"
                     VerticalAlignment="Center" 
@@ -135,19 +124,19 @@
                     Style="{StaticResource FadeOutButton}"
                     Command="{Binding Path=ChooseGw2FolderCommand, Mode=OneWay}" >
 
-                <Image Source="/images/folder.png" ToolTip="Change..." Width="16" />
-            </Button>
+                    <Image Source="/images/folder.png" ToolTip="Change..." Width="16" />
+                </Button>
 
-            <Label Padding="0" Grid.Row="3" Grid.Column="1"
+                <Label Padding="0" Grid.Row="3" Grid.Column="1"
                    Content="Detect Errors" />
-            <StackPanel Grid.Row="3" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,4">
-                <ComboBox BorderThickness="1"
+                <StackPanel Grid.Row="3" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,4">
+                    <ComboBox BorderThickness="1"
                           Margin="4,4,0,0"
                           MinWidth="50"
                           ItemsSource="{Binding ErrorDetectionArray}"
                           SelectedValue="{Binding Path=ExperimentalErrorDetection, FallbackValue=Delay}" />
-            </StackPanel>
-            <Button Grid.Row="3" Grid.Column="3"  
+                </StackPanel>
+                <Button Grid.Row="3" Grid.Column="3"  
                     Margin="4,0,0,0" 
                     Opacity="0.6"
                     VerticalAlignment="Center" 
@@ -157,15 +146,15 @@
                     Style="{StaticResource FadeOutButton}"
                     Command="{Binding Path=ResetErrorDetectionCommand, Mode=OneWay}" >
 
-                <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
-            </Button>
+                    <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
+                </Button>
 
-            <Label Padding="0" Grid.Row="4" Grid.Column="1"
+                <Label Padding="0" Grid.Row="4" Grid.Column="1"
                    Content="No VPNs" />
-            <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,4">
-                <CheckBox IsChecked="{Binding AlwaysIgnoreVpn}" d:IsChecked="true" />
-            </StackPanel>
-            <Button Grid.Row="4" Grid.Column="3"  
+                <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,4">
+                    <CheckBox IsChecked="{Binding AlwaysIgnoreVpn}" d:IsChecked="true" />
+                </StackPanel>
+                <Button Grid.Row="4" Grid.Column="3"  
                     Margin="4,0,0,0" 
                     Opacity="0.6"
                     VerticalAlignment="Center" 
@@ -175,18 +164,18 @@
                     Style="{StaticResource FadeOutButton}"
                     Command="{Binding Path=ResetAlwaysIgnoreVpnCommand, Mode=OneWay}" >
 
-                <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
-            </Button>
+                    <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
+                </Button>
 
-            <Label Padding="0" Grid.Row="5" Grid.Column="1"
+                <Label Padding="0" Grid.Row="5" Grid.Column="1"
                    Content="VPN Pattern:" />
-            <TextBox Grid.Row="5" Grid.Column="2"
+                <TextBox Grid.Row="5" Grid.Column="2"
                      BorderThickness="1"
                      Margin="4,4,0,0"
                      MinWidth="100"
                      HorizontalAlignment="Stretch"
                      Text="{Binding Path=VpnMatch, Mode=TwoWay, FallbackValue='\\w+-\\w+-st\\d+\\.prod\\.surfshark\\.com'}" />
-            <Button Grid.Row="5" Grid.Column="3"  
+                <Button Grid.Row="5" Grid.Column="3"  
                     Margin="4,0,0,0" 
                     Opacity="0.6"
                     VerticalAlignment="Center" 
@@ -196,23 +185,23 @@
                     Style="{StaticResource FadeOutButton}"
                     Command="{Binding Path=ResetVpnMatchCommand, Mode=OneWay}" >
 
-                <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
-            </Button>
+                    <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
+                </Button>
 
 
-            <Label Padding="0,8,0,0" Grid.Row="6" Grid.Column="1"
+                <Label Padding="0,8,0,0" Grid.Row="6" Grid.Column="1"
                    FontWeight="DemiBold"
                    Content="Tuning:" />
 
 
-            <Label Padding="0" Grid.Row="7" Grid.Column="1"
+                <Label Padding="0" Grid.Row="7" Grid.Column="1"
                    Content="Max Instances:" />
-            <TextBox Grid.Row="7" Grid.Column="2"
+                <TextBox Grid.Row="7" Grid.Column="2"
                      BorderThickness="1"
                      Margin="4,4,0,0"
                      MinWidth="50"
                      Text="{Binding Path=MaxLoginInstances, Mode=TwoWay, FallbackValue='4'}"/>
-            <Button Grid.Row="7" Grid.Column="3"  
+                <Button Grid.Row="7" Grid.Column="3"  
                     Margin="4,0,0,0" 
                     Opacity="0.6"
                     VerticalAlignment="Center" 
@@ -222,23 +211,23 @@
                     Style="{StaticResource FadeOutButton}"
                     Command="{Binding Path=ResetMaxLoginInstancesCommand, Mode=OneWay}" >
 
-                <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
-            </Button>
+                    <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
+                </Button>
 
-            <Label Padding="0" Grid.Row="8" Grid.Column="1"
+                <Label Padding="0" Grid.Row="8" Grid.Column="1"
                    Content="Band 1" />
-            <StackPanel Grid.Row="8" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,4">
-                <TextBox BorderThickness="1"
+                <StackPanel Grid.Row="8" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,4">
+                    <TextBox BorderThickness="1"
                          Margin="4,4,0,0"
                          MinWidth="50"
                          Text="{Binding Path=AccountBand1, Mode=TwoWay, FallbackValue='10'}"/>
-                <TextBox BorderThickness="1"
+                    <TextBox BorderThickness="1"
                          Margin="4,4,0,0"
                          MinWidth="50"
                          Text="{Binding Path=AccountBand1Delay, Mode=TwoWay, FallbackValue='5'}"/>
-                <Label Padding="0" Content="s" />
-            </StackPanel>
-            <Button Grid.Row="8" Grid.Column="3"  
+                    <Label Padding="0" Content="s" />
+                </StackPanel>
+                <Button Grid.Row="8" Grid.Column="3"  
                     Margin="4,0,0,0" 
                     Opacity="0.6"
                     VerticalAlignment="Center" 
@@ -248,23 +237,23 @@
                     Style="{StaticResource FadeOutButton}"
                     Command="{Binding Path=ResetBand1Command, Mode=OneWay}" >
 
-                <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
-            </Button>
+                    <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
+                </Button>
 
-            <Label Padding="0" Grid.Row="9" Grid.Column="1"
+                <Label Padding="0" Grid.Row="9" Grid.Column="1"
                    Content="Band 2" />
-            <StackPanel Grid.Row="9" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,4">
-                <TextBox BorderThickness="1"
+                <StackPanel Grid.Row="9" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,4">
+                    <TextBox BorderThickness="1"
                          Margin="4,4,0,0"
                          MinWidth="50"
                          Text="{Binding Path=AccountBand2, Mode=TwoWay, FallbackValue='24'}"/>
-                <TextBox BorderThickness="1"
+                    <TextBox BorderThickness="1"
                          Margin="4,4,0,0"
                          MinWidth="50"
                          Text="{Binding Path=AccountBand2Delay, Mode=TwoWay, FallbackValue='20'}"/>
-                <Label Padding="0" Content="s" />
-            </StackPanel>
-            <Button Grid.Row="9" Grid.Column="3"  
+                    <Label Padding="0" Content="s" />
+                </StackPanel>
+                <Button Grid.Row="9" Grid.Column="3"  
                     Margin="4,0,0,0" 
                     Opacity="0.6"
                     VerticalAlignment="Center" 
@@ -274,23 +263,23 @@
                     Style="{StaticResource FadeOutButton}"
                     Command="{Binding Path=ResetBand2Command, Mode=OneWay}" >
 
-                <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
-            </Button>
+                    <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
+                </Button>
 
-            <Label Padding="0" Grid.Row="10" Grid.Column="1"
+                <Label Padding="0" Grid.Row="10" Grid.Column="1"
                    Content="Band 3" />
-            <StackPanel Grid.Row="10" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,4">
-                <TextBox BorderThickness="1"
+                <StackPanel Grid.Row="10" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,4">
+                    <TextBox BorderThickness="1"
                          Margin="4,4,0,0"
                          MinWidth="50"
                          Text="{Binding Path=AccountBand3, Mode=TwoWay, FallbackValue='40'}"/>
-                <TextBox BorderThickness="1"
+                    <TextBox BorderThickness="1"
                          Margin="4,4,0,0"
                          MinWidth="50"
                          Text="{Binding Path=AccountBand3Delay, Mode=TwoWay, FallbackValue='45'}"/>
-                <Label Padding="0" Content="s" />
-            </StackPanel>
-            <Button Grid.Row="10" Grid.Column="3"  
+                    <Label Padding="0" Content="s" />
+                </StackPanel>
+                <Button Grid.Row="10" Grid.Column="3"  
                     Margin="4,0,0,0" 
                     Opacity="0.6"
                     VerticalAlignment="Center" 
@@ -300,19 +289,19 @@
                     Style="{StaticResource FadeOutButton}"
                     Command="{Binding Path=ResetBand3Command, Mode=OneWay}" >
 
-                <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
-            </Button>
+                    <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
+                </Button>
 
-            <Label Padding="0" Grid.Row="11" Grid.Column="1"
+                <Label Padding="0" Grid.Row="11" Grid.Column="1"
                    Content="Stuck Timeout" />
-            <StackPanel Grid.Row="11" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,4">
-                <TextBox BorderThickness="1"
+                <StackPanel Grid.Row="11" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,4">
+                    <TextBox BorderThickness="1"
                          Margin="4,4,0,0"
                          MinWidth="50"
                          Text="{Binding Path=StuckTimeout, Mode=TwoWay, FallbackValue='30'}"/>
-                <Label Padding="0" Content="s" />
-            </StackPanel>
-            <Button Grid.Row="11" Grid.Column="3"  
+                    <Label Padding="0" Content="s" />
+                </StackPanel>
+                <Button Grid.Row="11" Grid.Column="3"  
                     Margin="4,0,0,0" 
                     Opacity="0.6"
                     VerticalAlignment="Center" 
@@ -322,18 +311,18 @@
                     Style="{StaticResource FadeOutButton}"
                     Command="{Binding Path=ResetStuckTimeoutCommand, Mode=OneWay}" >
 
-                <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
-            </Button>
+                    <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
+                </Button>
 
-            <Label Padding="0" Grid.Row="12" Grid.Column="1"
+                <Label Padding="0" Grid.Row="12" Grid.Column="1"
                    Content="VPN Max Count" />
-            <StackPanel Grid.Row="12" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,4">
-                <TextBox BorderThickness="1"
+                <StackPanel Grid.Row="12" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,4">
+                    <TextBox BorderThickness="1"
                          Margin="4,4,0,0"
                          MinWidth="50"
                          Text="{Binding Path=VpnAccountCount, Mode=TwoWay, FallbackValue='10'}"/>
-            </StackPanel>
-            <Button Grid.Row="12" Grid.Column="3"  
+                </StackPanel>
+                <Button Grid.Row="12" Grid.Column="3"  
                     Margin="4,0,0,0" 
                     Opacity="0.6"
                     VerticalAlignment="Center" 
@@ -343,22 +332,22 @@
                     Style="{StaticResource FadeOutButton}"
                     Command="{Binding Path=ResetVpnAccountCountCommand, Mode=OneWay}" >
 
-                <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
-            </Button>
+                    <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
+                </Button>
 
 
-            <Label Padding="0" Grid.Row="13" Grid.Column="1"
+                <Label Padding="0" Grid.Row="13" Grid.Column="1"
                    Content="Import From:" />
 
-            <StackPanel Grid.Row="13" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,4">
-                <Border
+                <StackPanel Grid.Row="13" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,4">
+                    <Border
                      HorizontalAlignment="Left"
                      BorderBrush="{StaticResource ForegroundBrush}"
                      BorderThickness="2"
                      CornerRadius="6"
                      Background="{StaticResource BackgroundBrush}">
 
-                    <Button 
+                        <Button 
                          Style="{StaticResource FadeOutButton}"
                          Margin="4"
                          Opacity="0.6"
@@ -367,9 +356,9 @@
                          Command="{Binding Path=ImportFromLaunchBuddyCommand, Mode=OneWay}" 
                          Content="Launch Buddy"
                          />
-                </Border>
+                    </Border>
 
-                <Border
+                    <Border
                     HorizontalAlignment="Left"
                     Margin="4,0,0,0"
                     BorderBrush="{StaticResource ForegroundBrush}"
@@ -377,7 +366,7 @@
                     CornerRadius="6"
                     Background="{StaticResource BackgroundBrush}">
 
-                    <Button 
+                        <Button 
                         Style="{StaticResource FadeOutButton}"
                         Margin="4"
                         Opacity="0.6"
@@ -386,12 +375,14 @@
                         Command="{Binding Path=ImportFromLauncherCommand, Mode=OneWay}" 
                         Content="GW2 Launcher"
                     />
-                </Border>
+                    </Border>
 
-            </StackPanel>
+                </StackPanel>
 
 
-        </Grid>
-    </Border>
+            </Grid>
+        </Border>
+    </Grid>
+
 
 </view:WindowBase>

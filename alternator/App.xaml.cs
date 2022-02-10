@@ -25,6 +25,8 @@ global using System.Windows.Data;
 global using System.Windows.Controls;
 global using System.Windows.Threading;
 global using System.Windows.Input;
+global using System.Windows.Markup;
+global using System.Windows.Media;
 
 global using System.Drawing;
 global using System.Drawing.Imaging;
@@ -42,6 +44,7 @@ global using AsyncAwaitBestPractices.MVVM;
 
 global using NLog;
 using NLog.Targets;
+using XamlParseException = System.Windows.Markup.XamlParseException;
 
 
 namespace guildwars2.tools.alternator;

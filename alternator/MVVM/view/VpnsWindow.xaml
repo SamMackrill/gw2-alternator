@@ -5,7 +5,6 @@
                   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                   xmlns:local="clr-namespace:guildwars2.tools.alternator.MVVM.view"
                   xmlns:viewmodel="clr-namespace:guildwars2.tools.alternator.MVVM.viewmodel"
-                  xmlns:core="clr-namespace:guildwars2.tools.alternator.core"
                   mc:Ignorable="d"
                   Title="Account APIs"
                   Background="Transparent"
@@ -19,18 +18,6 @@
                   d:DesignHeight="200" 
                   d:DesignWidth="360" 
                   >
-    <Window.Resources>
-
-        <Style x:Key="RectBorderStyle" TargetType="Rectangle">
-            <Setter Property="Focusable" Value="False" />
-            <Setter Property="Fill" Value="Transparent" />
-            <Setter Property="Tag" Value="{Binding RelativeSource={RelativeSource AncestorType=Window}}" />
-            <EventSetter Event="MouseLeftButtonDown" Handler="Resize_Init"/>
-            <EventSetter Event="MouseLeftButtonUp" Handler="Resize_End"/>
-            <EventSetter Event="MouseMove" Handler="Resizing_Form"/>
-        </Style>
-
-    </Window.Resources>
 
     <Grid>
 
@@ -180,58 +167,6 @@
             </Grid>
 
         </Border>
-
-
-        <Rectangle x:Name="LeftSizeGrip"
-                   Width="7"
-                   HorizontalAlignment="Left"
-                   Cursor="SizeWE"
-                   Style="{StaticResource RectBorderStyle}" />
-        <Rectangle x:Name="RightSizeGrip"
-                   Width="7"
-                   HorizontalAlignment="Right"
-                   Cursor="SizeWE"
-                   Style="{StaticResource RectBorderStyle}" />
-        <Rectangle x:Name="TopSizeGrip"
-                   Height="7"
-                   VerticalAlignment="Top"
-                   Cursor="SizeNS"
-                   Style="{StaticResource RectBorderStyle}" />
-        <Rectangle x:Name="BottomSizeGrip"
-                   Height="7"
-                   VerticalAlignment="Bottom"
-                   Cursor="SizeNS"
-                   Style="{StaticResource RectBorderStyle}" />
-        <!--  Corners  -->
-        <Rectangle Name="TopLeftSizeGrip"
-                   Width="12"
-                   Height="12"
-                   HorizontalAlignment="Left"
-                   VerticalAlignment="Top"
-                   Cursor="SizeNWSE"
-                   Style="{StaticResource RectBorderStyle}" />
-        <Rectangle Name="BottomRightSizeGrip"
-                   Width="12"
-                   Height="12"
-                   HorizontalAlignment="Right"
-                   VerticalAlignment="Bottom"
-                   Cursor="SizeNWSE"
-                   Style="{StaticResource RectBorderStyle}" />
-        <Rectangle Name="TopRightSizeGrip"
-                   Width="12"
-                   Height="12"
-                   HorizontalAlignment="Right"
-                   VerticalAlignment="Top"
-                   Cursor="SizeNESW"
-                   Style="{StaticResource RectBorderStyle}" />
-        <Rectangle Name="BottomLeftSizeGrip"
-                   Width="12"
-                   Height="12"
-                   HorizontalAlignment="Left"
-                   VerticalAlignment="Bottom"
-                   Cursor="SizeNESW"
-                   Style="{StaticResource RectBorderStyle}" />
-
 
     </Grid>
 

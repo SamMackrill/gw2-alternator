@@ -1,8 +1,122 @@
 ﻿namespace guildwars2.tools.alternator.MVVM.view;
 
+
 public class WindowBase : Window
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+    public enum ResizeDirections
+    {
+        Both,
+        HorizontalOnly,
+        VerticalOnly,
+    }
+
+    protected override void OnInitialized(EventArgs e)
+    {
+        if (Content is IAddChild top && ResizeMode == ResizeMode.CanResize) AddResizeHandles(top);
+
+        base.OnInitialized(e);
+    }
+
+    public ResizeDirections ResizeOrientation { get; set; } = ResizeDirections.Both;
+
+    private const int CornerGripSize = 12;
+    private const int SideGripSize = 7;
+    private void AddResizeHandles(IAddChild parent)
+    {
+        var style = Resources["RectBorderStyle"] as Style;
+        var fill = new SolidColorBrush(Colors.Transparent);
+
+        System.Windows.Shapes.Rectangle BaseRectangle()
+        {
+            var rect = new System.Windows.Shapes.Rectangle
+            {
+                Style = style,
+                Focusable = false,
+                Fill = fill,
+                Tag = this,
+            };
+            rect.MouseLeftButtonDown += Resize_Init;
+            rect.MouseLeftButtonUp += Resize_End;
+            rect.MouseMove += Resizing_Form;
+            return rect;
+        }
+
+        if (ResizeOrientation != ResizeDirections.VerticalOnly)
+        {
+            var leftSizeGrip = BaseRectangle();
+            leftSizeGrip.Name = "LeftSizeGrip";
+            leftSizeGrip.Width = SideGripSize;
+            leftSizeGrip.HorizontalAlignment = HorizontalAlignment.Left;
+            leftSizeGrip.Cursor = Cursors.SizeWE;
+            parent.AddChild(leftSizeGrip);
+
+            var rightSizeGrip = BaseRectangle();
+            rightSizeGrip.Name = "RightSizeGrip";
+            rightSizeGrip.Width = SideGripSize;
+            rightSizeGrip.HorizontalAlignment = HorizontalAlignment.Right;
+            rightSizeGrip.Cursor = Cursors.SizeWE;
+            parent.AddChild(rightSizeGrip);
+        }
+
+        if (ResizeOrientation != ResizeDirections.HorizontalOnly)
+        {
+            var topSizeGrip = BaseRectangle();
+            topSizeGrip.Name = "TopSizeGrip";
+            topSizeGrip.Height = SideGripSize;
+            topSizeGrip.VerticalAlignment = VerticalAlignment.Top;
+            topSizeGrip.Cursor = Cursors.SizeNS;
+            parent.AddChild(topSizeGrip);
+
+            var bottomSizeGrip = BaseRectangle();
+            bottomSizeGrip.Name = "BottomSizeGrip";
+            bottomSizeGrip.Height = SideGripSize;
+            bottomSizeGrip.VerticalAlignment = VerticalAlignment.Bottom;
+            bottomSizeGrip.Cursor = Cursors.SizeNS;
+            parent.AddChild(bottomSizeGrip);
+        }
+
+        if (ResizeOrientation == ResizeDirections.Both)
+        {
+            var topLeftSizeGrip = BaseRectangle();
+            topLeftSizeGrip.Name = "TopLeftSizeGrip";
+            topLeftSizeGrip.Height = CornerGripSize;
+            topLeftSizeGrip.Width = CornerGripSize;
+            topLeftSizeGrip.HorizontalAlignment = HorizontalAlignment.Left;
+            topLeftSizeGrip.VerticalAlignment = VerticalAlignment.Top;
+            topLeftSizeGrip.Cursor = Cursors.SizeNWSE;
+            parent.AddChild(topLeftSizeGrip);
+
+            var topRightSizeGrip = BaseRectangle();
+            topRightSizeGrip.Name = "TopRightSizeGrip";
+            topRightSizeGrip.Height = CornerGripSize;
+            topRightSizeGrip.Width = CornerGripSize;
+            topRightSizeGrip.HorizontalAlignment = HorizontalAlignment.Right;
+            topRightSizeGrip.VerticalAlignment = VerticalAlignment.Top;
+            topRightSizeGrip.Cursor = Cursors.SizeNESW;
+            parent.AddChild(topRightSizeGrip);
+
+            var bottomRightSizeGrip = BaseRectangle();
+            bottomRightSizeGrip.Name = "BottomRightSizeGrip";
+            bottomRightSizeGrip.Height = CornerGripSize;
+            bottomRightSizeGrip.Width = CornerGripSize;
+            bottomRightSizeGrip.HorizontalAlignment = HorizontalAlignment.Right;
+            bottomRightSizeGrip.VerticalAlignment = VerticalAlignment.Bottom;
+            bottomRightSizeGrip.Cursor = Cursors.SizeNWSE;
+            parent.AddChild(bottomRightSizeGrip);
+
+            var bottomLeftSizeGrip = BaseRectangle();
+            bottomLeftSizeGrip.Name = "BottomLeftSizeGrip";
+            bottomLeftSizeGrip.Height = CornerGripSize;
+            bottomLeftSizeGrip.Width = CornerGripSize;
+            bottomLeftSizeGrip.HorizontalAlignment = HorizontalAlignment.Left;
+            bottomLeftSizeGrip.VerticalAlignment = VerticalAlignment.Bottom;
+            bottomLeftSizeGrip.Cursor = Cursors.SizeNESW;
+            parent.AddChild(bottomLeftSizeGrip);
+        }
+    }
+
 
     private protected void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
@@ -27,7 +141,7 @@ public class WindowBase : Window
     }
 
     private bool resizeInProcess;
-    private protected void Resize_Init(object sender, MouseButtonEventArgs e)
+    private void Resize_Init(object sender, MouseButtonEventArgs e)
     {
         if (sender is not System.Windows.Shapes.Rectangle senderRect) return;
         //Logger.Debug("Resize_Init {0}", senderRect.Name);
@@ -35,7 +149,7 @@ public class WindowBase : Window
         senderRect.CaptureMouse();
     }
 
-    private protected void Resize_End(object sender, MouseButtonEventArgs e)
+    private void Resize_End(object sender, MouseButtonEventArgs e)
     {
         if (sender is not System.Windows.Shapes.Rectangle senderRect) return;
         //Logger.Debug("Resize_End {0}", senderRect.Name);
@@ -43,7 +157,7 @@ public class WindowBase : Window
         senderRect.ReleaseMouseCapture();
     }
 
-    private protected void Resizing_Form(object sender, MouseEventArgs e)
+    private void Resizing_Form(object sender, MouseEventArgs e)
     {
         var senderRect = sender as System.Windows.Shapes.Rectangle;
         //Logger.Debug("Resizing_Form {0} resizeInProcess={1}", senderRect.Name, resizeInProcess);
