@@ -1,5 +1,4 @@
 ﻿using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
 
 namespace guildwars2.tools.alternator.MVVM.model;
 

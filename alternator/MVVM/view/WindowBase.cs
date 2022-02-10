@@ -2,6 +2,8 @@
 
 public class WindowBase : Window
 {
+    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
     private protected void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         try
@@ -28,6 +30,7 @@ public class WindowBase : Window
     private protected void Resize_Init(object sender, MouseButtonEventArgs e)
     {
         if (sender is not System.Windows.Shapes.Rectangle senderRect) return;
+        //Logger.Debug("Resize_Init {0}", senderRect.Name);
         resizeInProcess = true;
         senderRect.CaptureMouse();
     }
@@ -35,18 +38,21 @@ public class WindowBase : Window
     private protected void Resize_End(object sender, MouseButtonEventArgs e)
     {
         if (sender is not System.Windows.Shapes.Rectangle senderRect) return;
+        //Logger.Debug("Resize_End {0}", senderRect.Name);
         resizeInProcess = false;
         senderRect.ReleaseMouseCapture();
     }
 
     private protected void Resizing_Form(object sender, MouseEventArgs e)
     {
-        if (!resizeInProcess) return;
         var senderRect = sender as System.Windows.Shapes.Rectangle;
+        //Logger.Debug("Resizing_Form {0} resizeInProcess={1}", senderRect.Name, resizeInProcess);
+
+        if (!resizeInProcess) return;
         if (senderRect?.Tag is not Window window) return;
 
+        window.SizeToContent = SizeToContent.Manual;
 
-        //var position = e.GetPosition(mainWindow); // This only works on the Main window, d'oh
         var mousePosition = System.Windows.Forms.Control.MousePosition;
         var position = window.PointFromScreen(new System.Windows.Point(mousePosition.X, mousePosition.Y));
 
@@ -60,11 +66,13 @@ public class WindowBase : Window
                   | (DragDown(senderRectName, height, window) || DragUp(senderRectName, height, window));
     }
 
+    private const double Offset = 7;
+
     private bool DragUp(string senderRectName, double y, Window window)
     {
         if (!senderRectName.Contains("top")) return false;
 
-        y -= 5;
+        y -= Offset;
         var newHeight = window.Height - y;
         if (newHeight <= 0 || newHeight < window.MinHeight || newHeight > window.MaxHeight) return false;
 
@@ -77,7 +85,7 @@ public class WindowBase : Window
     {
         if (!senderRectName.Contains("bottom")) return false;
 
-        var newHeight = y + 5;
+        var newHeight = y + Offset;
         if (newHeight <= 0 || newHeight < window.MinHeight || newHeight > window.MaxHeight) return false;
 
         window.Height = newHeight;
@@ -88,7 +96,7 @@ public class WindowBase : Window
     {
         if (!senderRectName.Contains("left")) return false;
         
-        x -= 5;
+        x -= Offset;
         var newWidth = window.Width - x;
         if (newWidth <= 0 || newWidth < window.MinWidth || newWidth > window.MaxWidth) return false;
 
@@ -101,7 +109,7 @@ public class WindowBase : Window
     {
         if (!senderRectName.Contains("right")) return false;
         
-        var newWidth = x + 5;
+        var newWidth = x + Offset;
         if (newWidth <= 0 || newWidth < window.MinWidth || newWidth > window.MaxWidth) return false;
 
         window.Width = newWidth;

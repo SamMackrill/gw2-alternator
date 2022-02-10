@@ -15,7 +15,6 @@
                   MinWidth="200"
                   MinHeight="40"
                   SizeToContent="WidthAndHeight"
-                  MouseLeftButtonDown="Window_MouseLeftButtonDown"
                   d:DataContext="{d:DesignInstance Type=viewmodel:VpnConnectionsViewModel}"
                   d:DesignHeight="200" 
                   d:DesignWidth="360" 

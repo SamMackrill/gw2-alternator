@@ -20,12 +20,6 @@ public enum RunState
     Cancelled,
 }
 
-public enum LaunchState
-{
-    Ready,
-    UpToDate,
-}
-
 
 public enum RunStage
 {

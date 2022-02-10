@@ -1,5 +1,3 @@
-using System.Reflection;
-using System.Windows.Input;
 using WeakEventManager = AsyncAwaitBestPractices.WeakEventManager;
 
 namespace guildwars2.tools.alternator;

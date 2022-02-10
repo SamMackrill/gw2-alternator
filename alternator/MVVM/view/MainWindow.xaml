@@ -11,6 +11,7 @@
         MinHeight="350" MinWidth="560"
         WindowStyle="None"
         ResizeMode="CanResize"
+        SizeToContent="WidthAndHeight"
         Background="Transparent"
         AllowsTransparency="True"
         >

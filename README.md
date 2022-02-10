@@ -3,6 +3,9 @@
 
 Tool to help logging-in to multiple Guild Wars 2 alt accounts so as to harvest the daily rewards.
 
+## Requires at least [.Net 6.0.2](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
+
+
 ![Running](images/running.png)
 
 ## Features:

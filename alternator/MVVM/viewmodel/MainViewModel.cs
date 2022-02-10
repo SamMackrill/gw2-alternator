@@ -390,8 +390,8 @@ public class MainViewModel : ObservableObject
 
         RefreshRunState();
 
-        apiFetchCancellation = new CancellationTokenSource();
-        await FetchApiData(accountCollection.Accounts, apiFetchCancellation.Token);
+        //apiFetchCancellation = new CancellationTokenSource();
+        //await FetchApiData(accountCollection.Accounts, apiFetchCancellation.Token);
     }
 
     private async ValueTask LoadVpns()

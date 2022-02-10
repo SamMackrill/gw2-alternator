@@ -239,28 +239,13 @@ public class Client : ObservableObject
     }
 
 
-    private readonly System.Drawing.Point errorDetectPoint = new(220, 550);
-    private readonly System.Drawing.Color errorColor = Color.FromArgb(25, 42, 58);
     private bool ErrorDetected(ErrorDetection errorDetection)
     {
         if (!Alive || errorDetection!=ErrorDetection.DelayAndPixel) return false;
 
         try
         {
-
-            Color pixel;
-            var currentFocus = Native.GetForegroundWindow();
-            try
-            {
-                _ = Native.SetForegroundWindow(p!.MainWindowHandle);
-                pixel = PrintScreen.CaptureWindowPixel(p!.MainWindowHandle, errorDetectPoint);
-            }
-            finally
-            {
-                _ = Native.SetForegroundWindow(currentFocus);
-            }
-
-            return ColorsSimilar(pixel, errorColor, 20);
+            // TODO Add error state detection
         }
         catch (Exception e)
         {
@@ -270,12 +255,6 @@ public class Client : ObservableObject
         return false;
     }
 
-    private static bool ColorsSimilar(Color c1, Color c2, int tolerance)
-    {
-        return Math.Abs(c1.R - c2.R) <= tolerance ^
-               Math.Abs(c1.G - c2.G) <= tolerance ^
-               Math.Abs(c1.B - c2.B) <= tolerance;
-    }
 
     private void UpdateEngineSpeed()
     {

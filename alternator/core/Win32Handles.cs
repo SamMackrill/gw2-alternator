@@ -29,19 +29,17 @@ static class Win32Handles
 
         public void Kill()
         {
-            using (var p = Process.GetProcessById((int)processId.GetValue()))
+            using var p = Process.GetProcessById((int)processId.GetValue());
+            var h = IntPtr.Zero;
+            try
             {
-                IntPtr h = IntPtr.Zero;
-                try
-                {
-                    if (!Native.DuplicateHandle(p.Handle, handle, Native.GetCurrentProcess(), out h, 0, false, DuplicateOptions.DUPLICATE_CLOSE_SOURCE))
-                        throw new Win32Exception(Marshal.GetLastWin32Error());
-                }
-                finally
-                {
-                    if (h != IntPtr.Zero)
-                        Native.CloseHandle(h);
-                }
+                if (!Native.DuplicateHandle(p.Handle, handle, Native.GetCurrentProcess(), out h, 0, false, DuplicateOptions.DUPLICATE_CLOSE_SOURCE))
+                    throw new Win32Exception(Marshal.GetLastWin32Error());
+            }
+            finally
+            {
+                if (h != IntPtr.Zero)
+                    Native.CloseHandle(h);
             }
         }
     }
@@ -94,26 +92,6 @@ static class Win32Handles
                     return null;
 
                 nameLength = basicInfo.NameInformationLength;
-
-                //var _basic = IntPtr.Zero;
-                //OBJECT_BASIC_INFORMATION basicInfo = new OBJECT_BASIC_INFORMATION();
-                //nameLength = 0;
-
-                //try
-                //{
-                //    _basic = Marshal.AllocHGlobal(Marshal.SizeOf(basicInfo));
-
-                //    if (NativeMethods.NtQueryObject(_handle, ObjectInformationClass.ObjectBasicInformation, _basic, Marshal.SizeOf(basicInfo), ref nameLength) != NtStatus.Success)
-                //        return null;
-
-                //    basicInfo = (OBJECT_BASIC_INFORMATION)Marshal.PtrToStructure(_basic, basicInfo.GetType());
-                //    nameLength = basicInfo.NameInformationLength;
-                //}
-                //finally
-                //{
-                //    if (_basic != IntPtr.Zero)
-                //        Marshal.FreeHGlobal(_basic);
-                //}
 
                 if (nameLength > buffer.length)
                 {
@@ -210,7 +188,7 @@ static class Win32Handles
     public static IObjectHandle? GetHandle(int processId, string objectName, Func<string, bool> objectNameCallback)
     {
         var infoClass = SYSTEM_INFORMATION_CLASS.SystemExtendedHandleInformation;
-        int infoLength = 0x10000;
+        var infoLength = 0x10000;
         var _processId = (UIntPtr)processId;
         Buffer[]? buffers = null;
 

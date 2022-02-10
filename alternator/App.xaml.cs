@@ -6,6 +6,8 @@ global using System.Text.RegularExpressions;
 global using System.ComponentModel;
 global using System.Xaml;
 global using System.Globalization;
+global using System.Reflection;
+
 
 global using System.Threading;
 global using System.Threading.Tasks;

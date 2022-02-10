@@ -4,46 +4,16 @@ static class Loop
 {
     public interface ILoop
     {
-        event EventHandler Complete;
-
         /// <summary>
         /// Waits for all threads to finish
         /// </summary>
         void Wait();
 
-        /// <summary>
-        /// Immediately terminates all threads
-        /// </summary>
-        void Abort();
-
-        /// <summary>
-        /// Terminates all threads after completing their current task
-        /// </summary>
-        void Break();
-
-        bool IsComplete
-        {
-            get;
-        }
-
-        object? Result
-        {
-            get;
-        }
+        object? Result { get; }
     }
 
     public interface IState
     {
-        /// <summary>
-        /// Breaks out of the loop, terminating all threads after completing their current task
-        /// </summary>
-        void Break();
-
-        /// <summary>
-        /// Immediately terminates all threads
-        /// </summary>
-        void Abort();
-
         /// <summary>
         /// Breaks out of the loop, termination all threads after completing their current task and returning the value
         /// </summary>
@@ -84,9 +54,8 @@ static class Loop
                             lock (this)
                             {
                                 thread = null;
-                                completed = true;
-                                if (--source.active == 0)
-                                    source.OnComplete();
+                                completed = true; 
+                                source.active--;
                                 return;
                             }
                         }
@@ -119,19 +88,16 @@ static class Loop
                 }
             }
 
-            public void Abort()
+            private void Abort()
             {
                 lock (this)
                 {
                     var t = thread;
 
-                    if (t is {IsAlive: true})
-                    {
-                        thread = null;
-                        completed = true;
+                    if (t is not {IsAlive: true}) return;
 
-                        //t.Abort();
-                    }
+                    thread = null;
+                    completed = true;
                 }
             }
 
@@ -176,15 +142,13 @@ static class Loop
             }
         }
 
-        public event EventHandler? Complete;
-
-        private long from, to;
-        private int timeout;
-        private WorkAction work;
-        private Worker[] threads;
+        private long from;
+        private readonly long to;
+        private readonly int timeout;
+        private readonly WorkAction work;
+        private readonly Worker[] threads;
         private byte active;
-        private bool abort, terminate;
-        private object? result;
+        private bool abort;
 
         public ParallelFor(long from, long to, byte threads, int timeout, WorkAction work)
         {
@@ -205,85 +169,33 @@ static class Loop
             }
         }
 
-        private void OnComplete()
-        {
-            if (Complete != null)
-                Complete(this, EventArgs.Empty);
-        }
-
         private Worker? FindActive()
         {
-            if (active == 0)
-                return null;
-
-            foreach (var t in threads)
-            {
-                if (t.IsComplete)
-                    continue;
-
-                return t;
-            }
-
-            return null;
+            return active == 0 ? null : threads.FirstOrDefault(t => !t.IsComplete);
         }
 
         public void Wait()
         {
             while (true)
             {
-                if (terminate)
+                var activeWorker = FindActive();
+                if (activeWorker == null) break;
+
+                if (activeWorker.Wait(timeout)) continue;
+
+                foreach (var t in threads)
                 {
-                    foreach (var t in threads)
+                    if (!t.IsBlocked()) continue;
+                    lock (this)
                     {
-                        if (!t.IsComplete)
-                            t.Abort();
-                    }
-
-                    break;
-                }
-
-                var active = FindActive();
-                if (active == null)
-                    break;
-
-                if (!active.Wait(timeout))
-                {
-                    foreach (var t in threads)
-                    {
-                        if (t.IsBlocked())
+                        if (!abort)
                         {
-                            lock (this)
-                            {
-                                if (!abort)
-                                {
-                                    t.Restart();
-                                }
-                            }
+                            t.Restart();
                         }
                     }
                 }
             }
         }
-
-        public void Abort()
-        {
-            lock (this)
-            {
-                abort = true;
-                terminate = true;
-            }
-        }
-
-        public void Break()
-        {
-            lock (this)
-            {
-                if (abort)
-                    return;
-                abort = true;
-            }
-        }
-
         public void Return(object? o)
         {
             lock (this)
@@ -291,13 +203,11 @@ static class Loop
                 if (abort)
                     return;
                 abort = true;
-                result = o;
+                Result = o;
             }
         }
 
-        public bool IsComplete => active == 0;
-
-        public object? Result => result;
+        public object? Result { get; private set; }
     }
 
     /// <summary>

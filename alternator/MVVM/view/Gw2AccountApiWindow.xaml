@@ -14,10 +14,10 @@
                   MinWidth="100"
                   MinHeight="40"
                   SizeToContent="WidthAndHeight"
-                  MouseLeftButtonDown="Window_MouseLeftButtonDown"
                   d:DataContext="{d:DesignInstance Type=viewmodel:AccountApisViewModel}"
-                  d:DesignWidth="600"
+                  d:DesignWidth="620"
                   d:DesignHeight="200" >
+
     <Window.Resources>
 
         <Style x:Key="RectBorderStyle" TargetType="Rectangle">
