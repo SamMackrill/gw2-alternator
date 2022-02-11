@@ -70,9 +70,9 @@ public class AccountCollection : JsonCollection<Account>
 
         return launchType switch
         {
-            LaunchType.Login => Accounts.Where(a => all || a.LoginRequired).Cast<IAccount>().ToList(),
-            LaunchType.Collect => Accounts.Where(a => all || a.CollectionRequired).OrderBy(a => a.LastCollection).Cast<IAccount>().ToList(),
-            LaunchType.Update => Accounts.Where(a => all || a.UpdateRequired).Cast<IAccount>().ToList(),
+            LaunchType.Login => Accounts.Where(a => all || a.LoginRequired).ToList(),
+            LaunchType.Collect => Accounts.Where(a => all || a.CollectionRequired).OrderBy(a => a.LastCollection).ToList(),
+            LaunchType.Update => Accounts.Where(a => all || a.UpdateRequired).ToList(),
             _ => throw new ArgumentException(message: "invalid enum value", paramName: nameof(launchType))
         };
     }
@@ -119,7 +119,7 @@ public class AccountCollection : JsonCollection<Account>
                 var pathToLoginDat = settings?.Element("Loginfile")?.Element("Path")?.Value;
                 if (pathToLoginDat == null || !File.Exists(pathToLoginDat)) continue;
                 var lastLoginText = settings?.Element("AccountInformation")?.Element("LastLogin")?.Value;
-                var account = Accounts.FirstOrDefault(a => string.Equals(a.Name, accountName, StringComparison.OrdinalIgnoreCase));
+                var account = Accounts!.FirstOrDefault(a => string.Equals(a.Name, accountName, StringComparison.OrdinalIgnoreCase));
                 if (account != null)
                 {
                     account.LoginFilePath = pathToLoginDat;
@@ -128,7 +128,7 @@ public class AccountCollection : JsonCollection<Account>
                 else
                 {
                     account = new Account(accountName, characterName, pathToLoginDat);
-                    Accounts.Add(account);
+                    Accounts!.Add(account);
                 }
 
                 if (DateTime.TryParse(lastLoginText, out var lastLogin))
@@ -439,7 +439,7 @@ public class AccountCollection : JsonCollection<Account>
                     var pathToLoginDat = datPaths.ContainsKey(uid) ? datPaths[uid] : null;
                     if (File.Exists(pathToLoginDat))
                     {
-                        var account = Accounts.FirstOrDefault(a => string.Equals(a.Name, accountName, StringComparison.OrdinalIgnoreCase));
+                        var account = Accounts!.FirstOrDefault(a => string.Equals(a.Name, accountName, StringComparison.OrdinalIgnoreCase));
                         if (account != null)
                         {
                             account.LoginFilePath = pathToLoginDat;
@@ -447,7 +447,7 @@ public class AccountCollection : JsonCollection<Account>
                         else
                         {
                             account = new Account(accountName, null, pathToLoginDat);
-                            Accounts.Add(account);
+                            Accounts!.Add(account);
                         }
 
                         if (lastUsedUtc > account.LastLogin) account.LastLogin = lastUsedUtc;

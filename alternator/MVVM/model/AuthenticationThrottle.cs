@@ -85,13 +85,13 @@ public class AuthenticationThrottle : ObservableObject
     public void LoginFailed(VpnDetails vpnDetails, Client client)
     {
         failedCount.Increment();
-        failedClients.AddOrUpdate(client.Account.Name, client, (_, _) => client);
+        if (client.Account.Name != null) failedClients.AddOrUpdate(client.Account.Name, client, (_, _) => client);
         vpnDetails.SetFail(client.Account);
     }
 
     public void LoginSucceeded(VpnDetails vpnDetails, Client client)
     {
-        failedClients.Remove(client.Account.Name, out _);
+        if (client.Account.Name != null) failedClients.Remove(client.Account.Name, out _);
         vpnDetails.SetSuccess();
     }
 

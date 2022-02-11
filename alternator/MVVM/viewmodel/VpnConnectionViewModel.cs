@@ -9,7 +9,7 @@ public class VpnConnectionViewModel : ObservableObject
     public ICommandExtended? UndoConnectionNameCommand { get; }
     public AsyncCommand? TestConnectionCommand { get; }
 
-    public string Id
+    public string? Id
     {
         get => vpnDetails.Id;
         set => vpnDetails.Id = value;

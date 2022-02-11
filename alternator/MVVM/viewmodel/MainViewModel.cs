@@ -16,8 +16,8 @@ public class MainViewModel : ObservableObject
     public ICommandExtended? CopyMetricsCommand { get; }
     public IAsyncCommand? CloseCommand { get; }
 
-    private CancellationTokenSource launchCancellation;
-    private CancellationTokenSource apiFetchCancellation;
+    private CancellationTokenSource? launchCancellation;
+    private CancellationTokenSource? apiFetchCancellation;
 
     private readonly SettingsController settingsController;
     private readonly AuthenticationThrottle authenticationThrottle;
@@ -186,7 +186,7 @@ public class MainViewModel : ObservableObject
         }
     }
 
-    bool CanRun(LaunchType launchType)
+    private bool CanRun(LaunchType launchType)
     {
         var canRun = !Running && settingsController.Settings != null && accountCollection.Ready && vpnCollection.Ready;
         //Logger.Debug("{0} {1} ? {2}", nameof(CanRun), launchType, canRun);
@@ -390,8 +390,11 @@ public class MainViewModel : ObservableObject
 
         RefreshRunState();
 
-        //apiFetchCancellation = new CancellationTokenSource();
-        //await FetchApiData(accountCollection.Accounts, apiFetchCancellation.Token);
+        if (!Debugger.IsAttached)
+        {
+            apiFetchCancellation = new CancellationTokenSource();
+            await FetchApiData(accountCollection.Accounts, apiFetchCancellation.Token);
+        }
     }
 
     private async ValueTask LoadVpns()

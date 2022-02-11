@@ -198,11 +198,11 @@ public class ClientController
             "Account\tStart\tAuthenticate\tLogin\tEnter\tExit",
         };
 
-        foreach (var client in clients.OrderBy(c => c.StartAt))
+        foreach (var client in clients.Where(c => c.Account.Name != null).OrderBy(c => c.StartAt))
         {
             var line = client.Account.Name;
             var reference = startOfRun;
-            (line, reference) = AddOffset(reference, client.StartAt, line);
+            (line, reference) = AddOffset(reference, client.StartAt, line!);
             (line, reference) = AddOffset(reference, client.AuthenticationAt, line);
             (line, reference) = AddOffset(reference, client.LoginAt, line);
             (line, reference) = AddOffset(reference, client.EnterAt, line);

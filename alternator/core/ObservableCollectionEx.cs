@@ -3,9 +3,6 @@
 public class ObservableCollectionEx<T> : ObservableCollection<T>, IDisposable
 {
 
-    /// <inheritdoc />
-    protected override event PropertyChangedEventHandler? PropertyChanged;
-
     /// <summary> 
     /// Initializes a new instance of the System.Collections.ObjectModel.ObservableCollection(Of T) class. 
     /// </summary> 

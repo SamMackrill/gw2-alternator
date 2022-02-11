@@ -5,7 +5,7 @@ public class VpnTest
     [Fact]
     public void Connections_Null_ReturnEmpty()
     {
-        IEnumerable<string> lines = null;
+        IEnumerable<string>? lines = null;
         var result = VpnConnectionsViewModel.ExtractConnections(lines, @"\w+-\w+-st\d+\.prod\.surfshark\.com");
         result.Should().BeEmpty();
     }

@@ -4,7 +4,7 @@ namespace guildwars2.tools.alternator.MVVM.model;
 
 public interface IAccount : IEquatable<IAccount>
 {
-    string Name { get; }
+    string? Name { get; }
     string? DisplayName { get; set; }
     string? Character { get; set; }
     string? LoginFilePath { get; set; }
@@ -45,8 +45,8 @@ public class Account : ObservableObject, IAccount
 
     public EventHandler? AccountCollected; 
 
-    private string name;
-    public string Name
+    private string? name;
+    public string? Name
     {
         get => name;
         set => SetProperty(ref name, value);
@@ -94,11 +94,14 @@ public class Account : ObservableObject, IAccount
 
     public void UpdateVpn(VpnDetails vpn, bool isChecked)
     {
+        if (vpn.Id == null) return;
+
         if (Vpns == null)
         {
             if (!isChecked) return;
             Vpns = new ObservableCollectionEx<string>();
         }
+
 
         if (isChecked)
         {
@@ -119,7 +122,7 @@ public class Account : ObservableObject, IAccount
         }
     }
 
-    Task? apiLookup;
+    private Task? apiLookup;
 
     public void SetCollected()
     {
@@ -425,7 +428,7 @@ public class Account : ObservableObject, IAccount
 
     public bool Equals(IAccount? other)
     {
-        return other != null && Name.Equals(other.Name);
+        return Name != null && other != null && Name.Equals(other.Name);
     }
 
     public void SetUndo()

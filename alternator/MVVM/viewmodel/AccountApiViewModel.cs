@@ -8,7 +8,7 @@ public class AccountApiViewModel : ObservableObject
     public ICommandExtended? PasteApiKeyCommand { get; }
     public ICommandExtended? UndoApiKeyCommand { get; }
 
-    public string AccountName => account.Name;
+    public string AccountName => account.Name ?? "Unknown";
 
     public string? ApiKey
     {

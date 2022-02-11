@@ -32,7 +32,7 @@ public class AccountViewModel : ObservableObject
         }
     }
 
-    public string AccountName => Account.Name;
+    public string AccountName => Account.Name ?? "Unknown";
 
     public string Character => Account.Character ?? "Unknown";
     public string Login => $"{Account.LastLogin.ToShortDateString()} {Account.LastLogin.ToShortTimeString()}";

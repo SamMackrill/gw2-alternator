@@ -1,5 +1,4 @@
-﻿using System.Net;
-using System.Net.Http;
+﻿using System.Net.Http;
 using System.Text.Json.Serialization;
 
 namespace guildwars2.tools.alternator.MVVM.model;
@@ -21,9 +20,9 @@ public class VpnConnectionMetrics
     public EventMetrics? ConnectMetrics { get; }
     public EventMetrics? DisconnectMetrics { get; private set; }
 
-    public VpnConnectionMetrics(string id)
+    public VpnConnectionMetrics(string? id)
     {
-        Id = id;
+        Id = id ?? throw new ArgumentNullException(nameof(id));
         ConnectMetrics = new EventMetrics();
     }
 
@@ -39,8 +38,8 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private Settings? settings;
 
-    private string id;
-    public string Id
+    private string? id;
+    public string? Id
     {
         get => id;
         set => SetProperty(ref id, value);
@@ -66,7 +65,7 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
     public int LastConnectionFailCode { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public string LastLoginFailAccount { get; set; }
+    public string? LastLoginFailAccount { get; set; }
 
     [field: NonSerialized]
     [JsonIgnore]
@@ -118,7 +117,7 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
 
     public override string ToString() => $"{Id} \"{ConnectionName}\"";
 
-    private VpnConnectionMetrics currentConnectionMetrics;
+    private VpnConnectionMetrics? currentConnectionMetrics;
 
     public async Task<string?> Connect(CancellationToken cancellationToken)
     {
@@ -134,12 +133,12 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
 
     public async Task<string?> Disconnect(CancellationToken cancellationToken)
     {
-        currentConnectionMetrics.DisconnectStart();
+        currentConnectionMetrics?.DisconnectStart();
 
         var status = await RunRasdial("Disconnecting from", @" /d", false, cancellationToken);
         if (status != null) return status;
 
-        currentConnectionMetrics.Disconnected();
+        currentConnectionMetrics?.Disconnected();
         return null;
     }
 
