@@ -1,7 +1,3 @@
-"yaml.schemas": {
-  "https://json.schemastore.org/github-workflow": "/.gihhub/workflows/**/*.yml"
-}
-
 name: "Deploy GW2 Alternator"
 
 on:
