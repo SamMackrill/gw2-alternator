@@ -54,6 +54,7 @@ public class MainViewModel : ObservableObject
         ShowVpnsCommand?.NotifyCanExecuteChanged();
         CloseCommand?.NotifyCanExecuteChanged();
         OnPropertyChanged(nameof(CanRun));
+        OnPropertyChanged(nameof(VpnVisibility));
     }
 
     private LaunchType activeLaunchType;

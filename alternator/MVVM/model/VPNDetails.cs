@@ -15,14 +15,14 @@ public class EventMetrics
 
 public class VpnConnectionMetrics
 {
-    public string Id { get; }
+    public string? Id { get; }
 
     public EventMetrics? ConnectMetrics { get; }
     public EventMetrics? DisconnectMetrics { get; private set; }
 
     public VpnConnectionMetrics(string? id)
     {
-        Id = id ?? throw new ArgumentNullException(nameof(id));
+        Id = id;
         ConnectMetrics = new EventMetrics();
     }
 

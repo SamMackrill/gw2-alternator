@@ -49,6 +49,8 @@ Tool to help logging-in to multiple Guild Wars 2 alt accounts so as to harvest t
 
 ![Metrics](images/AccountLoginMetrics.png)
 
+[Google Doc](https://docs.google.com/spreadsheets/d/1wrKWp_2dLXHZrtC2WtUN2d-j0Z8Fl4EqnV_mO9Up72E/edit?usp=sharing)
+
 ### GW2 API Key
  * Given a GW2 API key then Laurels and Mystic Coins will be counted (excludes unclaimed reward chests)
    * Account/Inventories/Characters/Wallet
