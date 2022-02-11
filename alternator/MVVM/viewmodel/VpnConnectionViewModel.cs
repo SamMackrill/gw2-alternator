@@ -6,8 +6,8 @@ public class VpnConnectionViewModel : ObservableObject
 {
     private readonly VpnDetails vpnDetails;
     private readonly VpnConnectionsViewModel parent;
-    public ICommandExtended? UndoConnectionNameCommand { get; }
-    public AsyncCommand? TestConnectionCommand { get; }
+    public IRelayCommand? UndoConnectionNameCommand { get; }
+    public IAsyncRelayCommand? TestConnectionCommand { get; }
 
     public string? Id
     {
@@ -43,7 +43,7 @@ public class VpnConnectionViewModel : ObservableObject
             vpnDetails.Undo();
         });
 
-        TestConnectionCommand = new AsyncCommand( async () =>
+        TestConnectionCommand = new AsyncRelayCommand( async () =>
         {
             var cts = new CancellationTokenSource();
             Status = await vpnDetails.Test(cts.Token);

@@ -35,12 +35,13 @@ global using System.Runtime.CompilerServices;
 global using System.Runtime.InteropServices;
 global using System.Runtime.InteropServices.ComTypes;
 
+global using Microsoft.Toolkit.Mvvm.ComponentModel;
+global using Microsoft.Toolkit.Mvvm.Input;
 
 global using guildwars2.tools.alternator.MVVM.model;
 global using guildwars2.tools.alternator.MVVM.view;
 global using guildwars2.tools.alternator.MVVM.viewmodel;
 
-global using AsyncAwaitBestPractices.MVVM;
 
 global using NLog;
 using NLog.Targets;

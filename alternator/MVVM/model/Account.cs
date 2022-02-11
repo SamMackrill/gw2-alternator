@@ -43,6 +43,7 @@ public class Account : ObservableObject, IAccount
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
+    // ReSharper disable once UnassignedField.Global
     public EventHandler? AccountCollected; 
 
     private string? name;
