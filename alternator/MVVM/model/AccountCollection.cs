@@ -14,6 +14,7 @@ public class AccountCollection : JsonCollection<Account>
 
     public override event EventHandler? Loaded;
     public override event EventHandler? LoadFailed;
+    public override event EventHandler? Updated;
 
 
     public AccountCollection(FileSystemInfo folderPath, string launchbuddyFolder, string launcherFolder) : base(folderPath, AccountsJsonFile)
@@ -52,6 +53,7 @@ public class AccountCollection : JsonCollection<Account>
             Items = await JsonSerializer.DeserializeAsync<List<Account>>(stream);
             Logger.Debug("Accounts loaded from {0}", vpnJson);
             Loaded?.Invoke(this, EventArgs.Empty);
+            Updated?.Invoke(this, EventArgs.Empty);
         }
         catch (Exception e)
         {
@@ -127,8 +129,9 @@ public class AccountCollection : JsonCollection<Account>
                 }
                 else
                 {
-                    account = new Account(accountName, characterName, pathToLoginDat);
-                    Accounts!.Add(account);
+                    var newAccount = new Account(accountName, characterName, pathToLoginDat);
+                    Items.Add(newAccount);
+                    account = newAccount;
                 }
 
                 if (DateTime.TryParse(lastLoginText, out var lastLogin))
@@ -137,7 +140,6 @@ public class AccountCollection : JsonCollection<Account>
                 }
 
             }
-            Loaded?.Invoke(this, EventArgs.Empty);
         }
         catch (Exception e)
         {
@@ -146,6 +148,11 @@ public class AccountCollection : JsonCollection<Account>
         finally
         {
             semaphore.Release();
+            if (Any())
+            {
+                Loaded?.Invoke(this, EventArgs.Empty);
+                Updated?.Invoke(this, EventArgs.Empty);
+            }
         }
     }
 
@@ -437,17 +444,19 @@ public class AccountCollection : JsonCollection<Account>
                     var arguments = reader.ReadString();
 
                     var pathToLoginDat = datPaths.ContainsKey(uid) ? datPaths[uid] : null;
+                    IAccount? account = null;
                     if (File.Exists(pathToLoginDat))
                     {
-                        var account = Accounts!.FirstOrDefault(a => string.Equals(a.Name, accountName, StringComparison.OrdinalIgnoreCase));
+                        account = Accounts!.FirstOrDefault(a => string.Equals(a.Name, accountName, StringComparison.OrdinalIgnoreCase));
                         if (account != null)
                         {
                             account.LoginFilePath = pathToLoginDat;
                         }
                         else
                         {
-                            account = new Account(accountName, null, pathToLoginDat);
-                            Accounts!.Add(account);
+                            var newAccount = new Account(accountName, null, pathToLoginDat);
+                            Items.Add(newAccount);
+                            account = newAccount;
                         }
 
                         if (lastUsedUtc > account.LastLogin) account.LastLogin = lastUsedUtc;
@@ -559,7 +568,11 @@ public class AccountCollection : JsonCollection<Account>
                         if (gwAccountFlags[0]) _ = reader.ReadUInt16();
                         if (gwAccountFlags[1]) _ = reader.ReadUInt16();
 
-                        if (gwAccountFlags[3]) _ = reader.ReadString();
+                        if (gwAccountFlags[3])
+                        {
+                            var apiKey = reader.ReadString();
+                            if (account != null) account.ApiKey = apiKey;
+                        }
 
                         if (accountFlags[4])
                         {
@@ -586,7 +599,6 @@ public class AccountCollection : JsonCollection<Account>
 
                 }
             } 
-            Loaded?.Invoke(this, EventArgs.Empty);
         }
         catch (Exception e)
         {
@@ -595,6 +607,11 @@ public class AccountCollection : JsonCollection<Account>
         finally
         {
             semaphore.Release();
+            if (Any())
+            {
+                Loaded?.Invoke(this, EventArgs.Empty);
+                Updated?.Invoke(this, EventArgs.Empty);
+            }
         }
     }
 
@@ -625,4 +642,6 @@ public class AccountCollection : JsonCollection<Account>
             account.SetUndo();
         }
     }
+
+    public bool Any() => Accounts?.Any() ?? false;
 }

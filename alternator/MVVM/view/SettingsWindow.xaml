@@ -23,6 +23,7 @@
         <Border BorderBrush="{StaticResource ForegroundBrush}"
             BorderThickness="2"
             CornerRadius="20"
+            MouseLeftButtonDown="Window_MouseLeftButtonDown"
             Background="{StaticResource BackgroundBrush}">
 
             <Grid ShowGridLines="False">
@@ -353,6 +354,7 @@
                          Opacity="0.6"
                          VerticalAlignment="Center" 
                          Background="Transparent"
+                         ToolTip="Import accounts from Launchbuddy"
                          Command="{Binding Path=ImportFromLaunchBuddyCommand, Mode=OneWay}" 
                          Content="Launch Buddy"
                          />
@@ -372,6 +374,7 @@
                         Opacity="0.6"
                         VerticalAlignment="Center" 
                         Background="Transparent"
+                        ToolTip="Import accounts from GW2 Launcher"
                         Command="{Binding Path=ImportFromLauncherCommand, Mode=OneWay}" 
                         Content="GW2 Launcher"
                     />

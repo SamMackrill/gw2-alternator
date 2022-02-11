@@ -38,6 +38,8 @@ global using System.Runtime.InteropServices.ComTypes;
 global using Microsoft.Toolkit.Mvvm.ComponentModel;
 global using Microsoft.Toolkit.Mvvm.Input;
 
+global using AsyncAwaitBestPractices;
+
 global using guildwars2.tools.alternator.MVVM.model;
 global using guildwars2.tools.alternator.MVVM.view;
 global using guildwars2.tools.alternator.MVVM.viewmodel;
@@ -87,9 +89,9 @@ public partial class App : Application
 
 
         var mainView = new MainViewModel(applicationFolder, appData, settingsController, accountCollection, vpnCollection);
-        mainView.Initialise();
         var mainWindow = new MainWindow(mainView);
         mainWindow.Show();
+        mainView.Initialise();
     }
 
     protected override void OnExit(ExitEventArgs e)
@@ -157,7 +159,7 @@ public partial class App : Application
         if (shutdown)
         {
             // If unrecoverable, attempt to save data
-            var result = MessageBox.Show($"Application must exit:\n\n{e.Exception.Message}\n\nSave before exit?", "app",
+            var result = MessageBox.Show($"Application must exit:\n\n{e.Exception.Message}\n\nSave before exit?", "GW2-Alternator",
                                          MessageBoxButton.YesNo, 
                                          MessageBoxImage.Error);
             if (result == MessageBoxResult.Yes)

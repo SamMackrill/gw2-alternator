@@ -1,6 +1,4 @@
-﻿using AsyncAwaitBestPractices;
-
-namespace guildwars2.tools.alternator.MVVM.viewmodel;
+﻿namespace guildwars2.tools.alternator.MVVM.viewmodel;
 
 public class MainViewModel : ObservableObject
 {
@@ -104,7 +102,8 @@ public class MainViewModel : ObservableObject
     }
 
 
-    public Visibility VpnVisibility => settingsController.Settings?.AlwaysIgnoreVpn ?? true ? Visibility.Collapsed : Visibility.Visible;
+    public Visibility VpnVisibility => (settingsController.Settings?.AlwaysIgnoreVpn ?? true) || !vpnCollection.Any() ? Visibility.Collapsed : Visibility.Visible;
+    public Visibility VpnButtonVisibility => settingsController.Settings?.AlwaysIgnoreVpn ?? true ? Visibility.Collapsed : Visibility.Visible;
 
     private bool ignoreVpnOverride;
     public bool IgnoreVpnOverride
@@ -219,23 +218,22 @@ public class MainViewModel : ObservableObject
     {
         this.settingsController = settingsController;
         settingsController.PropertyChanged += SettingsController_PropertyChanged;
-
-        this.accountCollection = accountCollection;
-        this.vpnCollection = vpnCollection;
-
         settingsController.DatFile = new FileInfo(Path.Combine(appData, @"Guild Wars 2", @"Local.dat"));
         settingsController.GfxSettingsFile = new FileInfo(Path.Combine(appData, @"Guild Wars 2", @"GFXSettings.Gw2-64.exe.xml"));
-
         settingsController.DiscoverGw2ExeLocation();
+        SettingsVM = new SettingsViewModel(settingsController, accountCollection, () => Version);
+
+        this.accountCollection = accountCollection;
+        accountCollection.Loaded += AccountCollection_Loaded;
+        AccountsVM = new AccountsViewModel(settingsController, vpnCollection);
+        AccountApisVM = new AccountApisViewModel();
+
+        this.vpnCollection = vpnCollection;
+        vpnCollection.Loaded += VpnCollection_Loaded;
+        VpnConnectionsVM = new VpnConnectionsViewModel(vpnCollection, settingsController);
 
         authenticationThrottle = new AuthenticationThrottle(settingsController.Settings);
         authenticationThrottle.PropertyChanged += ThrottlePropertyChanged;
-
-
-        SettingsVM = new SettingsViewModel(settingsController, accountCollection, () => Version);
-        AccountsVM = new AccountsViewModel(settingsController);
-        AccountApisVM = new AccountApisViewModel();
-        VpnConnectionsVM = new VpnConnectionsViewModel(vpnCollection, settingsController);
 
         async Task LaunchMultipleAccounts(LaunchType launchType, bool all, bool serial, bool ignoreVpn)
         {
@@ -290,15 +288,7 @@ public class MainViewModel : ObservableObject
             RequestClose?.Invoke();
         }, () => !Running && RequestClose != null);
 
-        ShowSettingsCommand = new RelayCommand<object>(_ =>
-        {
-            var window = new SettingsWindow
-            {
-                DataContext = SettingsVM,
-                Owner = Application.Current.MainWindow
-            };
-            window.ShowDialog();
-        });
+        ShowSettingsCommand = new RelayCommand<object>(_ => ShowSettings());
 
         ShowApisCommand = new RelayCommand<object>(_ =>
         {
@@ -342,6 +332,32 @@ public class MainViewModel : ObservableObject
         dt.Start();
     }
 
+    private void VpnCollection_Loaded(object? sender, EventArgs e)
+    {
+        Logger.Debug("VPNs Loaded");
+        VpnConnectionsVM.Update();
+        vpnCollection.Ready = true;
+        RefreshRunState();
+    }
+
+    private async void AccountCollection_Loaded(object? sender, EventArgs e)
+    {
+        Logger.Debug("Accounts Loaded");
+        AccountsVM.Clear();
+        AccountsVM.Add(accountCollection, vpnCollection);
+        AccountApisVM.Add(accountCollection.Accounts);
+
+        accountCollection.Ready = true;
+
+        RefreshRunState();
+
+        if (true || !Debugger.IsAttached)
+        {
+            apiFetchCancellation = new CancellationTokenSource();
+            await FetchApiData(accountCollection.Accounts, apiFetchCancellation.Token);
+        }
+    }
+
     private void Launcher_MetricsUpdated(object? sender, EventArgs e)
     {
         OnPropertyChanged(nameof(MetricsAvailable));
@@ -361,11 +377,30 @@ public class MainViewModel : ObservableObject
         LoadAccounts().SafeFireAndForget(onException: ex =>
         {
             Logger.Error(ex, "Load Accounts");
+            if (ex is Gw2Exception)
+            {
+                _ = MessageBox.Show("No accounts defined, please import via settings", "GW2-Alternator",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Exclamation);
+
+                Application.Current.Dispatcher.Invoke(ShowSettings);
+            }
+
         });
         LoadVpns().SafeFireAndForget(onException: ex =>
         {
             Logger.Error(ex, "Load VPNs");
         });
+    }
+
+    private void ShowSettings()
+    {
+        var window = new SettingsWindow
+        {
+            DataContext = SettingsVM,
+            Owner = Application.Current.MainWindow
+        };
+        window.ShowDialog();
     }
 
     private async ValueTask QueryGw2Version()
@@ -381,29 +416,15 @@ public class MainViewModel : ObservableObject
 
     private async ValueTask LoadAccounts()
     {
-
+        Logger.Debug("Load Accounts");
         await accountCollection.Load();
-
-        AccountsVM.Clear();
-        AccountsVM.Add(accountCollection, vpnCollection);
-        AccountApisVM.Add(accountCollection.Accounts);
-        accountCollection.Ready = true;
-
-        RefreshRunState();
-
-        if (!Debugger.IsAttached)
-        {
-            apiFetchCancellation = new CancellationTokenSource();
-            await FetchApiData(accountCollection.Accounts, apiFetchCancellation.Token);
-        }
+        if (!accountCollection.Any()) throw new Gw2Exception("No Accounts");
     }
 
     private async ValueTask LoadVpns()
     {
+        Logger.Debug("Load VPNs");
         await vpnCollection.Load();
-        VpnConnectionsVM.Update();
-        vpnCollection.Ready = true;
-        RefreshRunState();
     }
 
     private static async Task SaveCollections(AccountCollection accountCollection, VpnCollection vpnCollection)

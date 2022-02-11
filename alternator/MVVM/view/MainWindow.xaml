@@ -14,7 +14,7 @@
         SizeToContent="WidthAndHeight"
         Background="Transparent"
         AllowsTransparency="True"
-        >
+>
 
     <Grid>
         <Border BorderBrush="{StaticResource ForegroundBrush}" 
@@ -155,6 +155,7 @@
                             Background="Transparent"
                             Style="{StaticResource FadeOutButton}"
                             ToolTip="VPN Connections..."
+                            Visibility="{Binding VpnButtonVisibility}"
                             Command="{Binding Path=ShowVpnsCommand, Mode=OneWay}">
 
                             <Image Source="/images/vpn.png" Width="24" />
