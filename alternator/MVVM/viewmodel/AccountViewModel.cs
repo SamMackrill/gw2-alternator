@@ -31,13 +31,15 @@ public class AccountViewModel : ObservableObject
             OnPropertyChanged(propertyName);
         }
     }
+    private static string DateTimeDisplay(DateTime dateTime) => dateTime == DateTime.MinValue ? "Never" : $"{dateTime.ToShortDateString()} {dateTime.ToShortTimeString()}";
 
     public string AccountName => Account.Name ?? "Unknown";
 
     public string Character => Account.Character ?? "Unknown";
-    public string Login => $"{Account.LastLogin.ToShortDateString()} {Account.LastLogin.ToShortTimeString()}";
+    public string Login => DateTimeDisplay(Account.LastLogin);
     public string LoginRequired => Account.LoginRequired ? "Yes" : "No";
-    public string Collected => $"{Account.LastCollection.ToShortDateString()} {Account.LastCollection.ToShortTimeString()}";
+    public string Collected => DateTimeDisplay(Account.LastCollection);
+
     public string CollectionRequired => Account.CollectionRequired ? "Yes" : "No";
     public int Age => (int)Math.Floor(DateTime.UtcNow.Subtract(Account.CreatedAt).TotalDays);
 

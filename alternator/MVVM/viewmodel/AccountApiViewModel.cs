@@ -1,12 +1,14 @@
-﻿namespace guildwars2.tools.alternator.MVVM.viewmodel;
+﻿using Microsoft.Toolkit.Mvvm.Input;
+
+namespace guildwars2.tools.alternator.MVVM.viewmodel;
 
 
 [DebuggerDisplay("{" + nameof(DebugDisplay) + ",nq}")]
 public class AccountApiViewModel : ObservableObject
 {
     private readonly IAccount account;
-    public ICommandExtended? PasteApiKeyCommand { get; }
-    public ICommandExtended? UndoApiKeyCommand { get; }
+    public ICommand? PasteApiKeyCommand { get; }
+    public ICommand? UndoApiKeyCommand { get; }
 
     public string AccountName => account.Name ?? "Unknown";
 

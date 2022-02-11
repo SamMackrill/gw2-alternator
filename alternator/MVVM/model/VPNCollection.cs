@@ -12,6 +12,7 @@ public class VpnCollection : JsonCollection<VpnDetails>
 
     public override event EventHandler? Loaded;
     public override event EventHandler? LoadFailed;
+    public override event EventHandler? Updated;
 
     public override async Task Save()
     {
@@ -44,6 +45,7 @@ public class VpnCollection : JsonCollection<VpnDetails>
             Items = await JsonSerializer.DeserializeAsync<List<VpnDetails>>(stream);
             Logger.Debug("VPNs loaded from {0}", vpnJson);
             Loaded?.Invoke(this, EventArgs.Empty);
+            Updated?.Invoke(this, EventArgs.Empty);
         }
         catch (Exception e)
         {
@@ -72,6 +74,7 @@ public class VpnCollection : JsonCollection<VpnDetails>
         Items ??= new List<VpnDetails>();
         Items.Add(newVpnDetails);
         OnPropertyChanged(nameof(Vpns));
+        Updated?.Invoke(this, EventArgs.Empty);
 
         return newVpnDetails;
     }
@@ -79,5 +82,8 @@ public class VpnCollection : JsonCollection<VpnDetails>
     public void Remove(VpnDetails deadVpn)
     {
         Vpns?.Remove(deadVpn);
+        Updated?.Invoke(this, EventArgs.Empty);
     }
+
+    public bool Any() => Vpns?.Any() ?? false;
 }

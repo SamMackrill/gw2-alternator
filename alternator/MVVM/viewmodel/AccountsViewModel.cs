@@ -2,15 +2,23 @@
 
 public class AccountsViewModel : ObservableObject
 {
-    public SettingsController SettingsController { get; }
+    private readonly VpnCollection vpnCollection;
+    private readonly SettingsController settingsController;
 
     public ObservableCollectionEx<AccountViewModel> Accounts { get; }
 
-    public AccountsViewModel(SettingsController settingsController)
+    public AccountsViewModel(SettingsController settingsController, VpnCollection vpnCollection)
     {
-        SettingsController = settingsController;
-        SettingsController.PropertyChanged += SettingsController_PropertyChanged; 
+        this.vpnCollection = vpnCollection;
+        vpnCollection.Updated += VpnCollection_Updated;
+        this.settingsController = settingsController;
+        this.settingsController.PropertyChanged += SettingsController_PropertyChanged; 
         Accounts = new ObservableCollectionEx<AccountViewModel>();
+    }
+
+    private void VpnCollection_Updated(object? sender, EventArgs e)
+    {
+        OnPropertyChanged(nameof(VpnVisibility));
     }
 
     private readonly Dictionary<string, List<string>> propertyConverter = new()
@@ -39,7 +47,7 @@ public class AccountsViewModel : ObservableObject
 
     public void Add(AccountCollection accountCollection, VpnCollection vpnCollection)
     {
-        Add(accountCollection?.Accounts, vpnCollection);
+        Add(accountCollection.Accounts, vpnCollection);
     }
 
     public IEnumerable<IAccount> SelectedAccounts => Accounts.Where(i => i.IsSelected).Select(i => i.Account);
@@ -49,7 +57,7 @@ public class AccountsViewModel : ObservableObject
        Accounts.Clear();
     }
 
-    public Visibility VpnVisibility => SettingsController.Settings?.AlwaysIgnoreVpn ?? true ? Visibility.Hidden : Visibility.Visible;
+    public Visibility VpnVisibility => (settingsController.Settings?.AlwaysIgnoreVpn ?? true) || !vpnCollection.Any() ? Visibility.Hidden : Visibility.Visible;
     public Visibility ApiVisibility => Accounts.Any(a => !string.IsNullOrEmpty(a.Account.ApiKey)) ? Visibility.Visible : Visibility.Hidden;
 
 }

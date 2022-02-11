@@ -4,8 +4,8 @@ namespace guildwars2.tools.alternator.MVVM.viewmodel;
 public class VpnConnectionsViewModel : ObservableObject
 {
 
-    public ICommandExtended? AddNewConnectionCommand { get; }
-    public ICommandExtended? DeleteCommand { get; }
+    public IRelayCommand? AddNewConnectionCommand { get; }
+    public IRelayCommand? DeleteCommand { get; }
 
     public ObservableCollectionEx<VpnConnectionViewModel> VpnConnections { get; }
 

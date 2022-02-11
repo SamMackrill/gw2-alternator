@@ -7,7 +7,8 @@
              xmlns:core="clr-namespace:guildwars2.tools.alternator.core"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance Type=viewmodel:AccountsViewModel}"
-             d:DesignHeight="300" >
+             d:DesignHeight="300"
+>
 
 
     <UserControl.Resources>

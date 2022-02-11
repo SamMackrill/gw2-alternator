@@ -19,6 +19,7 @@ public abstract class JsonCollection<T> : ObservableObject
 
     public abstract event EventHandler? Loaded;
     public abstract event EventHandler? LoadFailed;
+    public abstract event EventHandler? Updated;
 
     public abstract Task Save();
     public abstract Task Load();
