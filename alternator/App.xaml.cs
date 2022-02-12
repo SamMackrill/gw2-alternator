@@ -8,7 +8,6 @@ global using System.Xaml;
 global using System.Globalization;
 global using System.Reflection;
 
-
 global using System.Threading;
 global using System.Threading.Tasks;
 
@@ -37,6 +36,9 @@ global using System.Runtime.InteropServices.ComTypes;
 
 global using Microsoft.Toolkit.Mvvm.ComponentModel;
 global using Microsoft.Toolkit.Mvvm.Input;
+
+global using Microsoft.Win32;
+
 
 global using AsyncAwaitBestPractices;
 

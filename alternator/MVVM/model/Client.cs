@@ -376,6 +376,11 @@ public class Client : ObservableObject
         }
     }
 
+    public void MinimiseWindow()
+    {
+        _ = Native.ShowWindowAsync(p!.MainWindowHandle, ShowWindowCommands.ForceMinimize);
+    }
+
     public async Task<bool> Shutdown()
     {
         closed = true;

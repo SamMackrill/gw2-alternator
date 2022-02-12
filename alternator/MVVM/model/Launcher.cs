@@ -89,7 +89,8 @@ public class Launcher
                     client.SelectCharacter();
                     break;
                 case RunStage.CharacterSelected:
-                    if (launchType == LaunchType.Login) client.Shutdown().Wait();
+                    if (launchType is LaunchType.Login) client.Shutdown().Wait();
+                    if (launchType is LaunchType.Collect) client.MinimiseWindow();
                     break;
                 case RunStage.EntryFailed:
                     Logger.Info("{0} entry failed, giving up to try again", account.Name);
@@ -102,10 +103,7 @@ public class Launcher
                 case RunStage.Exited:
                     if (e.OldState is not RunStage.CharacterSelected and not RunStage.WorldEntered) break;
                     account.LastLogin = DateTime.UtcNow;
-                    if (launchType is LaunchType.Collect)
-                    {
-                        account.SetCollected();
-                    }
+                    if (launchType is LaunchType.Collect) account.SetCollected();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException($"Unhandled RunStage: {e.State}");

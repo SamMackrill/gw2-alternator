@@ -133,10 +133,11 @@ public class Account : ObservableObject, IAccount
         apiLookup = FetchAccountDetails(new CancellationToken());
     }
 
-    private Regex apiKeyMatch = new Regex(@"[\da-z]{8}(?>-[\da-z]{4}){3}-[\da-z]{20}(?>-[\da-z]{4}){3}-[\da-z]{12}",
+    private Regex apiKeyMatch = new(@"[\da-z]{8}(?>-[\da-z]{4}){3}-[\da-z]{20}(?>-[\da-z]{4}){3}-[\da-z]{12}",
           RegexOptions.Compiled 
         | RegexOptions.CultureInvariant 
         | RegexOptions.IgnoreCase);
+
     public async Task<string> TestApiKey()
     {
         if (string.IsNullOrWhiteSpace(apiKey)) return "Blank";
@@ -279,8 +280,15 @@ public class Account : ObservableObject, IAccount
 
     public async Task FetchAccountDetails(CancellationToken cancellationToken)
     {
-        var details = await GetAccountDetails(cancellationToken);
-        SetFromApiDetails(details);
+        try
+        {
+            var details = await GetAccountDetails(cancellationToken);
+            SetFromApiDetails(details);
+        }
+        catch (Exception e)
+        {
+            Logger.Error(e, "FetchAccountDetails");
+        }
     }
 
     private void SetFromApiDetails(AccountDetails details)
