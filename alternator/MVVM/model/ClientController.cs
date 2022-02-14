@@ -27,6 +27,7 @@ public class ClientController
         this.authenticationThrottle = authenticationThrottle;
         this.vpnCollection = vpnCollection;
 
+        readyClients = new List<Client>();
         loginSemaphore = new SemaphoreSlim(0, 1);
     }
 
@@ -41,7 +42,7 @@ public class ClientController
         CancellationTokenSource cancellationTokenSource
         )
     {
-
+        readyClients.Clear();
         var accounts = selectedAccounts.Any() ? selectedAccounts : accountCollection.AccountsToRun(launchType, all);
 
         if (accounts == null || !accounts.Any())
@@ -243,12 +244,40 @@ public class ClientController
         var tasks = clients.Select(client => Task.Run(async () =>
             {
                 var launcher = new Launcher(client, launchType, applicationFolder, settingsController.Settings!, vpnDetails, cancellationToken);
+                launcher.ClientReady += LauncherClientReady;
+                launcher.ClientClosed += LauncherClientClosed;
                 _ = await launcher.LaunchAsync(settingsController.DatFile!, applicationFolder, settingsController.GfxSettingsFile!, authenticationThrottle, loginSemaphore, exeSemaphore);
                 LogManager.Flush();
             }, cancellationToken))
             .ToList();
         Logger.Debug("{0} launch tasks primed.", tasks.Count);
         return tasks;
+    }
+
+    private List<Client> readyClients { get; }
+    private Client? activeClient;
+    private void LauncherClientReady(object? sender, EventArgs e)
+    {
+        if (sender is not Client client) return;
+        if (!readyClients.Contains(client)) readyClients.Add(client);
+        if (activeClient != null) return;
+        activeClient = client;
+        activeClient.RestoreWindow();
+    }
+
+    private void LauncherClientClosed(object? sender, EventArgs e)
+    {
+        if (sender is not Client client) return;
+        if (readyClients.Contains(client)) readyClients.Remove(client);
+        if (activeClient != client) return;
+        var next = readyClients.FirstOrDefault();
+        if (next == null)
+        {
+            activeClient = null;
+            return;
+        }
+        activeClient = next;
+        activeClient.RestoreWindow();
     }
 
     private async Task Restore(bool first)

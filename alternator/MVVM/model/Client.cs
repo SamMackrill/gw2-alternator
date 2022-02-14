@@ -2,7 +2,7 @@
 
 
 [DebuggerDisplay("{" + nameof(DebugDisplay) + ",nq}")]
-public class Client : ObservableObject
+public class Client : ObservableObject, IEquatable<Client>
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private const string MutexName = "AN-Mutex-Window-Guild Wars 2";
@@ -130,7 +130,7 @@ public class Client : ObservableObject
 
             if (diff >= tuning.MinDiff) return;
 
-            Logger.Debug("{0} Memory={1} ({2}<{3})", Account.Name, memoryUsage, diff, tuning.MinDiff);
+            //Logger.Debug("{0} Memory={1} ({2}<{3})", Account.Name, memoryUsage, diff, tuning.MinDiff);
             switch (RunStage)
             {
                 case RunStage.Authenticated when memoryUsage > 120_000:
@@ -148,10 +148,11 @@ public class Client : ObservableObject
 
             if (diff >= tuning.StuckTolerance) return;
 
-            var staticTooLong = DateTime.Now.Subtract(lastStageSwitchTime) > tuning.StuckDelay;
+            var switchTime = DateTime.Now.Subtract(lastStageSwitchTime);
+            var staticTooLong = switchTime > tuning.StuckDelay;
             if (!staticTooLong && !ErrorDetected(settings.ExperimentalErrorDetection)) return;
 
-            stuckReason = staticTooLong ? $"Stuck, took too long (>{tuning.StuckDelay.TotalSeconds}s)" : "Login Error Detected";
+            stuckReason = staticTooLong ? $"Stuck, took too long ({switchTime.TotalSeconds:F1}s>{tuning.StuckDelay.TotalSeconds}s)" : "Login Error Detected";
             switch (RunStage)
             {
                 case RunStage.ReadyToPlay:
@@ -381,6 +382,11 @@ public class Client : ObservableObject
         _ = Native.ShowWindowAsync(p!.MainWindowHandle, ShowWindowCommands.ForceMinimize);
     }
 
+    public void RestoreWindow()
+    {
+        _ = Native.ShowWindowAsync(p!.MainWindowHandle, ShowWindowCommands.Restore);
+    }
+
     public async Task<bool> Shutdown()
     {
         closed = true;
@@ -403,5 +409,6 @@ public class Client : ObservableObject
         ExitAt = DateTime.Now;
     }
 
+    public bool Equals(Client? other) => Account.Equals(other?.Account);
 }
 

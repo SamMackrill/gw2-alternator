@@ -12,6 +12,10 @@ public class Launcher
     private readonly FileInfo referenceGfxSettings;
     private readonly Client client;
 
+    public event EventHandler<EventArgs>? ClientReady;
+    public event EventHandler<EventArgs>? ClientClosed;
+
+
     public Launcher(
         Client client, 
         LaunchType launchType, 
@@ -87,10 +91,10 @@ public class Launcher
                     break;
                 case RunStage.CharacterSelectReached:
                     client.SelectCharacter();
+                    client.MinimiseWindow();
                     break;
                 case RunStage.CharacterSelected:
                     if (launchType is LaunchType.Login) client.Shutdown().Wait();
-                    if (launchType is LaunchType.Collect) client.MinimiseWindow();
                     break;
                 case RunStage.EntryFailed:
                     Logger.Info("{0} entry failed, giving up to try again", account.Name);
@@ -98,9 +102,15 @@ public class Launcher
                     client.Kill().Wait();
                     break;
                 case RunStage.WorldEntered:
-                    if (launchType == LaunchType.Login) client.Shutdown().Wait();
+                    if (launchType == LaunchType.Login)
+                    {
+                        client.Shutdown().Wait();
+                        return;
+                    }
+                    ClientReady?.Invoke(client, EventArgs.Empty);
                     break;
                 case RunStage.Exited:
+                    ClientClosed?.Invoke(client, EventArgs.Empty);
                     if (e.OldState is not RunStage.CharacterSelected and not RunStage.WorldEntered) break;
                     account.LastLogin = DateTime.UtcNow;
                     if (launchType is LaunchType.Collect) account.SetCollected();
