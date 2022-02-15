@@ -22,7 +22,7 @@ public interface IAccount : IEquatable<IAccount>
     int? GetCurrency(string currencyName);
     event PropertyChangedEventHandler? PropertyChanged;
     // Client
-    Client NewClient();
+    Task<Client> NewClient();
     Client? CurrentClient { get; }
     int Attempt { get; }
     RunState RunStatus { get; }
@@ -256,13 +256,24 @@ public class Account : ObservableObject, IAccount
         set => SetProperty(ref done, value);
     }
 
-    public Client NewClient()
+    public async Task<Client> NewClient()
     {
+        if (CurrentClient != null)
+        {
+            CurrentClient.PropertyChanged -= CurrentClientOnPropertyChanged();
+            await CurrentClient.Kill();
+        }
+
         attempt.Increment();
         CurrentClient = new Client(this);
-        CurrentClient.PropertyChanged += (_, args) => OnPropertyChanged(args.PropertyName);
+        CurrentClient.PropertyChanged += CurrentClientOnPropertyChanged();
         OnPropertyChanged(nameof(Attempt));
         return CurrentClient;
+    }
+
+    private PropertyChangedEventHandler CurrentClientOnPropertyChanged()
+    {
+        return (_, args) => OnPropertyChanged(args.PropertyName);
     }
 
     [JsonIgnore]
