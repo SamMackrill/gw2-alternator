@@ -5,11 +5,10 @@
 /// </summary>
 public partial class MainWindow
 {
-    public MainWindow(MainViewModel mainViewModel)
+    public MainWindow()
     {
         InitializeComponent();
-        DataContext = mainViewModel;
-        mainViewModel.RequestClose += Close;
-        mainViewModel.RefreshWindow();
+        //mainViewModel.RequestClose += Close;
+        //mainViewModel.RefreshWindow();
     }
 }

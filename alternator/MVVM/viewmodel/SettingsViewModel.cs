@@ -4,13 +4,13 @@ namespace guildwars2.tools.alternator.MVVM.viewmodel;
 
 public class SettingsViewModel : ObservableObject
 {
-    private readonly SettingsController settingsController;
-    private readonly AccountCollection accountCollection;
+    private readonly ISettingsController settingsController;
+    private readonly IAccountCollection accountCollection;
     private Func<string>? GetVersion { get; }
 
     private Settings Settings => settingsController.Settings!;
 
-    public SettingsViewModel(SettingsController settingsController, AccountCollection accountCollection, Func<string>? getVersion)
+    public SettingsViewModel(ISettingsController settingsController, IAccountCollection accountCollection, Func<string>? getVersion)
     {
         this.settingsController = settingsController;
         this.accountCollection = accountCollection;
@@ -113,7 +113,7 @@ public class SettingsViewModel : ObservableObject
         };
         var result = browser.ShowDialog();
 
-        if (result != DialogResult.OK || string.IsNullOrWhiteSpace(browser.SelectedPath)) return;
+        if (result != DialogResult.Yes || string.IsNullOrWhiteSpace(browser.SelectedPath)) return;
 
         Settings.Gw2Folder = browser.SelectedPath;
     });

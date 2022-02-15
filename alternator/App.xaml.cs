@@ -37,8 +37,8 @@ global using System.Runtime.InteropServices.ComTypes;
 global using Microsoft.Toolkit.Mvvm.ComponentModel;
 global using Microsoft.Toolkit.Mvvm.Input;
 
-global using Microsoft.Win32;
-
+global using Microsoft.Toolkit.Mvvm.DependencyInjection;
+global using Microsoft.Extensions.DependencyInjection;
 
 global using AsyncAwaitBestPractices;
 
@@ -48,6 +48,7 @@ global using guildwars2.tools.alternator.MVVM.viewmodel;
 
 
 global using NLog;
+using MvvmDialogs;
 using NLog.Targets;
 using XamlParseException = System.Windows.Markup.XamlParseException;
 
@@ -63,41 +64,46 @@ public partial class App : Application
 
     public string ApplicationName { get; }
 
-    private SettingsController? settingsController;
-    private AccountCollection? accountCollection;
-    private VpnCollection? vpnCollection;
-
     public App()
     {
-        ApplicationName = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name ?? "gw2-alternator";
+        ApplicationName = Assembly.GetExecutingAssembly().GetName().Name ?? "gw2-alternator";
     }
+
+    private ServiceCollection serviceCollection;
 
     protected override void OnStartup(StartupEventArgs e)
     {
-        base.OnStartup(e);
-
-
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-
         var applicationFolder = new DirectoryInfo(Path.Combine(appData, ApplicationName));
         if (!applicationFolder.Exists) applicationFolder.Create();
         SetLogging(applicationFolder);
 
-        settingsController = new SettingsController(applicationFolder);
-        settingsController.Load();
+        serviceCollection = new ServiceCollection();
 
-        accountCollection = new AccountCollection(applicationFolder, Path.Combine(appData, @"Gw2 Launchbuddy"), Path.Combine(appData, @"Gw2Launcher"));
-        vpnCollection = new VpnCollection(applicationFolder);
+        serviceCollection.AddSingleton<IDialogService, DialogService>();
+        serviceCollection.AddSingleton<ISettingsController, SettingsController>(_ =>
+        {
+            var settingsController = new SettingsController(applicationFolder);
+            settingsController.DatFile = new FileInfo(Path.Combine(appData, @"Guild Wars 2", @"Local.dat"));
+            settingsController.GfxSettingsFile = new FileInfo(Path.Combine(appData, @"Guild Wars 2", @"GFXSettings.Gw2-64.exe.xml"));
+            settingsController.DiscoverGw2ExeLocation();
+            return settingsController;
+        });
 
+        serviceCollection.AddSingleton<IAccountCollection, AccountCollection>(_ => new AccountCollection(applicationFolder, Path.Combine(appData, @"Gw2 Launchbuddy"), Path.Combine(appData, @"Gw2Launcher")));
+        
+        serviceCollection.AddSingleton<IVpnCollection, VpnCollection>(_ => new VpnCollection(applicationFolder));
 
-        var mainView = new MainViewModel(applicationFolder, appData, settingsController, accountCollection, vpnCollection);
-        var mainWindow = new MainWindow(mainView);
-        mainWindow.Show();
-        mainView.Initialise();
+        serviceCollection.AddTransient<MainViewModel>();
+
+        Ioc.Default.ConfigureServices(serviceCollection.BuildServiceProvider());
+
+        base.OnStartup(e);
     }
 
     protected override void OnExit(ExitEventArgs e)
     {
+        var settingsController = Ioc.Default.GetService<ISettingsController>();
         settingsController?.Save();
         LogManager.Shutdown();
         base.OnExit(e);
@@ -166,8 +172,13 @@ public partial class App : Application
                                          MessageBoxImage.Error);
             if (result == MessageBoxResult.Yes)
             {
+                var settingsController = Ioc.Default.GetService<ISettingsController>();
                 settingsController?.Save();
+
+                var accountCollection = Ioc.Default.GetService<IAccountCollection>();
                 accountCollection?.Save();
+
+                var vpnCollection = Ioc.Default.GetService<IVpnCollection>();
                 vpnCollection?.Save();
             }
 

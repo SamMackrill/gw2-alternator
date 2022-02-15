@@ -11,13 +11,31 @@ public enum ErrorDetection
     DelayAndPixel,
 }
 
-public class SettingsController : ObservableObject
+public interface ISettingsController
+{
+    FileInfo? DatFile { get; set; }
+    FileInfo? GfxSettingsFile { get; set; }
+    Settings? Settings { get; }
+    string MetricsFile { get; }
+    string UniqueMetricsFile { get; }
+    DirectoryInfo ApplicationFolder { get; }
+    void Load();
+    void Save();
+    Task SaveAsync();
+    void DiscoverGw2ExeLocation( );
+    void ResetAll();
+    event PropertyChangedEventHandler? PropertyChanged;
+    event PropertyChangingEventHandler? PropertyChanging;
+}
+
+public class SettingsController : ObservableObject, ISettingsController
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
     private const string SettingsJsonFile = "settings.json";
 
-    private FileSystemInfo SourceFolder { get; }
+    public DirectoryInfo ApplicationFolder { get; }
+
     private readonly string settingsJson;
     private readonly SemaphoreSlim semaphore;
 
@@ -40,9 +58,9 @@ public class SettingsController : ObservableObject
         OnPropertyChanged(e.PropertyName);
     }
 
-    public SettingsController(FileSystemInfo folderPath)
+    public SettingsController(DirectoryInfo folderPath)
     {
-        SourceFolder = folderPath;
+        ApplicationFolder = folderPath;
         settingsJson = Path.Combine(folderPath.FullName, SettingsJsonFile);
         semaphore = new SemaphoreSlim(1, 1);
     }
@@ -138,8 +156,8 @@ public class SettingsController : ObservableObject
         settings.VpnMatch = @"\w+-\w+-st\d+\.prod\.surfshark\.com";
     }
 
-    public string MetricsFile => Path.Combine(SourceFolder.FullName, "gw2-alternator-metrics.txt");
-    public string UniqueMetricsFile => Path.Combine(SourceFolder.FullName, $"gw2-alternator-metrics_{DateTime.UtcNow:yyyy-dd-MM_HH-mm-ss}");
+    public string MetricsFile => Path.Combine(ApplicationFolder.FullName, "gw2-alternator-metrics.txt");
+    public string UniqueMetricsFile => Path.Combine(ApplicationFolder.FullName, $"gw2-alternator-metrics_{DateTime.UtcNow:yyyy-dd-MM_HH-mm-ss}");
 
 
     public void DiscoverGw2ExeLocation( )

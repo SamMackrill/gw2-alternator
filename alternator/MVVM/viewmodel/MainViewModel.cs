@@ -1,4 +1,6 @@
-﻿namespace guildwars2.tools.alternator.MVVM.viewmodel;
+﻿using MvvmDialogs;
+
+namespace guildwars2.tools.alternator.MVVM.viewmodel;
 
 public class MainViewModel : ObservableObject
 {
@@ -7,7 +9,7 @@ public class MainViewModel : ObservableObject
     public IAsyncRelayCommand? LoginCommand { get; set; }
     public IAsyncRelayCommand? CollectCommand { get; set; }
     public IAsyncRelayCommand? UpdateCommand { get; set; }
-    public IAsyncRelayCommand? CloseCommand { get; }
+    public IAsyncRelayCommand<Window>? CloseCommand { get; }
 
     public IRelayCommand? StopCommand { get; set; }
     public IRelayCommand? ShowSettingsCommand { get; }
@@ -18,10 +20,11 @@ public class MainViewModel : ObservableObject
     private CancellationTokenSource? launchCancellation;
     private CancellationTokenSource? apiFetchCancellation;
 
-    private readonly SettingsController settingsController;
     private readonly AuthenticationThrottle authenticationThrottle;
-    private readonly AccountCollection accountCollection;
-    private readonly VpnCollection vpnCollection;
+
+    private readonly ISettingsController settingsController;
+    private readonly IAccountCollection accountCollection;
+    private readonly IVpnCollection vpnCollection;
 
     public AccountsViewModel AccountsVM { get; set; }
     public SettingsViewModel SettingsVM { get; set; }
@@ -209,32 +212,53 @@ public class MainViewModel : ObservableObject
             OnPropertyChanged(propertyName);
         }
     }
+    private readonly IDialogService dialogService;
 
-    public MainViewModel(
-        DirectoryInfo applicationFolder, 
-        string appData, 
-        SettingsController settingsController,
-        AccountCollection accountCollection, 
-        VpnCollection vpnCollection)
+    public MainViewModel(IDialogService dialogService)
     {
-        this.settingsController = settingsController;
-        settingsController.PropertyChanged += SettingsController_PropertyChanged;
-        settingsController.DatFile = new FileInfo(Path.Combine(appData, @"Guild Wars 2", @"Local.dat"));
-        settingsController.GfxSettingsFile = new FileInfo(Path.Combine(appData, @"Guild Wars 2", @"GFXSettings.Gw2-64.exe.xml"));
-        settingsController.DiscoverGw2ExeLocation();
-        SettingsVM = new SettingsViewModel(settingsController, accountCollection, () => Version);
+        this.dialogService = dialogService;
 
-        this.accountCollection = accountCollection;
+
+        settingsController = Ioc.Default.GetService<ISettingsController>();
+        settingsController.PropertyChanged += SettingsController_PropertyChanged;
+        settingsController.Load();
+
+        accountCollection = Ioc.Default.GetService<IAccountCollection>();
         accountCollection.Loaded += AccountCollection_Loaded;
+
+        vpnCollection = Ioc.Default.GetService<IVpnCollection>();
+        vpnCollection.Loaded += VpnCollection_Loaded;
+
+        SettingsVM = new SettingsViewModel(settingsController, accountCollection, () => Version);
         AccountsVM = new AccountsViewModel(settingsController, vpnCollection);
         AccountApisVM = new AccountApisViewModel();
-
-        this.vpnCollection = vpnCollection;
-        vpnCollection.Loaded += VpnCollection_Loaded;
         VpnConnectionsVM = new VpnConnectionsViewModel(vpnCollection, settingsController);
 
         authenticationThrottle = new AuthenticationThrottle(settingsController.Settings);
         authenticationThrottle.PropertyChanged += ThrottlePropertyChanged;
+
+
+        QueryGw2Version().SafeFireAndForget(onException: ex =>
+        {
+            Logger.Error(ex, "Query GW2 Version");
+        });
+        LoadAccounts().SafeFireAndForget(onException: ex =>
+        {
+            Logger.Error(ex, "Load Accounts");
+            if (ex is Gw2Exception)
+            {
+                _ = MessageBox.Show("No accounts defined, please import via settings", "GW2-Alternator",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Exclamation);
+
+                Application.Current.Dispatcher.Invoke(ShowSettings);
+            }
+
+        });
+        LoadVpns().SafeFireAndForget(onException: ex =>
+        {
+            Logger.Error(ex, "Load VPNs");
+        });
 
         async Task LaunchMultipleAccounts(LaunchType launchType, bool all, bool serial, bool ignoreVpn)
         {
@@ -253,7 +277,7 @@ public class MainViewModel : ObservableObject
 
                 launchCancellation = new CancellationTokenSource();
                 launchCancellation.Token.ThrowIfCancellationRequested();
-                var launcher = new ClientController(applicationFolder, settingsController, authenticationThrottle, vpnCollection, launchType);
+                var launcher = new ClientController(settingsController.ApplicationFolder, settingsController, authenticationThrottle, vpnCollection, launchType);
                 launcher.MetricsUpdated += Launcher_MetricsUpdated;
                 await launcher.LaunchMultiple(AccountsVM.SelectedAccounts.ToList(), accountCollection, all, ignoreVpn, maxInstances, launchCancellation);
 
@@ -283,11 +307,11 @@ public class MainViewModel : ObservableObject
             launchCancellation?.Cancel();
         }, _ => Running);
 
-        CloseCommand = new AsyncRelayCommand(async () =>
+        CloseCommand = new AsyncRelayCommand<Window>(async w =>
         {
             await SaveCollections(accountCollection, vpnCollection);
-            RequestClose?.Invoke();
-        }, () => !Running && RequestClose != null);
+            w?.Close();
+        }, _ => !Running);
 
         ShowSettingsCommand = new RelayCommand<object>(_ => ShowSettings());
 
@@ -364,34 +388,9 @@ public class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(MetricsAvailable));
     }
 
-    private static bool MetricsAvailable(SettingsController settingsController)
+    private static bool MetricsAvailable(ISettingsController settingsController)
     {
         return File.Exists(settingsController.MetricsFile);
-    }
-
-    public void Initialise()
-    {
-        QueryGw2Version().SafeFireAndForget(onException: ex =>
-        {
-            Logger.Error(ex, "Query GW2 Version");
-        });
-        LoadAccounts().SafeFireAndForget(onException: ex =>
-        {
-            Logger.Error(ex, "Load Accounts");
-            if (ex is Gw2Exception)
-            {
-                _ = MessageBox.Show("No accounts defined, please import via settings", "GW2-Alternator",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Exclamation);
-
-                Application.Current.Dispatcher.Invoke(ShowSettings);
-            }
-
-        });
-        LoadVpns().SafeFireAndForget(onException: ex =>
-        {
-            Logger.Error(ex, "Load VPNs");
-        });
     }
 
     private void ShowSettings()
@@ -428,7 +427,7 @@ public class MainViewModel : ObservableObject
         await vpnCollection.Load();
     }
 
-    private static async Task SaveCollections(AccountCollection accountCollection, VpnCollection vpnCollection)
+    private static async Task SaveCollections(IAccountCollection accountCollection, IVpnCollection vpnCollection)
     {
         await Task.WhenAll(accountCollection.Save(), vpnCollection.Save());
     }
