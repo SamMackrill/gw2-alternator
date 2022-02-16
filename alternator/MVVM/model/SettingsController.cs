@@ -157,7 +157,7 @@ public class SettingsController : ObservableObject, ISettingsController
     }
 
     public string MetricsFile => Path.Combine(ApplicationFolder.FullName, "gw2-alternator-metrics.txt");
-    public string UniqueMetricsFile => Path.Combine(ApplicationFolder.FullName, $"gw2-alternator-metrics_{DateTime.UtcNow:yyyy-dd-MM_HH-mm-ss}");
+    public string UniqueMetricsFile => Path.Combine(ApplicationFolder.FullName, $"gw2-alternator-metrics_{DateTime.UtcNow:yyyy-MM-dd_HH-mm-ss}");
 
 
     public void DiscoverGw2ExeLocation( )

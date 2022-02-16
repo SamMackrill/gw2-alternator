@@ -131,15 +131,20 @@ public class MainViewModel : ObservableObject
         {
             Logger.Debug("Version");
 
-            var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+            var assembly = Assembly.GetExecutingAssembly();
+
+            var location = AppContext.BaseDirectory;
+
+            Logger.Debug("Location={0}", location);
 
             var n = assembly.GetName();
 
             Logger.Debug("FullName={0}", n.FullName);
             Logger.Debug("Name={0}", n.Name);
 
+            var fvi = FileVersionInfo.GetVersionInfo(Path.Combine(location, $"{n.Name}.exe"));
 
-            var v = n.Version?.ToString(3) ?? "Dev";
+            var v = $"{fvi.FileMajorPart}.{fvi.FileMinorPart}.{fvi.FileBuildPart}";
             Logger.Debug("Version={0}", v);
 
             return v ;

@@ -170,7 +170,7 @@ public class SettingsViewModel : ObservableObject
     public RelayCommand<object> ResetVpnMatchCommand => new(_ =>
     {
         var defaultSettings = SettingsController.DefaultSettings;
-        Settings.AlwaysIgnoreVpn = defaultSettings.AlwaysIgnoreVpn;
+        Settings.VpnMatch = defaultSettings.VpnMatch;
     });
     public RelayCommand<object> ResetAllCommand => new(_ =>
     {
