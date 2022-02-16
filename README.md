@@ -86,6 +86,7 @@ Tool to help logging-in to multiple Guild Wars 2 alt accounts so as to harvest t
 * GW2Launcher https://github.com/Healix/Gw2Launcher
 * GW2 API access using GW2Sharp https://github.com/Archomeda/Gw2Sharp
 * MVVM async using https://github.com/brminnick/AsyncAwaitBestPractices
+* MVVM Dialogs using https://github.com/FantasticFiasco/mvvm-dialogs
 * Logging using NLog https://nlog-project.org/
 * Unit Testing using xUnit https://xunit.net/ and FluentAssertions https://fluentassertions.com/
 * Main icon by https://www.flaticon.com/authors/ingmixa

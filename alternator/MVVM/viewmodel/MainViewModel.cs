@@ -129,11 +129,20 @@ public class MainViewModel : ObservableObject
     {
         get
         {
+            Logger.Debug("Version");
+
             var assembly = System.Reflection.Assembly.GetExecutingAssembly();
 
-            var v = assembly.GetName().Version?.ToString(3);
+            var n = assembly.GetName();
 
-            return v ?? "Dev";
+            Logger.Debug("FullName={0}", n.FullName);
+            Logger.Debug("Name={0}", n.Name);
+
+
+            var v = n.Version?.ToString(3) ?? "Dev";
+            Logger.Debug("Version={0}", v);
+
+            return v ;
         }
     }
 
@@ -203,12 +212,9 @@ public class MainViewModel : ObservableObject
             OnPropertyChanged(propertyName);
         }
     }
-    private readonly IDialogService dialogService;
 
     public MainViewModel(IDialogService dialogService)
     {
-        this.dialogService = dialogService;
-
         settingsController = Ioc.Default.GetRequiredService<ISettingsController>();
         settingsController.PropertyChanged += SettingsController_PropertyChanged;
         settingsController.Load();
@@ -362,7 +368,7 @@ public class MainViewModel : ObservableObject
     {
         Logger.Debug("Accounts Loaded");
         AccountsVM.Clear();
-        AccountsVM.Add(accountCollection, vpnCollection);
+        AccountsVM.Add(accountCollection);
         AccountApisVM.Add(accountCollection.Accounts);
 
         accountCollection.Ready = true;

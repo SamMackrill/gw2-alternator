@@ -37,16 +37,16 @@ public class AccountsViewModel : ObservableObject
         }
     }
 
-    public void Add(IEnumerable<IAccount>? accounts, IVpnCollection vpnCollection)
+    public void Add(IEnumerable<IAccount>? accounts)
     {
         if (accounts == null) return;
         Accounts.AddRange(accounts.Select(a => new AccountViewModel(a, vpnCollection)));
         OnPropertyChanged(nameof(ApiVisibility));
     }
 
-    public void Add(IAccountCollection accountCollection, IVpnCollection vpnCollection)
+    public void Add(IAccountCollection accountCollection)
     {
-        Add(accountCollection.Accounts, vpnCollection);
+        Add(accountCollection.Accounts);
     }
 
     public IEnumerable<IAccount> SelectedAccounts => Accounts.Where(i => i.IsSelected).Select(i => i.Account);

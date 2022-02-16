@@ -148,20 +148,13 @@ public class Client : ObservableObject, IEquatable<Client>
             if (diff >= tuning.StuckTolerance) return;
 
             var switchTime = DateTime.Now.Subtract(lastStageSwitchTime);
-            var staticTooLong = switchTime > tuning.StuckDelay;
-            if (!staticTooLong && !ErrorDetected(settings.ExperimentalErrorDetection)) return;
+            if (switchTime < tuning.StuckDelay) return;
 
-            stuckReason = staticTooLong ? $"Stuck, took too long ({switchTime.TotalSeconds:F1}s>{tuning.StuckDelay.TotalSeconds}s)" : "Login Error Detected";
-            switch (RunStage)
-            {
-                case RunStage.ReadyToPlay:
-                case RunStage.Authenticated:
-                    Logger.Debug("{0} Stuck awaiting login, mem={1} diff={2} (because: {3})", Account.Name, memoryUsage, diff, stuckReason);
-                    //CaptureWindow(RunStage.EntryFailed, applicationFolder);
-                    await ChangeRunStage(RunStage.LoginFailed, 20, stuckReason, cancellationToken);
-                    break;
-            }
+            stuckReason = $"Stuck, took too long ({switchTime.TotalSeconds:F1}s>{tuning.StuckDelay.TotalSeconds}s)";
             
+            Logger.Debug("{0} Stuck awaiting login, mem={1} diff={2} (because: {3})", Account.Name, memoryUsage, diff, stuckReason);
+            //CaptureWindow(RunStage.EntryFailed, applicationFolder);
+            await ChangeRunStage(RunStage.LoginFailed, 20, stuckReason, cancellationToken);
         }
 
         bool DetectCrash() => !closed && launchType != LaunchType.Collect && launchType != LaunchType.Update;
@@ -234,27 +227,11 @@ public class Client : ObservableObject, IEquatable<Client>
 
             await Task.Delay(tuning.Pause, cancellationToken);
         }
+
+        if (closed) return;
         if (!string.IsNullOrEmpty(stuckReason)) throw new Gw2Exception($"GW2 process stuck: {stuckReason}");
         if (DetectCrash()) throw new Gw2Exception("GW2 process crashed");
     }
-
-
-    private bool ErrorDetected(ErrorDetection errorDetection)
-    {
-        if (!Alive || errorDetection!=ErrorDetection.DelayAndPixel) return false;
-
-        try
-        {
-            // TODO Add error state detection
-        }
-        catch (Exception e)
-        {
-            Logger.Error(e, "{0} ErrorDetected failed", Account.Name);
-        }
-
-        return false;
-    }
-
 
     private void UpdateEngineSpeed()
     {
