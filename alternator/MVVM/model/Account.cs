@@ -25,6 +25,7 @@ public interface IAccount : IEquatable<IAccount>
     Task<Client> NewClient();
     Client? CurrentClient { get; }
     int Attempt { get; }
+    int LoginCount { get; set; }
     RunState RunStatus { get; }
     string? StatusMessage { get; }
     bool Done { get; set; }
@@ -85,6 +86,12 @@ public class Account : ObservableObject, IAccount
     }
     private string? apiKeyUndo;
 
+    private int loginCount;
+    public int LoginCount
+    {
+        get => loginCount;
+        set => SetProperty(ref loginCount, value);
+    }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public ObservableCollectionEx<Currency>? Counts { get; set; }

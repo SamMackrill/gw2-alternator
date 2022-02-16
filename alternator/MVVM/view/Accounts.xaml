@@ -61,6 +61,7 @@
             <DataGridTextColumn Header="Last Login" Binding="{Binding Login}"/>
             <DataGridTextColumn Header="Login?" Binding="{Binding LoginRequired}"/>
             <DataGridTextColumn Header="Last Collected" Binding="{Binding Collected}"/>
+            <DataGridTextColumn Header="Login Chests" Binding="{Binding LoginCount}"/>
             <DataGridTextColumn Header="Collect?" Binding="{Binding CollectionRequired}"/>
             <DataGridTextColumn Header="Laurels" Binding="{Binding LaurelCount, FallbackValue=?}"
                                 Visibility="{Binding Data.ApiVisibility, Source={StaticResource proxy}}" />

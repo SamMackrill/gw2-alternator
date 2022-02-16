@@ -100,7 +100,7 @@ public class SettingsViewModel : ObservableObject
 
     public Array ErrorDetectionArray => Enum.GetValues(typeof(ErrorDetection));
 
-    public string Title => $"GW2 Alternator Settings \"V{GetVersion?.Invoke() ?? "?.?.?"}\"";
+    public string Title => $"GW2 Alternator Settings V{GetVersion?.Invoke() ?? "?.?.?"}";
 
     public RelayCommand<object> ChooseGw2FolderCommand => new (_ =>
     {

@@ -113,7 +113,16 @@ public class Launcher
                     ClientClosed?.Invoke(client, EventArgs.Empty);
                     if (e.OldState is not RunStage.CharacterSelected and not RunStage.WorldEntered) break;
                     account.LastLogin = DateTime.UtcNow;
-                    if (launchType is LaunchType.Collect) account.SetCollected();
+                    switch (launchType)
+                    {
+                        case LaunchType.Login:
+                            if (account.LoginRequired) account.LoginCount++;
+                            break;
+                        case LaunchType.Collect:
+                            account.LoginCount = 0;
+                            account.SetCollected();
+                            break;
+                    }
                     break;
                 default:
                     throw new ArgumentOutOfRangeException($"Unhandled RunStage: {e.State}");
