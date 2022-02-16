@@ -3,7 +3,6 @@ using System.Text.Json.Serialization;
 
 namespace guildwars2.tools.alternator.MVVM.model;
 
-
 public class EventMetrics
 {
     public DateTime StartAt { get; }

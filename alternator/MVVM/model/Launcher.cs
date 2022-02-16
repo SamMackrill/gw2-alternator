@@ -189,6 +189,7 @@ public class Launcher
                 exeSemaphore.Release();
                 Logger.Debug("{0} exe semaphore released, count={1}", account.Name, exeSemaphore.CurrentCount);
             }
+            client.RunStatusChanged -= Client_RunStatusChanged;
         }
 
         if (await client.Kill())

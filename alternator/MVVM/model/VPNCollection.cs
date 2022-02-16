@@ -2,7 +2,25 @@
 
 namespace guildwars2.tools.alternator.MVVM.model;
 
-public class VpnCollection : JsonCollection<VpnDetails>
+public interface IVpnCollection
+{
+    List<VpnDetails>? Vpns { get; }
+    bool Ready { get; set; }
+    event EventHandler? Loaded;
+    event EventHandler? LoadFailed;
+    event EventHandler? Updated;
+    Task Save();
+    Task Load();
+    VpnDetails GetVpn(string key);
+    List<AccountVpnViewModel> GetAccountVpns(IAccount account);
+    VpnDetails AddNew();
+    void Remove(VpnDetails deadVpn);
+    bool Any();
+    event PropertyChangedEventHandler? PropertyChanged;
+    event PropertyChangingEventHandler? PropertyChanging;
+}
+
+public class VpnCollection : JsonCollection<VpnDetails>, IVpnCollection
 {
     private const string vpnFileName = "vpnconnections.json";
 

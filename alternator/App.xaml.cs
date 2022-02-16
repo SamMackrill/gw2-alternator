@@ -20,15 +20,10 @@ global using System.Collections.Specialized;
 global using System.Collections.Concurrent;
 
 global using System.Windows;
-global using System.Windows.Data;
-global using System.Windows.Controls;
 global using System.Windows.Threading;
 global using System.Windows.Input;
 global using System.Windows.Markup;
 global using System.Windows.Media;
-
-global using System.Drawing;
-global using System.Drawing.Imaging;
 
 global using System.Runtime.CompilerServices;
 global using System.Runtime.InteropServices;
@@ -37,17 +32,20 @@ global using System.Runtime.InteropServices.ComTypes;
 global using Microsoft.Toolkit.Mvvm.ComponentModel;
 global using Microsoft.Toolkit.Mvvm.Input;
 
-global using Microsoft.Win32;
-
+global using Microsoft.Toolkit.Mvvm.DependencyInjection;
+global using Microsoft.Extensions.DependencyInjection;
 
 global using AsyncAwaitBestPractices;
+
+global using MvvmDialogs;
+global using MvvmDialogs.FrameworkDialogs.FolderBrowser;
 
 global using guildwars2.tools.alternator.MVVM.model;
 global using guildwars2.tools.alternator.MVVM.view;
 global using guildwars2.tools.alternator.MVVM.viewmodel;
 
-
 global using NLog;
+
 using NLog.Targets;
 using XamlParseException = System.Windows.Markup.XamlParseException;
 
@@ -63,41 +61,49 @@ public partial class App : Application
 
     public string ApplicationName { get; }
 
-    private SettingsController? settingsController;
-    private AccountCollection? accountCollection;
-    private VpnCollection? vpnCollection;
-
     public App()
     {
-        ApplicationName = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name ?? "gw2-alternator";
+        ApplicationName = Assembly.GetExecutingAssembly().GetName().Name ?? "gw2-alternator";
     }
+
+    private ServiceCollection serviceCollection;
 
     protected override void OnStartup(StartupEventArgs e)
     {
-        base.OnStartup(e);
-
-
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-
         var applicationFolder = new DirectoryInfo(Path.Combine(appData, ApplicationName));
         if (!applicationFolder.Exists) applicationFolder.Create();
         SetLogging(applicationFolder);
 
-        settingsController = new SettingsController(applicationFolder);
-        settingsController.Load();
+        serviceCollection = new ServiceCollection();
 
-        accountCollection = new AccountCollection(applicationFolder, Path.Combine(appData, @"Gw2 Launchbuddy"), Path.Combine(appData, @"Gw2Launcher"));
-        vpnCollection = new VpnCollection(applicationFolder);
+        serviceCollection.AddSingleton<IDialogService, DialogService>();
+        serviceCollection.AddSingleton<ISettingsController, SettingsController>(_ =>
+        {
+            var settingsController = new SettingsController(applicationFolder)
+            {
+                DatFile = new FileInfo(Path.Combine(appData, @"Guild Wars 2", @"Local.dat")),
+                GfxSettingsFile = new FileInfo(Path.Combine(appData, @"Guild Wars 2", @"GFXSettings.Gw2-64.exe.xml"))
+            };
+            settingsController.DiscoverGw2ExeLocation();
+            return settingsController;
+        });
+
+        serviceCollection.AddSingleton<IAccountCollection, AccountCollection>(_ => new AccountCollection(applicationFolder, Path.Combine(appData, @"Gw2 Launchbuddy"), Path.Combine(appData, @"Gw2Launcher")));
+        
+        serviceCollection.AddSingleton<IVpnCollection, VpnCollection>(_ => new VpnCollection(applicationFolder));
+
+        serviceCollection.AddTransient<MainViewModel>();
+
+        Ioc.Default.ConfigureServices(serviceCollection.BuildServiceProvider());
 
 
-        var mainView = new MainViewModel(applicationFolder, appData, settingsController, accountCollection, vpnCollection);
-        var mainWindow = new MainWindow(mainView);
-        mainWindow.Show();
-        mainView.Initialise();
+        base.OnStartup(e);
     }
 
     protected override void OnExit(ExitEventArgs e)
     {
+        var settingsController = Ioc.Default.GetService<ISettingsController>();
         settingsController?.Save();
         LogManager.Shutdown();
         base.OnExit(e);
@@ -160,14 +166,27 @@ public partial class App : Application
 
         if (shutdown)
         {
-            // If unrecoverable, attempt to save data
-            var result = MessageBox.Show($"Application must exit:\n\n{e.Exception.Message}\n\nSave before exit?", "GW2-Alternator",
-                                         MessageBoxButton.YesNo, 
-                                         MessageBoxImage.Error);
-            if (result == MessageBoxResult.Yes)
+            var dialogService = Ioc.Default.GetService<IDialogService>();
+
+            var showerVM = new MessageShowerViewModel();
+            var showerView = new MessageShowerView{DataContext = showerVM };
+            showerView.Show();
+            var result = dialogService?.ShowMessageBox(
+                showerVM,
+                $"Application must exit:\n\n{e.Exception.Message}\n\nSave before exit?",
+                ApplicationName,
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Error);
+
+            if (result is null or MessageBoxResult.Yes)
             {
+                var settingsController = Ioc.Default.GetService<ISettingsController>();
                 settingsController?.Save();
+
+                var accountCollection = Ioc.Default.GetService<IAccountCollection>();
                 accountCollection?.Save();
+
+                var vpnCollection = Ioc.Default.GetService<IVpnCollection>();
                 vpnCollection?.Save();
             }
 
@@ -180,4 +199,5 @@ public partial class App : Application
         // Prevent default unhandled exception processing
         e.Handled = true;
     }
+
 }

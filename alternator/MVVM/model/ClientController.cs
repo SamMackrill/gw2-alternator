@@ -7,18 +7,18 @@ public class ClientController
     private readonly LaunchType launchType;
     private readonly SemaphoreSlim loginSemaphore;
     private readonly DirectoryInfo applicationFolder;
-    private readonly SettingsController settingsController;
+    private readonly ISettingsController settingsController;
     private readonly AuthenticationThrottle authenticationThrottle;
-    private readonly VpnCollection vpnCollection;
+    private readonly IVpnCollection vpnCollection;
 
     public event EventHandler? MetricsUpdated;
 
 
     public ClientController(
         DirectoryInfo applicationFolder,
-        SettingsController settingsController,
+        ISettingsController settingsController,
         AuthenticationThrottle authenticationThrottle,
-        VpnCollection vpnCollection,
+        IVpnCollection vpnCollection,
         LaunchType launchType)
     {
         this.applicationFolder = applicationFolder;
@@ -35,7 +35,7 @@ public class ClientController
 
     public async Task LaunchMultiple(
         List<IAccount> selectedAccounts,
-        AccountCollection accountCollection,
+        IAccountCollection accountCollection,
         bool all,
         bool ignoreVpn,
         int maxInstances,
@@ -96,7 +96,7 @@ public class ClientController
                     foreach (var account in accountsToLaunch)
                     {
                         Logger.Debug($"Launching client for Account {account.Name}");
-                        clientsToLaunch.Add(account.NewClient());
+                        clientsToLaunch.Add(await account.NewClient());
                     }
                     clients.AddRange(clientsToLaunch);
 

@@ -1,16 +1,14 @@
-﻿using System.Windows.Forms;
-
-namespace guildwars2.tools.alternator.MVVM.viewmodel;
+﻿namespace guildwars2.tools.alternator.MVVM.viewmodel;
 
 public class SettingsViewModel : ObservableObject
 {
-    private readonly SettingsController settingsController;
-    private readonly AccountCollection accountCollection;
+    private readonly ISettingsController settingsController;
+    private readonly IAccountCollection accountCollection;
     private Func<string>? GetVersion { get; }
 
     private Settings Settings => settingsController.Settings!;
 
-    public SettingsViewModel(SettingsController settingsController, AccountCollection accountCollection, Func<string>? getVersion)
+    public SettingsViewModel(ISettingsController settingsController, IAccountCollection accountCollection, Func<string>? getVersion)
     {
         this.settingsController = settingsController;
         this.accountCollection = accountCollection;
@@ -102,18 +100,19 @@ public class SettingsViewModel : ObservableObject
 
     public Array ErrorDetectionArray => Enum.GetValues(typeof(ErrorDetection));
 
-    public string Title => $"GW2 Alternator Settings V{GetVersion?.Invoke() ?? "?.?.?"}";
+    public string Title => $"GW2 Alternator Settings \"V{GetVersion?.Invoke() ?? "?.?.?"}\"";
 
     public RelayCommand<object> ChooseGw2FolderCommand => new (_ =>
     {
-        using var browser = new FolderBrowserDialog
+        var browser = new FolderBrowserDialogSettings
         {
             Description = "Select Location of Guild Wars 2 exe",
-            SelectedPath = Settings.Gw2Folder
+            SelectedPath = Settings.Gw2Folder ?? ""
         };
-        var result = browser.ShowDialog();
+        var dialogService = Ioc.Default.GetService<IDialogService>();
 
-        if (result != DialogResult.OK || string.IsNullOrWhiteSpace(browser.SelectedPath)) return;
+        var success = dialogService?.ShowFolderBrowserDialog(this, browser) ?? false;
+        if (!success || string.IsNullOrWhiteSpace(browser.SelectedPath)) return;
 
         Settings.Gw2Folder = browser.SelectedPath;
     });

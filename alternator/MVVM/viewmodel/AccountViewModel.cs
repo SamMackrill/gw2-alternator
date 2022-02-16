@@ -4,7 +4,7 @@ public class AccountViewModel : ObservableObject
 {
     public IAccount Account { get;}
 
-    public AccountViewModel(IAccount account, VpnCollection vpnCollection)
+    public AccountViewModel(IAccount account, IVpnCollection vpnCollection)
     {
         Account = account;
         account.PropertyChanged += ModelPropertyChanged;

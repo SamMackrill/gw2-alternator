@@ -1,5 +1,4 @@
-﻿
-namespace guildwars2.tools.alternator.MVVM.viewmodel;
+﻿namespace guildwars2.tools.alternator.MVVM.viewmodel;
 
 public class VpnConnectionsViewModel : ObservableObject
 {
@@ -9,10 +8,10 @@ public class VpnConnectionsViewModel : ObservableObject
 
     public ObservableCollectionEx<VpnConnectionViewModel> VpnConnections { get; }
 
-    private readonly VpnCollection vpnCollection;
-    private readonly SettingsController settingsController;
+    private readonly IVpnCollection vpnCollection;
+    private readonly ISettingsController settingsController;
 
-    public VpnConnectionsViewModel(VpnCollection vpnCollection, SettingsController settingsController)
+    public VpnConnectionsViewModel(IVpnCollection vpnCollection, ISettingsController settingsController)
     {
         this.vpnCollection = vpnCollection;
         this.settingsController = settingsController;

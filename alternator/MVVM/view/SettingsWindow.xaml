@@ -6,6 +6,8 @@
                   xmlns:viewmodel="clr-namespace:guildwars2.tools.alternator.MVVM.viewmodel"
                   xmlns:view="clr-namespace:guildwars2.tools.alternator.MVVM.view"
                   mc:Ignorable="d"
+                  xmlns:md="https://github.com/fantasticfiasco/mvvm-dialogs"
+                  md:DialogServiceViews.IsRegistered="True"
                   d:DataContext="{d:DesignInstance viewmodel:SettingsViewModel}"
                   d:DesignWidth="400"
                   Title="Settings"

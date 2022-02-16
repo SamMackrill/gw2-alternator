@@ -2,12 +2,12 @@
 
 public class AccountsViewModel : ObservableObject
 {
-    private readonly VpnCollection vpnCollection;
-    private readonly SettingsController settingsController;
+    private readonly IVpnCollection vpnCollection;
+    private readonly ISettingsController settingsController;
 
     public ObservableCollectionEx<AccountViewModel> Accounts { get; }
 
-    public AccountsViewModel(SettingsController settingsController, VpnCollection vpnCollection)
+    public AccountsViewModel(ISettingsController settingsController, IVpnCollection vpnCollection)
     {
         this.vpnCollection = vpnCollection;
         vpnCollection.Updated += VpnCollection_Updated;
@@ -37,17 +37,16 @@ public class AccountsViewModel : ObservableObject
         }
     }
 
-
-    public void Add(IEnumerable<IAccount>? accounts, VpnCollection vpnCollection)
+    public void Add(IEnumerable<IAccount>? accounts)
     {
         if (accounts == null) return;
         Accounts.AddRange(accounts.Select(a => new AccountViewModel(a, vpnCollection)));
         OnPropertyChanged(nameof(ApiVisibility));
     }
 
-    public void Add(AccountCollection accountCollection, VpnCollection vpnCollection)
+    public void Add(IAccountCollection accountCollection)
     {
-        Add(accountCollection.Accounts, vpnCollection);
+        Add(accountCollection.Accounts);
     }
 
     public IEnumerable<IAccount> SelectedAccounts => Accounts.Where(i => i.IsSelected).Select(i => i.Account);
