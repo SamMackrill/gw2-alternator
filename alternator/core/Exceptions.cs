@@ -1,6 +1,4 @@
-﻿using System.Runtime.Serialization;
-
-namespace guildwars2.tools.alternator;
+﻿namespace guildwars2.tools.alternator;
 
 public class Gw2Exception : Exception
 {
@@ -16,7 +14,4 @@ public class Gw2Exception : Exception
     {
     }
 
-    protected Gw2Exception(SerializationInfo info, StreamingContext context) : base(info, context)
-    {
-    }
 }

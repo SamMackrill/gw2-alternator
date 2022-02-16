@@ -1,6 +1,5 @@
 ﻿namespace guildwars2.tools.alternator.MVVM.model;
 
-
 [DebuggerDisplay("{" + nameof(DebugDisplay) + ",nq}")]
 public class Client : ObservableObject, IEquatable<Client>
 {

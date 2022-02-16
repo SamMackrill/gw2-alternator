@@ -1,7 +1,4 @@
-﻿using Microsoft.Toolkit.Mvvm.Input;
-
-namespace guildwars2.tools.alternator.MVVM.viewmodel;
-
+﻿namespace guildwars2.tools.alternator.MVVM.viewmodel;
 
 [DebuggerDisplay("{" + nameof(DebugDisplay) + ",nq}")]
 public class AccountApiViewModel : ObservableObject

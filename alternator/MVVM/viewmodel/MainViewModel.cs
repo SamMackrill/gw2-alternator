@@ -1,6 +1,4 @@
-﻿using MvvmDialogs;
-
-namespace guildwars2.tools.alternator.MVVM.viewmodel;
+﻿namespace guildwars2.tools.alternator.MVVM.viewmodel;
 
 public class MainViewModel : ObservableObject
 {
@@ -72,13 +70,6 @@ public class MainViewModel : ObservableObject
             OnPropertyChanged(nameof(UpdateText));
             OnPropertyChanged(nameof(StopText));
         }
-    }
-
-    public event Action? RequestClose;
-
-    public void RefreshWindow()
-    {
-        CloseCommand?.NotifyCanExecuteChanged();
     }
 
     public string TimeUtc => DateTime.UtcNow.ToString("HH:mm");
@@ -218,15 +209,14 @@ public class MainViewModel : ObservableObject
     {
         this.dialogService = dialogService;
 
-
-        settingsController = Ioc.Default.GetService<ISettingsController>();
+        settingsController = Ioc.Default.GetRequiredService<ISettingsController>();
         settingsController.PropertyChanged += SettingsController_PropertyChanged;
         settingsController.Load();
 
-        accountCollection = Ioc.Default.GetService<IAccountCollection>();
+        accountCollection = Ioc.Default.GetRequiredService<IAccountCollection>();
         accountCollection.Loaded += AccountCollection_Loaded;
 
-        vpnCollection = Ioc.Default.GetService<IVpnCollection>();
+        vpnCollection = Ioc.Default.GetRequiredService<IVpnCollection>();
         vpnCollection.Loaded += VpnCollection_Loaded;
 
         SettingsVM = new SettingsViewModel(settingsController, accountCollection, () => Version);
@@ -247,7 +237,10 @@ public class MainViewModel : ObservableObject
             Logger.Error(ex, "Load Accounts");
             if (ex is Gw2Exception)
             {
-                _ = MessageBox.Show("No accounts defined, please import via settings", "GW2-Alternator",
+                _ = dialogService.ShowMessageBox(
+                    this,
+                    "No accounts defined, please import via settings",
+                    "GW2-Alternator",
                     MessageBoxButton.OK,
                     MessageBoxImage.Exclamation);
 

@@ -20,15 +20,10 @@ global using System.Collections.Specialized;
 global using System.Collections.Concurrent;
 
 global using System.Windows;
-global using System.Windows.Data;
-global using System.Windows.Controls;
 global using System.Windows.Threading;
 global using System.Windows.Input;
 global using System.Windows.Markup;
 global using System.Windows.Media;
-
-global using System.Drawing;
-global using System.Drawing.Imaging;
 
 global using System.Runtime.CompilerServices;
 global using System.Runtime.InteropServices;
@@ -42,13 +37,15 @@ global using Microsoft.Extensions.DependencyInjection;
 
 global using AsyncAwaitBestPractices;
 
+global using MvvmDialogs;
+global using MvvmDialogs.FrameworkDialogs.FolderBrowser;
+
 global using guildwars2.tools.alternator.MVVM.model;
 global using guildwars2.tools.alternator.MVVM.view;
 global using guildwars2.tools.alternator.MVVM.viewmodel;
 
-
 global using NLog;
-using MvvmDialogs;
+
 using NLog.Targets;
 using XamlParseException = System.Windows.Markup.XamlParseException;
 
@@ -83,9 +80,11 @@ public partial class App : Application
         serviceCollection.AddSingleton<IDialogService, DialogService>();
         serviceCollection.AddSingleton<ISettingsController, SettingsController>(_ =>
         {
-            var settingsController = new SettingsController(applicationFolder);
-            settingsController.DatFile = new FileInfo(Path.Combine(appData, @"Guild Wars 2", @"Local.dat"));
-            settingsController.GfxSettingsFile = new FileInfo(Path.Combine(appData, @"Guild Wars 2", @"GFXSettings.Gw2-64.exe.xml"));
+            var settingsController = new SettingsController(applicationFolder)
+            {
+                DatFile = new FileInfo(Path.Combine(appData, @"Guild Wars 2", @"Local.dat")),
+                GfxSettingsFile = new FileInfo(Path.Combine(appData, @"Guild Wars 2", @"GFXSettings.Gw2-64.exe.xml"))
+            };
             settingsController.DiscoverGw2ExeLocation();
             return settingsController;
         });
@@ -97,6 +96,7 @@ public partial class App : Application
         serviceCollection.AddTransient<MainViewModel>();
 
         Ioc.Default.ConfigureServices(serviceCollection.BuildServiceProvider());
+
 
         base.OnStartup(e);
     }
@@ -166,11 +166,19 @@ public partial class App : Application
 
         if (shutdown)
         {
-            // If unrecoverable, attempt to save data
-            var result = MessageBox.Show($"Application must exit:\n\n{e.Exception.Message}\n\nSave before exit?", "GW2-Alternator",
-                                         MessageBoxButton.YesNo, 
-                                         MessageBoxImage.Error);
-            if (result == MessageBoxResult.Yes)
+            var dialogService = Ioc.Default.GetService<IDialogService>();
+
+            var showerVM = new MessageShowerViewModel();
+            var showerView = new MessageShowerView{DataContext = showerVM };
+            showerView.Show();
+            var result = dialogService?.ShowMessageBox(
+                showerVM,
+                $"Application must exit:\n\n{e.Exception.Message}\n\nSave before exit?",
+                ApplicationName,
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Error);
+
+            if (result is null or MessageBoxResult.Yes)
             {
                 var settingsController = Ioc.Default.GetService<ISettingsController>();
                 settingsController?.Save();
@@ -191,4 +199,5 @@ public partial class App : Application
         // Prevent default unhandled exception processing
         e.Handled = true;
     }
+
 }

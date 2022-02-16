@@ -1,5 +1,4 @@
-﻿
-namespace guildwars2.tools.alternator.MVVM.viewmodel;
+﻿namespace guildwars2.tools.alternator.MVVM.viewmodel;
 
 public class VpnConnectionsViewModel : ObservableObject
 {
