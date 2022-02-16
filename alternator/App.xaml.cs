@@ -64,6 +64,7 @@ public partial class App : Application
     public App()
     {
         ApplicationName = Assembly.GetExecutingAssembly().GetName().Name ?? "gw2-alternator";
+        serviceCollection = new ServiceCollection();
     }
 
     private ServiceCollection serviceCollection;
@@ -74,8 +75,6 @@ public partial class App : Application
         var applicationFolder = new DirectoryInfo(Path.Combine(appData, ApplicationName));
         if (!applicationFolder.Exists) applicationFolder.Create();
         SetLogging(applicationFolder);
-
-        serviceCollection = new ServiceCollection();
 
         serviceCollection.AddSingleton<IDialogService, DialogService>();
         serviceCollection.AddSingleton<ISettingsController, SettingsController>(_ =>

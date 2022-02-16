@@ -20,8 +20,12 @@
             "args": [
                 "publish",
                 "${workspaceFolder}/alternator/alternator.csproj",
-                "/property:GenerateFullPaths=true",
-                "/consoleloggerparameters:NoSummary"
+                "-c:Release",
+                "--no-self-contained",
+                "-f:net6.0-windows",
+                "-r:win-x64",
+                "-p:PublishSingleFile=true",
+                "-o:publish"
             ],
             "problemMatcher": "$msCompile"
         },
