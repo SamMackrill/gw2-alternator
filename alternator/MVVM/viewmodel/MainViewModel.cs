@@ -142,9 +142,12 @@ public class MainViewModel : ObservableObject
             Logger.Debug("FullName={0}", n.FullName);
             Logger.Debug("Name={0}", n.Name);
 
-            var fvi = FileVersionInfo.GetVersionInfo(Path.Combine(location, $"{n.Name}.exe"));
+            var mainModule = Process.GetCurrentProcess().MainModule;
 
-            var v = $"{fvi.FileMajorPart}.{fvi.FileMinorPart}.{fvi.FileBuildPart}";
+            if (mainModule == null) return "?.?.?";
+            //var fvi = FileVersionInfo.GetVersionInfo(Path.Combine(location, $"{mainModule.FileName}.exe"));
+
+            var v = $"{mainModule.FileVersionInfo.FileMajorPart}.{mainModule.FileVersionInfo.FileMinorPart}.{mainModule.FileVersionInfo.FileBuildPart}";
             Logger.Debug("Version={0}", v);
 
             return v ;
