@@ -1,7 +1,7 @@
 # gw2-alternator
 (If anybody wants to help I would be delighted!)
 
-Tool to help logging-in to multiple Guild Wars 2 alt accounts so as to harvest the daily rewards.
+Tool to help logging-in to multiple Guild Wars 2 alt accounts so as to harvest the [daily rewards](https://wiki.guildwars2.com/wiki/Login_rewards).
 
 ## Requires at least [.Net 6.0.2](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
 
@@ -78,7 +78,6 @@ Tool to help logging-in to multiple Guild Wars 2 alt accounts so as to harvest t
 - [ ] More robust login delay
 - [ ] Better GW2 State detection
    * e.g. when error occurs or when login is very slow
-- [ ] Decouple Client from Account
 - [ ] Improve Unit Testing
 - [ ] Improve error reporting
 - [ ] Investigate using GW2Launcher multiple Windows User accounts approach (this avoids Admin requirement)

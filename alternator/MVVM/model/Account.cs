@@ -19,7 +19,8 @@ public interface IAccount : IEquatable<IAccount>
     bool CollectionRequired { get; }
     bool UpdateRequired { get; }
     Task SwapFilesAsync(FileInfo gw2LocalDat, FileInfo gw2GfxSettings, FileInfo referenceGfxSettingsFile);
-    int? GetCurrency(string currencyName);
+    double MysticCoinsGuess { get; }
+    double LaurelsGuess { get; }
     event PropertyChangedEventHandler? PropertyChanged;
     // Client
     Task<Client> NewClient();
@@ -99,6 +100,9 @@ public class Account : ObservableObject, IAccount
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public ObservableCollectionEx<string>? Vpns { get; set; }
 
+
+    public double MysticCoinsGuess => (GetCurrency("MysticCoin") ?? 0) + LoginCount * 20 / 28;
+    public double LaurelsGuess => (GetCurrency("Laurel") ?? 0) + LoginCount * 55 / 28;
 
     public void UpdateVpn(VpnDetails vpn, bool isChecked)
     {
