@@ -47,10 +47,11 @@ public class AccountViewModel : ObservableObject
 
     public List<AccountVpnViewModel> Vpns { get; }
 
-    public string LaurelCount => Account.GetCurrency("Laurel")?.ToString() ?? "?";
-    public string MysticCoinCount => Account.GetCurrency("MysticCoin")?.ToString() ?? "?";
+    public string LaurelCount => Account.LaurelsGuess.ToString("F0");
+    public string MysticCoinCount => Account.MysticCoinsGuess.ToString("F0");
 
     public int Attempt => Account.Attempt;
+    public int LoginCount => Account.LoginCount;
     public RunState RunStatus => Account.RunStatus;
     public string? TooltipText => Account.StatusMessage;
 

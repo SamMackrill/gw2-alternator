@@ -31,7 +31,6 @@ public class Launcher
         this.launchCancelled = launchCancelled;
         referenceGfxSettings = new FileInfo(Path.Combine(applicationFolder.FullName, "GW2 Custom GFX-Fastest.xml"));
 
-        // TODO the client should not live on the account!
         account = client.Account;
     }
 
@@ -110,10 +109,25 @@ public class Launcher
                     ClientReady?.Invoke(client, EventArgs.Empty);
                     break;
                 case RunStage.Exited:
-                    ClientClosed?.Invoke(client, EventArgs.Empty);
-                    if (e.OldState is not RunStage.CharacterSelected and not RunStage.WorldEntered) break;
-                    account.LastLogin = DateTime.UtcNow;
-                    if (launchType is LaunchType.Collect) account.SetCollected();
+                    try
+                    {
+                        if (e.OldState is not RunStage.CharacterSelected and not RunStage.WorldEntered) break;
+                        switch (launchType)
+                        {
+                            case LaunchType.Login:
+                                if (account.LoginRequired) account.LoginCount++;
+                                break;
+                            case LaunchType.Collect:
+                                account.LoginCount = 0;
+                                account.SetCollected();
+                                break;
+                        }
+                        account.LastLogin = DateTime.UtcNow;
+                    }
+                    finally
+                    {
+                        ClientClosed?.Invoke(client, EventArgs.Empty);
+                    }
                     break;
                 default:
                     throw new ArgumentOutOfRangeException($"Unhandled RunStage: {e.State}");

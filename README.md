@@ -1,7 +1,7 @@
 # gw2-alternator
 (If anybody wants to help I would be delighted!)
 
-Tool to help logging-in to multiple Guild Wars 2 alt accounts so as to harvest the daily rewards.
+Tool to help logging-in to multiple Guild Wars 2 alt accounts so as to harvest the [daily rewards](https://wiki.guildwars2.com/wiki/Login_rewards).
 
 ## Requires at least [.Net 6.0.2](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
 
@@ -17,20 +17,23 @@ Tool to help logging-in to multiple Guild Wars 2 alt accounts so as to harvest t
  * Whilst you can still use your PC while this is running focus will constantly be stolen and this can be annoying
 
 ## Getting Started
+ * On first launch you will see a security warning
+   * Click "More info" then "Run Anyway"
+![Running](images/warning1.png)
+   * This is because it is too expensive to sign executables, sadge
  * On application launch you will be asked to confirm admin access
-   * This is just so symbolic links can be created (similar to GW2LaunchBuddy)
+   * This is so symbolic links can be created (similar to GW2LaunchBuddy)
  * If you have no accounts defined then go to settings and import from GW2Launcher and/or GW2Launchbuddy
  * Hit Login to login to all the accounts
    * Only accounts not logged-in that day will launch (unless you click Force all or make a selection)
-   * If you have > 20 accounts expect that some fail (they will retry automatically)
+   * If you have > 20 accounts expect that some will fail (they will retry automatically)
    * The first character on the account will be automatically selected, this will be the one that logged in most recently
-   * Only accounts that have not logged-in since reset will launch
- * You can select accounts if you just want to launch a subset, this will ignore the filtering
+ * You can select accounts if you just want to launch a subset, this will ignore the date filtering
    * Use CTRL-click to unselect
- * To harvest it is best not to run the Login step that day as this will trigger the login throttling
+ * To harvest it is best not to run the Login step that day as this may trigger ArenaNet's login throttling
 
  ## Working with Multiple Accounts
- * The anti-botting measures tend to make dealing with more than 10 accounts difficult
+ * ArenaNet's anti-botting measures tend to make dealing with more than 10 accounts difficult
    * There is a hard limit of 40 accounts from a single IP address, resets every 8 hours
  * Use email aliases to set-up your accounts : https://support.google.com/a/users/answer/9308648?hl=en
  * Logging into many (>10? ) accounts on https://www.guildwars2.com/ may cause a lockout that takes 24 hours to clear
@@ -40,7 +43,7 @@ Tool to help logging-in to multiple Guild Wars 2 alt accounts so as to harvest t
  * Logging into the game will become slower after multiple (>10?) accounts and may block entirely
   * Using a VPN will help
   * Waiting a few minutes (5?) will help
-  * GW2-Alternator tries to counter this by slowing down the login attempts
+  * GW2-Alternator tries to counter this by slowing down the login attempts after a failure
     * However the delay required depend on the past login history and is difficult to guess
     * There are tuning parameters in Settings to help adjust this
 
@@ -75,7 +78,6 @@ Tool to help logging-in to multiple Guild Wars 2 alt accounts so as to harvest t
 - [ ] More robust login delay
 - [ ] Better GW2 State detection
    * e.g. when error occurs or when login is very slow
-- [ ] Decouple Client from Account
 - [ ] Improve Unit Testing
 - [ ] Improve error reporting
 - [ ] Investigate using GW2Launcher multiple Windows User accounts approach (this avoids Admin requirement)
