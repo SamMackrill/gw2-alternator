@@ -59,20 +59,20 @@ public partial class App : Application
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-    public string ApplicationName { get; }
+    public static string ApplicationName => Assembly.GetExecutingAssembly().GetName().Name ?? "gw2-alternator";
+    public static string ApplicationFolder => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ApplicationName);
 
     public App()
     {
-        ApplicationName = Assembly.GetExecutingAssembly().GetName().Name ?? "gw2-alternator";
         serviceCollection = new ServiceCollection();
     }
 
-    private ServiceCollection serviceCollection;
+    private readonly ServiceCollection serviceCollection;
 
     protected override void OnStartup(StartupEventArgs e)
     {
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var applicationFolder = new DirectoryInfo(Path.Combine(appData, ApplicationName));
+        var applicationFolder = new DirectoryInfo(ApplicationFolder);
         if (!applicationFolder.Exists) applicationFolder.Create();
         SetLogging(applicationFolder);
 

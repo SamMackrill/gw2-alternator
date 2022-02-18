@@ -9,4 +9,15 @@ public partial class MainWindow
     {
         InitializeComponent();
     }
+
+    protected override void OnSourceInitialized(EventArgs e)
+    {
+        base.OnSourceInitialized(e);
+        this.ApplyPlacement();
+    }
+
+    private void ClosingTrigger(object? sender, CancelEventArgs e)
+    {
+        this.SavePlacement();
+    }
 }
