@@ -17,7 +17,7 @@
         ResizeMode="CanResize"
         Background="Transparent"
         AllowsTransparency="True"
-        Closing="ClosingTrigger"
+        RememberPosition="True"
 >
 
     <Grid>
