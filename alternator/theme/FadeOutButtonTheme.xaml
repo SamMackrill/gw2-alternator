@@ -29,32 +29,4 @@
         </Style.Triggers>
     </Style>
 
-    <!--<Style x:Key="FadeOutBorderButton" TargetType="{x:Type Button}" BasedOn="{StaticResource DefaultStyle}">
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Button">
-                    <Border BorderBrush="{StaticResource ForegroundBrush}" BorderThickness="2">
-                        <ContentPresenter/>
-                    </Border>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-        <Style.Triggers>
-            <EventTrigger RoutedEvent="Control.MouseEnter">
-                <BeginStoryboard>
-                    <Storyboard >
-                        <DoubleAnimation Duration="0:0:0.2" To="1" Storyboard.TargetProperty="Opacity"/>
-                    </Storyboard>
-                </BeginStoryboard>
-            </EventTrigger>
-            <EventTrigger RoutedEvent="Control.MouseLeave">
-                <BeginStoryboard>
-                    <Storyboard >
-                        <DoubleAnimation Duration="0:0:0.2" To="0.6" Storyboard.TargetProperty="Opacity"/>
-                    </Storyboard>
-                </BeginStoryboard>
-            </EventTrigger>
-        </Style.Triggers>   
-    </Style>-->
-
 </ResourceDictionary>

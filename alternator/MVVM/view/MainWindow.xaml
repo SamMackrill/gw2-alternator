@@ -1,5 +1,5 @@
 ﻿<view:WindowBase x:Class="guildwars2.tools.alternator.MainWindow"
-                 x:Name="_runWindow"
+        x:Name="RunWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -15,9 +15,9 @@
         MinHeight="350" MinWidth="560"
         WindowStyle="None"
         ResizeMode="CanResize"
-        SizeToContent="WidthAndHeight"
         Background="Transparent"
         AllowsTransparency="True"
+        RememberPosition="True"
 >
 
     <Grid>
@@ -201,7 +201,7 @@
                              Background="Transparent"
                              Style="{StaticResource FadeOutButton}"
                              Command="{Binding Path=CloseCommand, Mode=OneWay}"
-                             CommandParameter="{Binding ElementName=_runWindow}"
+                             CommandParameter="{Binding ElementName=RunWindow}"
                     >
                             <Image Source="/images/close-window.png"  Width="24" />
                         </Button>

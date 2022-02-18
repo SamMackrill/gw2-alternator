@@ -1,0 +1,65 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:guildwars2.tools.alternator">
+
+
+    <Style x:Key="IntegerSlider" TargetType="{x:Type Slider}" BasedOn="{StaticResource DefaultStyle}">
+        <Style.Resources>
+            <Style x:Key="RepeatButtonStyle" TargetType="{x:Type RepeatButton}" BasedOn="{StaticResource DefaultStyle}">
+                <Setter Property="Focusable" Value="false" />
+                <Setter Property="IsTabStop" Value="false" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="Width" Value="20" />
+                <Setter Property="Background" Value="{StaticResource ForegroundBrush}"/>
+            </Style>
+        </Style.Resources>
+        <Setter Property="Stylus.IsPressAndHoldEnabled" Value="false" />
+        <Setter Property="SmallChange" Value="1" />
+        <Setter Property="LargeChange" Value="10" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Slider}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.RowSpan="2" Height="Auto"
+                                 Margin="0" Padding="0"
+                                 VerticalAlignment="Stretch" VerticalContentAlignment="Center"
+                                 HorizontalAlignment="Stretch"
+                                 HorizontalContentAlignment="Right"
+                                 local:InputLimit.DecimalValueProxy="{Binding RelativeSource={RelativeSource Mode=TemplatedParent}, Path=Value}"
+                                 Text="{Binding RelativeSource={RelativeSource Self}, Path=(local:InputLimit.DecimalValueProxy), UpdateSourceTrigger=PropertyChanged}">
+                            <TextBox.InputBindings>
+                                <KeyBinding Gesture="Up" Command="{x:Static Slider.IncreaseSmall}" />
+                                <KeyBinding Gesture="Down" Command="{x:Static Slider.DecreaseSmall}" />
+                                <KeyBinding Gesture="PageUp" Command="{x:Static Slider.IncreaseLarge}" />
+                                <KeyBinding Gesture="PageDown" Command="{x:Static Slider.DecreaseLarge}" />
+                            </TextBox.InputBindings>
+                        </TextBox>
+                        <RepeatButton Grid.Row="0" Grid.Column="1"
+                                    Command="{x:Static Slider.IncreaseSmall}"
+                                    Style="{StaticResource RepeatButtonStyle}">
+                            <Path Data="M4,0 L0,4 8,4 Z" Fill="Black" />
+                        </RepeatButton>
+                        <RepeatButton Grid.Row="1" Grid.Column="1"
+                                    Command="{x:Static Slider.DecreaseSmall}"
+                                    Style="{StaticResource RepeatButtonStyle}">
+                            <Path Data="M0,0 L4,4 8,0 Z" Fill="Black" />
+                        </RepeatButton>
+                        <Border Grid.Row="0" Grid.Column="0" x:Name="TrackBackground" Visibility="Collapsed">
+                            <Rectangle x:Name="PART_SelectionRange" Visibility="Collapsed" />
+                        </Border>
+                        <Thumb Grid.Row="0" Grid.Column="0" x:Name="Thumb" Visibility="Collapsed" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>

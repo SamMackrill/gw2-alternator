@@ -12,9 +12,23 @@ public class WindowBase : Window
         VerticalOnly,
     }
 
+    public bool RememberPosition { get; set; }
+
+    protected override void OnSourceInitialized(EventArgs e)
+    {
+        base.OnSourceInitialized(e);
+        if (RememberPosition) this.ApplyPlacement();
+    }
+
+    private void ClosingTrigger(object? sender, CancelEventArgs e)
+    {
+        if (RememberPosition) this.SavePlacement();
+    }
+
     protected override void OnInitialized(EventArgs e)
     {
         if (Content is IAddChild top && ResizeMode == ResizeMode.CanResize) AddResizeHandles(top);
+        Closing += ClosingTrigger;
 
         base.OnInitialized(e);
     }

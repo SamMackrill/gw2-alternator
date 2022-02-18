@@ -67,21 +67,13 @@ Tool to help logging-in to multiple Guild Wars 2 alt accounts so as to harvest t
      * [Mighty Teapot Referral](http://surfshark.deals/MightyTeapot)
 
 ### Login Errors
- * Typical errors you may see (usually fixed by waiting 5 mins)
+ * Typical errors you may see
+   * Fixes
+     * Wait 5 minutes
+     * Use a VPN
 
 ![Error](images/Login_Error.png)
 ![Undefined Error](images/Login_Error_Undefined.png)
-
-## TO DO
-- [ ] Updates when the game version changes 
-   * In the meantime use GW2Launcher or GW2Launchbuddy to do this
-- [ ] More robust login delay
-- [ ] Better GW2 State detection
-   * e.g. when error occurs or when login is very slow
-- [ ] Improve Unit Testing
-- [ ] Improve error reporting
-- [ ] Investigate using GW2Launcher multiple Windows User accounts approach (this avoids Admin requirement)
-- [ ] Improved numeric settings input and validation
 
 ## Credits:
 * GW2 Launchbuddy https://github.com/TheCheatsrichter/Gw2_Launchbuddy

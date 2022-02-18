@@ -19,6 +19,7 @@
                 <ResourceDictionary Source="theme/ComboBoxTheme.xaml"/>
                 <ResourceDictionary Source="theme/ScrollBarTheme.xaml"/>
                 <ResourceDictionary Source="theme/DataGridTheme.xaml"/>
+                <ResourceDictionary Source="theme/IntegerSliderTheme.xaml"/>
                 <ResourceDictionary >
                     <viewmodel:ViewModelLocator x:Key="Locator" d:IsDataSource="True" />
                 </ResourceDictionary>
