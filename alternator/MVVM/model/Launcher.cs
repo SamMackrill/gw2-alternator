@@ -170,7 +170,7 @@ public class Launcher
 
             // Ready to roll, have login and exe slot
             client.RunStatus = RunState.WaitingForAuthenticationThrottle;
-            await authenticationThrottle.WaitAsync(vpnDetails, launchCancelled);
+            await authenticationThrottle.WaitAsync(client, vpnDetails, launchCancelled);
 
             await client.Launch(launchType, settings, applicationFolder, launchCancelled);
 
@@ -182,7 +182,7 @@ public class Launcher
         catch (OperationCanceledException)
         {
             client.RunStatus = RunState.Cancelled;
-            Logger.Debug("{0} cancelled", account.Name);
+            Logger.Info("{0} cancelled", account.Name);
         }
         catch (Gw2Exception e)
         {
@@ -212,7 +212,7 @@ public class Launcher
             Logger.Debug("{0} GW2 process killed", account.Name);
         }
 
-        vpnDetails.SetFail(client.Account);
+        if (client.RunStatus != RunState.Cancelled) vpnDetails.SetFail(client.Account);
         return false;
     }
 

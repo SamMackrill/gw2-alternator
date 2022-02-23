@@ -20,9 +20,10 @@ public class AuthenticationThrottle : ObservableObject
         failedClients = new ConcurrentDictionary<string, Client>();
     }
 
-    public async Task WaitAsync(VpnDetails vpnDetails, CancellationToken launchCancelled)
+    public async Task WaitAsync(Client client, VpnDetails vpnDetails, CancellationToken launchCancelled)
     {
         await authenticationSemaphore.WaitAsync(launchCancelled);
+        Logger.Info("{0} Authentication Semaphore Entered", client.Account.Name);
         launchCount.Increment();
         CurrentVpn = vpnDetails;
         vpnDetails.SetAttempt(settings);
@@ -31,7 +32,6 @@ public class AuthenticationThrottle : ObservableObject
 
     private DateTime FreeAt { get; set; }
     public double FreeIn => FreeAt.Subtract(DateTime.Now).TotalSeconds;
-
 
     public string? Vpn => CurrentVpn?.Id;
 
@@ -50,36 +50,55 @@ public class AuthenticationThrottle : ObservableObject
         }
     }
 
+    public void Reset()
+    {
+        Logger.Info("Authentication Semaphore Released");
+        authenticationSemaphore.Release();
+    }
+
+
+    Client? releaseTaskClient;
+
     public async Task LoginDone(VpnDetails vpnDetails, Client client, LaunchType launchType, CancellationToken launchCancelled)
     {
-        if (releaseTask != null) await releaseTask.WaitAsync(launchCancelled);
+        Logger.Debug("{0} LoginDone {1}", client.Account.Name, launchType);
+        if (releaseTask is {IsCompleted: false})
+        {
+            Logger.Debug("{0} Warning previous release task still active!", releaseTaskClient?.Account.Name ?? "Unknown");
+        }
+        releaseTaskClient = client;
 
         releaseTask = Task.Factory.StartNew(async () =>
         {
-            var account = client.Account;
-            try
-            {
-                if (launchType is LaunchType.Update) return;
+            await Release(vpnDetails, client, launchType, launchCancelled);
+        });
+    }
 
-                Logger.Debug("{0} launchCount={1}", account.Name, launchCount.Count);
-                var delay = vpnDetails.Delay;
-                Logger.Debug("{0} Authentication Semaphore delay={1}s", account.Name, delay);
-                if (delay > 0)
-                {
-                    FreeAt = DateTime.Now.AddSeconds(delay);
-                    await Task.Delay(new TimeSpan(0, 0, delay), launchCancelled);
-                }
-                else
-                {
-                    FreeAt = DateTime.MinValue;
-                }
-            }
-            finally
+    private async Task Release(VpnDetails vpnDetails, Client client, LaunchType launchType, CancellationToken launchCancelled)
+    {
+        var account = client.Account;
+        try
+        {
+            if (launchType is LaunchType.Update) return;
+
+            Logger.Debug("{0} launchCount={1}", account.Name, launchCount.Count);
+            var delay = vpnDetails.Delay;
+            Logger.Debug("{0} Authentication {1} VPN release delay={2}s", account.Name, vpnDetails.DisplayId, delay);
+            if (delay > 0)
             {
-                Logger.Debug("{0} Authentication Semaphore Released", account.Name);
-                authenticationSemaphore.Release();
+                FreeAt = DateTime.Now.AddSeconds(delay);
+                await Task.Delay(new TimeSpan(0, 0, delay), launchCancelled);
             }
-        }, launchCancelled);
+            else
+            {
+                FreeAt = DateTime.MinValue;
+            }
+        }
+        finally
+        {
+            Logger.Info("{0} Authentication Semaphore Released", account.Name);
+            authenticationSemaphore.Release();
+        }
     }
 
     public void LoginFailed(VpnDetails vpnDetails, Client client)

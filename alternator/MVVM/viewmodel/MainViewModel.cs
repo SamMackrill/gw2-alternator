@@ -414,6 +414,7 @@ public class MainViewModel : ObservableObject
     {
         Logger.Debug("Load VPNs");
         await vpnCollection.Load();
+        //var current = vpnCollection.CurrentLive;
     }
 
     private static async Task SaveCollections(IAccountCollection accountCollection, IVpnCollection vpnCollection)

@@ -67,7 +67,6 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
     public string? LastLoginFailAccount { get; set; }
 
 
-
     [field: NonSerialized]
     [JsonIgnore]
     public int Priority { get; private set; }
@@ -95,6 +94,7 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
     public DateTime Available(DateTime cutoff)
     {
         var available = successFailCounter.LastAttempt.AddSeconds(Delay);
+        Logger.Debug("{0} VPN offset={1}", DisplayId, available.Subtract(cutoff).TotalSeconds);
         return available > cutoff ? available : cutoff;
     }
 
@@ -199,9 +199,11 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
 
     public void SetFail(IAccount account)
     {
+        Logger.Debug("{0} VPN SetFail by account {1}", DisplayId, account.Name);
         successFailCounter.SetFail();
         LastLoginFail = DateTime.Now;
         LastLoginFailAccount = account.Name;
+        Cancellation.Cancel();
     }
 
     private int LaunchDelay()
@@ -243,16 +245,25 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
         return $"OK IP={pubIp}";
     }
 
+    [JsonIgnore]
     public string DisplayId => string.IsNullOrWhiteSpace(Id) ? "No" : Id;
+
+    [JsonIgnore]
     public int RecentFailures => successFailCounter.RecentFails(120);
+
+    [JsonIgnore]
+    public int RecentCalls => successFailCounter.RecentCalls(180);
+
+    [JsonIgnore]
+    public CancellationTokenSource Cancellation { get; set; }
 
     public int GetPriority(int accountsCount, int maxAccounts)
     {
-            var real = IsReal ? maxAccounts : 0;
-            var countPriority = (Math.Max(0, maxAccounts - accountsCount) + real) * maxAccounts;
+        var real = IsReal ? maxAccounts : 0;
+        var countPriority = (Math.Max(0, maxAccounts - accountsCount) + real) * maxAccounts;
 
-            Priority = countPriority;
-            Logger.Debug("{0} VPN Priority={1} (R={2} C={3} CP={4} MA={5})", DisplayId, Priority, real, accountsCount, countPriority, maxAccounts);
-            return Priority;
+        Priority = RecentCalls + countPriority;
+        Logger.Debug("{0} VPN Priority={1} (R={2} C={3} CP={4} MA={5})", DisplayId, Priority, real, accountsCount, countPriority, maxAccounts);
+        return Priority;
     }
 }

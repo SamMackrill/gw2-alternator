@@ -76,8 +76,8 @@ public class ClientController
                     .ToList();
 
                 var vpnSets = accountsByVpnDetails
-                    .OrderBy(s => s.Vpn.Available(now))
-                    .ThenByDescending(s => s.Vpn.RecentFailures)
+                    .OrderBy(s => s.Vpn.Available(now.Subtract(new TimeSpan(1,0,0))))
+                    .ThenBy(s => s.Vpn.RecentFailures)
                     .ThenBy(s => s.Vpn.GetPriority(s.Accounts.Count, settingsController.Settings!.VpnAccountCount))
                     .ToList();
 
@@ -85,9 +85,11 @@ public class ClientController
 
                 var (vpn, vpnAccounts) = vpnSets.First();
 
-                var accountsToLaunch = vpnAccounts
-                    .OrderBy(a => a.Available(now))
-                    .ThenBy(a => (a.Vpns?.Count ?? 0) == 1)
+                var accountsAvailableToLaunch = vpnAccounts
+                    .OrderBy(a => a.Available(now)).ToList();
+
+                var accountsToLaunch = accountsAvailableToLaunch
+                    .OrderBy(a => a.VpnPriority)
                     .Take(settingsController.Settings!.VpnAccountCount)
                     .ToList();
 
@@ -112,6 +114,10 @@ public class ClientController
 
                 try
                 {
+                    vpn.Cancellation = new CancellationTokenSource();
+                    var vpnToken = vpn.Cancellation.Token;
+                    vpnToken.ThrowIfCancellationRequested();
+                    var doubleTrouble = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token, vpnToken);
                     if (!vpnsUsed.Contains(vpn)) vpnsUsed.Add(vpn);
                     var status = await vpn.Connect(cancellationTokenSource.Token);
                     if (status != null)
@@ -121,7 +127,7 @@ public class ClientController
                     }
 
                     Logger.Debug($"Launching {clientsToLaunch.Count} clients");
-                    var tasks = PrimeLaunchTasks(vpn, clientsToLaunch, exeSemaphore, cancellationTokenSource.Token);
+                    var tasks = PrimeLaunchTasks(vpn, clientsToLaunch, exeSemaphore, doubleTrouble.Token);
                     if (cancellationTokenSource.IsCancellationRequested) return;
 
                     if (first)
@@ -135,6 +141,12 @@ public class ClientController
                     }
 
                     await Task.WhenAll(tasks.ToArray());
+                }
+                catch (OperationCanceledException ex)
+                {
+                    authenticationThrottle.Reset();
+                    if (cancellationTokenSource.IsCancellationRequested) return;
+                    Logger.Debug($"VPN {vpn.Id} failure detected, skipping");
                 }
                 finally
                 {

@@ -39,6 +39,7 @@ public interface IAccount : IEquatable<IAccount>
     RunState RunStatus { get; }
     string? StatusMessage { get; }
     DateTime Available(DateTime cutoff);
+    int VpnPriority { get; }
 }
 
 [Serializable]
@@ -103,7 +104,9 @@ public class Account : ObservableObject, IAccount
     public ObservableCollectionEx<string>? Vpns { get; set; }
 
 
+    [JsonIgnore]
     public double MysticCoinsGuess => (GetCurrency("MysticCoin") ?? 0) + LoginCount * 20 / 28;
+    [JsonIgnore]
     public double LaurelsGuess => (GetCurrency("Laurel") ?? 0) + LoginCount * 55 / 28;
 
     public void UpdateVpn(VpnDetails vpn, bool isChecked)
@@ -261,12 +264,11 @@ public class Account : ObservableObject, IAccount
         get => currentClient!;
         private set
         {
-            if (SetProperty(ref currentClient, value))
-            {
-                OnPropertyChanged(nameof(Attempt));
-                OnPropertyChanged(nameof(RunStatus));
-                OnPropertyChanged(nameof(StatusMessage));
-            }
+            if (!SetProperty(ref currentClient, value)) return;
+
+            OnPropertyChanged(nameof(Attempt));
+            OnPropertyChanged(nameof(RunStatus));
+            OnPropertyChanged(nameof(StatusMessage));
         }
     }
 
@@ -292,6 +294,8 @@ public class Account : ObservableObject, IAccount
         var available = LastLogin.AddSeconds(Delay);
         return available > cutoff ? available : cutoff;
     }
+
+    public int VpnPriority => Vpns == null || !Vpns.Any() ? 0 : Vpns.Count;
 
     private bool done;
     [JsonIgnore]
