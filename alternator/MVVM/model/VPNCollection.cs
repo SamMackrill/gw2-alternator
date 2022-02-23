@@ -2,22 +2,14 @@
 
 namespace guildwars2.tools.alternator.MVVM.model;
 
-public interface IVpnCollection
+public interface IVpnCollection : IJsonCollection
 {
     List<VpnDetails>? Vpns { get; }
-    bool Ready { get; set; }
-    event EventHandler? Loaded;
-    event EventHandler? LoadFailed;
-    event EventHandler? Updated;
-    Task Save();
-    Task Load();
     VpnDetails GetVpn(string key);
     List<AccountVpnViewModel> GetAccountVpns(IAccount account);
     VpnDetails AddNew();
     void Remove(VpnDetails deadVpn);
     bool Any();
-    event PropertyChangedEventHandler? PropertyChanged;
-    event PropertyChangingEventHandler? PropertyChanging;
 }
 
 public class VpnCollection : JsonCollection<VpnDetails>, IVpnCollection

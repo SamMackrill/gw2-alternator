@@ -3,24 +3,16 @@ using System.Xml.Linq;
 
 namespace guildwars2.tools.alternator.MVVM.model;
 
-public interface IAccountCollection
+public interface IAccountCollection : IJsonCollection
 {
     List<IAccount>? Accounts { get; }
     bool CanImportFromLaunchbuddy { get; }
     bool CanImportFromLauncher { get; }
-    bool Ready { get; set; }
-    event EventHandler? Loaded;
-    event EventHandler? LoadFailed;
-    event EventHandler? Updated;
-    Task Save();
-    Task Load();
     List<IAccount>? AccountsToRun(LaunchType launchType, bool all);
     void ImportFromLaunchbuddy();
     void ImportFromLauncher();
     void SetUndo();
     bool Any();
-    event PropertyChangedEventHandler? PropertyChanged;
-    event PropertyChangingEventHandler? PropertyChanging;
 }
 
 public class AccountCollection : JsonCollection<Account>, IAccountCollection

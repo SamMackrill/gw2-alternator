@@ -72,7 +72,7 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
     
     [field: NonSerialized]
     [JsonIgnore]
-    public Counter FailCount { get; private set; }
+    public Counter Fails { get; private set; }
 
     [field: NonSerialized]
     [JsonIgnore]
@@ -80,7 +80,7 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
 
     [field: NonSerialized]
     [JsonIgnore]
-    public Counter ConsecutiveFailedCount { get; private set; }
+    public Counter ConsecutiveFails { get; private set; }
 
     [field: NonSerialized]
     [JsonIgnore]
@@ -95,9 +95,9 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
     public VpnDetails()
     {
         CallCount = new Counter();
-        FailCount = new Counter();
+        Fails = new Counter();
         SuccessCount = new Counter();
-        ConsecutiveFailedCount = new Counter();
+        ConsecutiveFails = new Counter();
         Connections = new List<VpnConnectionMetrics>();
     }
 
@@ -208,12 +208,14 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
     public void SetSuccess()
     {
         SuccessCount.Increment();
+        ConsecutiveFails = new Counter();
         LastLoginSuccess = DateTime.Now;
     }
 
     public void SetFail(IAccount account)
     {
-        FailCount.Increment();
+        Fails.Increment();
+        ConsecutiveFails.Increment();
         SuccessCount = new Counter();
         LastLoginFail = DateTime.Now;
         LastLoginFailAccount = account.Name;
@@ -223,10 +225,11 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
     {
         var delay = BandDelay(CallCount.Count);
 
-        if (FailCount.Count > 0) delay = Math.Max(delay, 60);
+        if (Fails.Count > 0) delay = Math.Max(delay, 60);
         //if (clientFailedCount > 2) delay = Math.Max(delay, 60 * (clientFailedCount - 2));
-        if (ConsecutiveFailedCount.Count > 0) delay = Math.Max(delay, 60 * ConsecutiveFailedCount.Count);
+        if (ConsecutiveFails.Count > 0) delay = Math.Max(delay, 60 * ConsecutiveFails.Count);
 
+        Logger.Debug("{0} VPN delay={1} (CC={2} FC={3} CFC={4})", DisplayId, delay, CallCount.Count, Fails.Count, ConsecutiveFails.Count);
         return delay;
     }
 
@@ -259,14 +262,15 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
         return $"OK IP={pubIp}";
     }
 
+    public string DisplayId => string.IsNullOrWhiteSpace(Id) ? "No" : Id;
     public int GetPriority(int accountsCount, int maxAccounts, DateTime now)
     {
-            var priority = (int)Available(now).Subtract(now).TotalSeconds;
+            var availablePriority = (int)Available(now).Subtract(now).TotalSeconds;
             var real = IsReal ? maxAccounts : 0;
-            priority += (accountsCount + real) * maxAccounts;
+            var countPriority = (Math.Max(0, accountsCount - maxAccounts) + real) * maxAccounts;
 
-            Logger.Debug("{0} VPN Priority={1}", Id, priority);
-            Priority = priority;
+            Priority = availablePriority + countPriority;
+            Logger.Debug("{0} VPN Priority={1} (R={2} C={3} AP={4} CP={5})", DisplayId, Priority, IsReal, accountsCount, availablePriority, countPriority);
             return Priority;
     }
 }

@@ -77,10 +77,11 @@ public class ClientController
                 AddNonVpnAccounts(accountsByVpnDetails, accounts);
 
                 var vpnSets = accountsByVpnDetails
+                    .Where(a=> a.Accounts.Any())
                     .OrderBy(s => s.Vpn.GetPriority(s.Accounts.Count, settingsController.Settings!.VpnAccountCount, now))
                     .ToList();
 
-                Logger.Debug($"{vpnSets.Count} launch sets found");
+                Logger.Debug("{0} launch sets found", vpnSets.Count);
 
                 var (vpn, vpnAccounts) = vpnSets.First();
 
@@ -88,6 +89,10 @@ public class ClientController
                     .OrderBy(a => a.Available(now))
                     .Take(settingsController.Settings!.VpnAccountCount)
                     .ToList();
+
+                Logger.Debug("{0} VPN Chosen with {1} accounts", vpn.DisplayId, accountsToLaunch.Count);
+
+
                 if (!accountsToLaunch.Any()) continue;
 
                 var clientsToLaunch = new List<Client>();

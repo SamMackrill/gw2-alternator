@@ -1,6 +1,18 @@
 ﻿namespace guildwars2.tools.alternator.MVVM.model;
 
-public abstract class JsonCollection<T> : ObservableObject
+public interface IJsonCollection
+{
+    bool Ready { get; set; }
+    event EventHandler? Loaded;
+    event EventHandler? LoadFailed;
+    event EventHandler? Updated;
+    Task Save();
+    Task Load();
+    event PropertyChangedEventHandler? PropertyChanged;
+    event PropertyChangingEventHandler? PropertyChanging;
+}
+
+public abstract class JsonCollection<T> : ObservableObject, IJsonCollection
 {
     protected static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
