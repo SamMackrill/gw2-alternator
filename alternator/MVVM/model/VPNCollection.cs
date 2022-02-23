@@ -16,9 +16,13 @@ public class VpnCollection : JsonCollection<VpnDetails>, IVpnCollection
 {
     private const string vpnFileName = "vpnconnections.json";
 
-    public VpnCollection(FileSystemInfo folderPath) : base(folderPath, vpnFileName) { }
+    public VpnCollection(FileSystemInfo folderPath) : base(folderPath, vpnFileName)
+    {
+        NonVpn = new VpnDetails { Id = "" };
+    }
 
     public List<VpnDetails>? Vpns => Items;
+    public VpnDetails NonVpn { get; }
 
     public override event EventHandler? Loaded;
     public override event EventHandler? LoadFailed;
@@ -70,7 +74,7 @@ public class VpnCollection : JsonCollection<VpnDetails>, IVpnCollection
 
     public VpnDetails GetVpn(string key)
     {
-        return Vpns?.FirstOrDefault(v => v.Id == key) ?? new VpnDetails();
+        return Vpns?.FirstOrDefault(v => v.Id == key) ?? NonVpn;
     }
 
     public List<AccountVpnViewModel> GetAccountVpns(IAccount account)
@@ -80,6 +84,7 @@ public class VpnCollection : JsonCollection<VpnDetails>, IVpnCollection
 
     public VpnDetails AddNew()
     {
+        // TODO new Id should be unique
         var newVpnDetails = new VpnDetails { Id = "New" };
         Items ??= new List<VpnDetails>();
         Items.Add(newVpnDetails);

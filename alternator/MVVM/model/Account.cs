@@ -25,7 +25,9 @@ public interface IAccount : IEquatable<IAccount>
     int LoginCount { get; set; }
     bool Done { get; set; }
     void UpdateVpn(VpnDetails vpn, bool isChecked);
+    void SetLogin();
     void SetCollected();
+    void SetFail();
     Task<string> TestApiKey();
     bool CheckApiKeyValid(string pasteText);
     void SetUndo();
@@ -134,14 +136,26 @@ public class Account : ObservableObject, IAccount
         }
     }
 
+    public void SetLogin()
+    {
+        LastLogin = DateTime.Now;
+        successFailCounter.SetSuccess();
+    }
+
     private Task? apiLookup;
 
     public void SetCollected()
     {
+        LoginCount = 0;
         LastCollection = DateTime.UtcNow;
         AccountCollected?.Invoke(this, EventArgs.Empty);
         apiLookup?.Wait();
         apiLookup = FetchAccountDetails(new CancellationToken());
+    }
+
+    public void SetFail()
+    {
+        successFailCounter.SetFail();
     }
 
     private Regex apiKeyMatch = new(@"[\da-z]{8}(?>-[\da-z]{4}){3}-[\da-z]{20}(?>-[\da-z]{4}){3}-[\da-z]{12}",
@@ -213,13 +227,15 @@ public class Account : ObservableObject, IAccount
         }
     }
 
-    private Counter attempt;
     [JsonIgnore]
-    public int Attempt => attempt.Count;
+    public int Attempt => successFailCounter.CallCount;
+
+    private SuccessFailCounter successFailCounter;
 
     public Account()
     {
-        attempt = new Counter();
+        successFailCounter = new SuccessFailCounter();
+
         LastLogin = DateTime.MinValue;
         LastCollection = DateTime.MinValue;
         CreatedAt = DateTime.Now;
@@ -293,7 +309,7 @@ public class Account : ObservableObject, IAccount
             await CurrentClient.Kill();
         }
 
-        attempt.Increment();
+        successFailCounter.SetAttempt();
         CurrentClient = new Client(this);
         CurrentClient.PropertyChanged += CurrentClientOnPropertyChanged();
         OnPropertyChanged(nameof(Attempt));

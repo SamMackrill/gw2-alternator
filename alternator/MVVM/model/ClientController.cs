@@ -72,13 +72,13 @@ public class ClientController
 
                 var accountsByVpnDetails = accountsByVpn
                     .Select(kv => new VpnAccounts(vpnCollection.GetVpn(kv.Key), kv.Value.Where(a => !a.Done).ToList()))
+                    .Where(d => d.Accounts.Any())
                     .ToList();
 
-                AddNonVpnAccounts(accountsByVpnDetails, accounts);
-
                 var vpnSets = accountsByVpnDetails
-                    .Where(a=> a.Accounts.Any())
-                    .OrderBy(s => s.Vpn.GetPriority(s.Accounts.Count, settingsController.Settings!.VpnAccountCount, now))
+                    .OrderBy(s => s.Vpn.Available(now))
+                    .ThenByDescending(s => s.Vpn.RecentFailures)
+                    .ThenBy(s => s.Vpn.GetPriority(s.Accounts.Count, settingsController.Settings!.VpnAccountCount))
                     .ToList();
 
                 Logger.Debug("{0} launch sets found", vpnSets.Count);
@@ -87,11 +87,11 @@ public class ClientController
 
                 var accountsToLaunch = vpnAccounts
                     .OrderBy(a => a.Available(now))
+                    .ThenBy(a => (a.Vpns?.Count ?? 0) == 1)
                     .Take(settingsController.Settings!.VpnAccountCount)
                     .ToList();
 
                 Logger.Debug("{0} VPN Chosen with {1} accounts", vpn.DisplayId, accountsToLaunch.Count);
-
 
                 if (!accountsToLaunch.Any()) continue;
 
@@ -162,26 +162,6 @@ public class ClientController
             await Restore(first);
             Logger.Info("GW2 account files restored.");
             await SaveMetrics(start, clients, vpnsUsed);
-        }
-    }
-
-    private void AddNonVpnAccounts(List<VpnAccounts> accountsByVpnDetails, List<IAccount> accounts)
-    {
-        var nonVpnAccounts = accountsByVpnDetails.FirstOrDefault(a => !a.Vpn.IsReal);
-        
-        var topUpCount = settingsController.Settings!.VpnAccountCount;
-        if (nonVpnAccounts != null) topUpCount -= nonVpnAccounts.Accounts.Count(a => !a.Done);
-        if (topUpCount <= 0) return;
-
-        var topUpAccounts = accounts.Where(a => !a.Done).Take(topUpCount).ToList();
-
-        if (nonVpnAccounts == null)
-        {
-            accountsByVpnDetails.Add(new VpnAccounts(vpnCollection.GetVpn(""), topUpAccounts));
-        }
-        else
-        {
-            nonVpnAccounts.Accounts.AddRange(topUpAccounts);
         }
     }
 

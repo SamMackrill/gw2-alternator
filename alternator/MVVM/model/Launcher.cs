@@ -79,6 +79,7 @@ public class Launcher
                     Logger.Info("{0} login failed, giving up to try again", account.Name);
                     authenticationThrottle.LoginFailed(vpnDetails, client);
                     ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
+                    account.SetFail();
                     client.Kill().Wait();
                     break;
                 case RunStage.ReadyToPlay:
@@ -98,6 +99,7 @@ public class Launcher
                 case RunStage.EntryFailed:
                     Logger.Info("{0} entry failed, giving up to try again", account.Name);
                     ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
+                    account.SetFail();
                     client.Kill().Wait();
                     break;
                 case RunStage.WorldEntered:
@@ -118,11 +120,10 @@ public class Launcher
                                 if (account.LoginRequired) account.LoginCount++;
                                 break;
                             case LaunchType.Collect:
-                                account.LoginCount = 0;
                                 account.SetCollected();
                                 break;
                         }
-                        account.LastLogin = DateTime.UtcNow;
+                        account.SetLogin();
                     }
                     finally
                     {

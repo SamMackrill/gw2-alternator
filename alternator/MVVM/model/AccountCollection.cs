@@ -640,8 +640,7 @@ public class AccountCollection : JsonCollection<Account>, IAccountCollection
             .GroupBy(t => t.vpn, t => t.a)
             .ToDictionary(g => g.Key, g => g.ToList());
 
-        var nonVpnAccounts = accounts.Where(a => !a.HasVpn).ToList();
-        if (nonVpnAccounts.Any()) vpnAccounts.Add("", nonVpnAccounts);
+        vpnAccounts.Add("", accounts);
 
         return vpnAccounts;
     }
