@@ -82,6 +82,10 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
     [JsonIgnore]
     public Counter ConsecutiveFailedCount { get; private set; }
 
+    [field: NonSerialized]
+    [JsonIgnore]
+    public int Priority { get; private set; }
+
     [JsonIgnore]
     public int Delay => LaunchDelay();
 
@@ -253,5 +257,16 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
         if (status != null) return status;
 
         return $"OK IP={pubIp}";
+    }
+
+    public int GetPriority(int accountsCount, int maxAccounts, DateTime now)
+    {
+            var priority = (int)Available(now).Subtract(now).TotalSeconds;
+            var real = IsReal ? maxAccounts : 0;
+            priority += (accountsCount + real) * maxAccounts;
+
+            Logger.Debug("{0} VPN Priority={1}", Id, priority);
+            Priority = priority;
+            return Priority;
     }
 }

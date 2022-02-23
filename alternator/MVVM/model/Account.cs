@@ -9,7 +9,6 @@ public interface IAccount : IEquatable<IAccount>
     string? Character { get; set; }
     string? LoginFilePath { get; set; }
     string? ApiKey { get; set; }
-    ObservableCollectionEx<Currency>? Counts { get; set; }
     ObservableCollectionEx<string>? Vpns { get; }
     bool HasVpn { get; }
     DateTime LastLogin { get; set; }
@@ -22,13 +21,8 @@ public interface IAccount : IEquatable<IAccount>
     double MysticCoinsGuess { get; }
     double LaurelsGuess { get; }
     event PropertyChangedEventHandler? PropertyChanged;
-    // Client
-    Task<Client> NewClient();
-    Client? CurrentClient { get; }
     int Attempt { get; }
     int LoginCount { get; set; }
-    RunState RunStatus { get; }
-    string? StatusMessage { get; }
     bool Done { get; set; }
     void UpdateVpn(VpnDetails vpn, bool isChecked);
     void SetCollected();
@@ -37,6 +31,12 @@ public interface IAccount : IEquatable<IAccount>
     void SetUndo();
     void Undo();
     Task FetchAccountDetails(CancellationToken cancellationToken);
+
+    Task<Client> NewClient();
+    Client? CurrentClient { get; }
+    RunState RunStatus { get; }
+    string? StatusMessage { get; }
+    DateTime Available(DateTime cutoff);
 }
 
 [Serializable]
@@ -258,6 +258,24 @@ public class Account : ObservableObject, IAccount
     public RunState RunStatus => CurrentClient?.RunStatus ?? RunState.Unset;
     [JsonIgnore]
     public string? StatusMessage => CurrentClient?.StatusMessage;
+
+    [JsonIgnore]
+    public int Delay => LaunchDelay();
+
+    private int LaunchDelay()
+    {
+        var delay = 10;
+
+        if (Attempt > 1) delay = Math.Max(delay, 20 * (Attempt-1));
+
+        return delay;
+    }
+
+    public DateTime Available(DateTime cutoff)
+    {
+        var available = LastLogin.AddSeconds(Delay);
+        return available > cutoff ? available : cutoff;
+    }
 
     private bool done;
     [JsonIgnore]
