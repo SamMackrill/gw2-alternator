@@ -110,6 +110,7 @@ public class Client : ObservableObject, IEquatable<Client>
     public async Task Launch(
         LaunchType launchType,
         Settings settings,
+        bool shareArchive,
         DirectoryInfo applicationFolder, 
         CancellationToken cancellationToken)
     {
@@ -192,8 +193,17 @@ public class Client : ObservableObject, IEquatable<Client>
 
         tuning = new EngineTuning(new TimeSpan(0, 0, 0, 0, 200), 0L, 1L, new TimeSpan(0, 0, settings.StuckTimeout), 100);
 
+        string FormArguments(bool share)
+        {
+            if (launchType is LaunchType.Update) return "-image";
+
+            var args = "-windowed -nosound -maploadinfo -dx9 -fps 20 -autologin";
+            if (share) args += " -shareArchive";
+            return args;
+        }
+
         // Run gw2 exe with arguments
-        var gw2Arguments = launchType is LaunchType.Update ? "-image" : $"-windowed -nosound -shareArchive -maploadinfo -dx9 -fps 20 -autologin"; // -dat \"{account.LoginFile}\""
+        var gw2Arguments = FormArguments(shareArchive);
         p = new Process
         {
             StartInfo = new ProcessStartInfo(Path.Combine(settings.Gw2Folder!, "Gw2-64.exe"))

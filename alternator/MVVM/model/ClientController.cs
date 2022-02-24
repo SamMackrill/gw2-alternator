@@ -14,8 +14,7 @@ public class ClientController
     public event EventHandler? MetricsUpdated;
 
 
-    public ClientController(
-        DirectoryInfo applicationFolder,
+    public ClientController(DirectoryInfo applicationFolder,
         ISettingsController settingsController,
         AuthenticationThrottle authenticationThrottle,
         IVpnCollection vpnCollection,
@@ -37,6 +36,7 @@ public class ClientController
         List<IAccount> selectedAccounts,
         IAccountCollection accountCollection,
         bool all,
+        bool shareArchive,
         bool ignoreVpn,
         int maxInstances,
         CancellationTokenSource cancellationTokenSource
@@ -127,7 +127,7 @@ public class ClientController
                     }
 
                     Logger.Debug($"Launching {clientsToLaunch.Count} clients");
-                    var tasks = PrimeLaunchTasks(vpn, clientsToLaunch, exeSemaphore, doubleTrouble.Token);
+                    var tasks = PrimeLaunchTasks(vpn, clientsToLaunch, shareArchive, exeSemaphore, doubleTrouble.Token);
                     if (cancellationTokenSource.IsCancellationRequested) return;
 
                     if (first)
@@ -232,7 +232,11 @@ public class ClientController
         MetricsUpdated?.Invoke(this, EventArgs.Empty);
     }
 
-    private List<Task> PrimeLaunchTasks(VpnDetails vpnDetails, IEnumerable<Client> clients, SemaphoreSlim exeSemaphore,
+    private List<Task> PrimeLaunchTasks(
+        VpnDetails vpnDetails, 
+        IEnumerable<Client> clients,
+        bool shareArchive,
+        SemaphoreSlim exeSemaphore,
         CancellationToken cancellationToken)
     {
         var tasks = clients.Select(client => Task.Run(async () =>
@@ -240,7 +244,7 @@ public class ClientController
                 var launcher = new Launcher(client, launchType, applicationFolder, settingsController.Settings!, vpnDetails, cancellationToken);
                 launcher.ClientReady += LauncherClientReady;
                 launcher.ClientClosed += LauncherClientClosed;
-                _ = await launcher.LaunchAsync(settingsController.DatFile!, applicationFolder, settingsController.GfxSettingsFile!, authenticationThrottle, loginSemaphore, exeSemaphore);
+                _ = await launcher.LaunchAsync(settingsController.DatFile!, applicationFolder, settingsController.GfxSettingsFile!, shareArchive, authenticationThrottle, loginSemaphore, exeSemaphore);
                 LogManager.Flush();
             }, cancellationToken))
             .ToList();

@@ -295,6 +295,7 @@ public class Account : ObservableObject, IAccount
         return available > cutoff ? available : cutoff;
     }
 
+    [JsonIgnore]
     public int VpnPriority => Vpns == null || !Vpns.Any() ? 0 : Vpns.Count;
 
     private bool done;

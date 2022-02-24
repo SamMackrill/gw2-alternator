@@ -39,6 +39,7 @@ public class Launcher
         FileInfo loginFile,
         DirectoryInfo applicationFolder,
         FileInfo gfxSettingsFile,
+        bool shareArchive,
         AuthenticationThrottle authenticationThrottle,
         SemaphoreSlim loginSemaphore,
         SemaphoreSlim exeSemaphore)
@@ -172,7 +173,7 @@ public class Launcher
             client.RunStatus = RunState.WaitingForAuthenticationThrottle;
             await authenticationThrottle.WaitAsync(client, vpnDetails, launchCancelled);
 
-            await client.Launch(launchType, settings, applicationFolder, launchCancelled);
+            await client.Launch(launchType, settings, shareArchive, applicationFolder, launchCancelled);
 
             client.RunStatus = RunState.Completed;
             vpnDetails.SetSuccess();
