@@ -242,6 +242,8 @@ public class Account : ObservableObject, IAccount
         LastLogin = DateTime.MinValue;
         LastCollection = DateTime.MinValue;
         CreatedAt = DateTime.Now;
+
+        clients = new Counter();
     }
 
     public Account(string? name) : this()
@@ -306,6 +308,7 @@ public class Account : ObservableObject, IAccount
         set => SetProperty(ref done, value);
     }
 
+    private Counter clients;
     public async Task<Client> NewClient()
     {
         if (CurrentClient != null)
@@ -315,7 +318,8 @@ public class Account : ObservableObject, IAccount
         }
 
         successFailCounter.SetAttempt();
-        CurrentClient = new Client(this);
+        clients.Increment();
+        CurrentClient = new Client(this, clients.Count);
         CurrentClient.PropertyChanged += CurrentClientOnPropertyChanged();
         OnPropertyChanged(nameof(Attempt));
         return CurrentClient;

@@ -7,6 +7,7 @@ public class Client : ObservableObject, IEquatable<Client>
     private const string MutexName = "AN-Mutex-Window-Guild Wars 2";
 
     public IAccount Account { get; }
+    public int AccountIndex { get; }
 
     private readonly List<string> loadedModules;
 
@@ -99,9 +100,10 @@ public class Client : ObservableObject, IEquatable<Client>
         set => SetProperty(ref statusMessage, value);
     }
 
-    public Client(IAccount account)
+    public Client(IAccount account, int accountIndex)
     {
         Account = account;
+        AccountIndex = accountIndex;
         RunStatus = RunState.Ready;
         loadedModules = new List<string>();
         RunStage = RunStage.NotRun;
@@ -395,6 +397,6 @@ public class Client : ObservableObject, IEquatable<Client>
         ExitAt = DateTime.Now;
     }
 
-    public bool Equals(Client? other) => Account.Equals(other?.Account);
+    public bool Equals(Client? other) => Account.Equals(other?.Account) && AccountIndex.Equals(other?.AccountIndex);
 }
 

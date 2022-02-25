@@ -195,6 +195,7 @@ public class ClientController
 
         foreach (var client in clients.Where(c => c.Account.Name != null).OrderBy(c => c.StartAt))
         {
+            Logger.Debug($"Client {0} {1} {2}", client.Account.Name, client.AccountIndex, client.StartAt);
             var line = client.Account.Name;
             var reference = startOfRun;
             (line, reference) = AddOffset(reference, client.StartAt, line!);
@@ -228,7 +229,7 @@ public class ClientController
         await File.WriteAllLinesAsync(metricsFile, lines);
         var metricsFileUniquePath = settingsController.UniqueMetricsFile;
         File.Copy(metricsFile, metricsFileUniquePath);
-        Logger.Info($"Metrics saved to {metricsFileUniquePath}");
+        Logger.Info("Metrics saved to {0}", metricsFileUniquePath);
         MetricsUpdated?.Invoke(this, EventArgs.Empty);
     }
 
