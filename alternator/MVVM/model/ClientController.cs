@@ -193,7 +193,7 @@ public class ClientController
             "Account\tStart\tAuthenticate\tLogin\tEnter\tExit",
         };
 
-        foreach (var client in clients.Where(c => c.Account.Name != null).OrderBy(c => c.StartAt))
+        foreach (var client in clients.Where(c => c.Account.Name != null && c.StartAt > DateTime.MinValue).OrderBy(c => c.StartAt))
         {
             Logger.Debug($"Client {0} {1} {2}", client.Account.Name, client.AccountIndex, client.StartAt);
             var line = client.Account.Name;
