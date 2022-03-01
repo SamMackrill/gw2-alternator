@@ -16,10 +16,20 @@ public class SettingsViewModel : ObservableObject
         if (settingsController.Settings != null) settingsController.Settings.PropertyChanged += ModelPropertyChanged;
     }
 
+    private readonly Dictionary<string, List<string>> propertyConverter = new()
+    {
+        { "AlwaysIgnoreVpn", new() { nameof(VpnVisibility) } },
+    };
+
     private void ModelPropertyChanged(object? sender, PropertyChangedEventArgs args)
     {
         if (args.PropertyName == null) return;
-        OnPropertyChanged(args.PropertyName);
+        var propertyNames = new List<string> { args.PropertyName };
+        if (propertyConverter.ContainsKey(args.PropertyName)) propertyNames.AddRange(propertyConverter[args.PropertyName]);
+        foreach (var propertyName in propertyNames)
+        {
+            OnPropertyChanged(propertyName);
+        }
     }
 
     public string? Gw2Folder
@@ -97,6 +107,8 @@ public class SettingsViewModel : ObservableObject
         get => Settings.VpnMatch;
         set => Settings.VpnMatch = value;
     }
+
+    public Visibility VpnVisibility => settingsController.Settings?.AlwaysIgnoreVpn ?? true ? Visibility.Hidden : Visibility.Visible;
 
     public Array ErrorDetectionArray => Enum.GetValues(typeof(ErrorDetection));
 

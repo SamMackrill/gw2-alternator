@@ -14,8 +14,7 @@ public class ClientController
     public event EventHandler? MetricsUpdated;
 
 
-    public ClientController(
-        DirectoryInfo applicationFolder,
+    public ClientController(DirectoryInfo applicationFolder,
         ISettingsController settingsController,
         AuthenticationThrottle authenticationThrottle,
         IVpnCollection vpnCollection,
@@ -37,6 +36,7 @@ public class ClientController
         List<IAccount> selectedAccounts,
         IAccountCollection accountCollection,
         bool all,
+        bool shareArchive,
         bool ignoreVpn,
         int maxInstances,
         CancellationTokenSource cancellationTokenSource
@@ -72,78 +72,92 @@ public class ClientController
 
                 var accountsByVpnDetails = accountsByVpn
                     .Select(kv => new VpnAccounts(vpnCollection.GetVpn(kv.Key), kv.Value.Where(a => !a.Done).ToList()))
+                    .Where(d => d.Accounts.Any())
                     .ToList();
-
-                AddNonVpnAccounts(accountsByVpnDetails, accounts);
 
                 var vpnSets = accountsByVpnDetails
-                    .OrderBy(s => s.Vpn.Available(now))
-                    .ThenBy(s => s.Vpn.IsReal ? 1 : 0)
-                    .ThenByDescending(s => s.Accounts.Count)
+                    .OrderBy(s => s.Vpn.Available(now.Subtract(new TimeSpan(1,0,0))))
+                    .ThenBy(s => s.Vpn.RecentFailures)
+                    .ThenBy(s => s.Vpn.GetPriority(s.Accounts.Count, settingsController.Settings!.VpnAccountCount))
                     .ToList();
 
-                Logger.Debug($"{vpnSets.Count} launch sets found");
+                Logger.Debug("{0} launch sets found", vpnSets.Count);
 
-                foreach (var (vpn, vpnAccounts) in vpnSets)
+                var (vpn, vpnAccounts) = vpnSets.First();
+
+                var accountsAvailableToLaunch = vpnAccounts
+                    .OrderBy(a => a.Available(now)).ToList();
+
+                var accountsToLaunch = accountsAvailableToLaunch
+                    .OrderBy(a => a.VpnPriority)
+                    .Take(settingsController.Settings!.VpnAccountCount)
+                    .ToList();
+
+                Logger.Debug("{0} VPN Chosen with {1} accounts", vpn.DisplayId, accountsToLaunch.Count);
+
+                if (!accountsToLaunch.Any()) continue;
+
+                var clientsToLaunch = new List<Client>();
+                foreach (var account in accountsToLaunch)
                 {
-                    var accountsToLaunch = vpnAccounts
-                        .Where(a => !a.Done)
-                        .Take(settingsController.Settings!.VpnAccountCount)
-                        .ToList();
-                    if (!accountsToLaunch.Any()) continue;
+                    Logger.Debug($"Launching client for Account {account.Name}");
+                    clientsToLaunch.Add(await account.NewClient());
+                }
+                clients.AddRange(clientsToLaunch);
 
-                    var clientsToLaunch = new List<Client>();
-                    foreach (var account in accountsToLaunch)
+                var waitUntil = vpn.Available(now).Subtract(now);
+                if (waitUntil.TotalSeconds > 0)
+                {
+                    Logger.Debug($"VPN {vpn.Id} on login cooldown {waitUntil}");
+                    await Task.Delay(waitUntil, cancellationTokenSource.Token);
+                }
+
+                try
+                {
+                    vpn.Cancellation = new CancellationTokenSource();
+                    var vpnToken = vpn.Cancellation.Token;
+                    vpnToken.ThrowIfCancellationRequested();
+                    var doubleTrouble = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token, vpnToken);
+                    if (!vpnsUsed.Contains(vpn)) vpnsUsed.Add(vpn);
+                    var status = await vpn.Connect(cancellationTokenSource.Token);
+                    if (status != null)
                     {
-                        Logger.Debug($"Launching client for Account {account.Name}");
-                        clientsToLaunch.Add(await account.NewClient());
+                        Logger.Error($"VPN {vpn} Connection {vpn} : {status}");
+                        continue;
                     }
-                    clients.AddRange(clientsToLaunch);
 
-                    var waitUntil = vpn.Available(now).Subtract(now);
-                    if (waitUntil.TotalSeconds > 0)
+                    Logger.Debug($"Launching {clientsToLaunch.Count} clients");
+                    var tasks = PrimeLaunchTasks(vpn, clientsToLaunch, shareArchive, exeSemaphore, doubleTrouble.Token);
+                    if (cancellationTokenSource.IsCancellationRequested) return;
+
+                    if (first)
                     {
-                        Logger.Debug($"VPN {vpn.Id} on login cooldown {waitUntil}");
-                        await Task.Delay(waitUntil, cancellationTokenSource.Token);
-                    }
-
-                    try
-                    {
-                        if (!vpnsUsed.Contains(vpn)) vpnsUsed.Add(vpn);
-                        var status = await vpn.Connect(cancellationTokenSource.Token);
-                        if (status != null)
-                        {
-                            Logger.Error($"VPN {vpn} Connection {vpn} : {status}");
-                            continue;
-                        }
-
-                        Logger.Debug($"Launching {clientsToLaunch.Count} clients");
-                        var tasks = PrimeLaunchTasks(vpn, clientsToLaunch, exeSemaphore, cancellationTokenSource.Token);
+                        await Task.Delay(200, cancellationTokenSource.Token);
                         if (cancellationTokenSource.IsCancellationRequested) return;
-
-                        if (first)
-                        {
-                            await Task.Delay(200, cancellationTokenSource.Token);
-                            if (cancellationTokenSource.IsCancellationRequested) return;
-                            // Release the hounds
-                            exeSemaphore.Release(maxInstances);
-                            loginSemaphore.Release(1);
-                            first = false;
-                        }
-
-                        await Task.WhenAll(tasks.ToArray());
+                        // Release the hounds
+                        exeSemaphore.Release(maxInstances);
+                        loginSemaphore.Release(1);
+                        first = false;
                     }
-                    finally
+
+                    await Task.WhenAll(tasks.ToArray());
+                }
+                catch (OperationCanceledException ex)
+                {
+                    authenticationThrottle.Reset();
+                    if (cancellationTokenSource.IsCancellationRequested) return;
+                    Logger.Debug($"VPN {vpn.Id} failure detected, skipping");
+                }
+                finally
+                {
+                    var status = await vpn.Disconnect(cancellationTokenSource.Token);
+                    if (status != null)
                     {
-                        var status = await vpn.Disconnect(cancellationTokenSource.Token);
-                        if (status != null)
-                        {
-                            Logger.Error($"VPN {vpn} Disconnection failed : {status}");
-                        }
-                        else
-                        {
-                            authenticationThrottle.CurrentVpn = null;
-                        }
+                        Logger.Error($"VPN {vpn} Disconnection failed : {status}");
+                    }
+                    else
+                    {
+                        authenticationThrottle.CurrentVpn = null;
                     }
                 }
             }
@@ -163,26 +177,6 @@ public class ClientController
         }
     }
 
-    private void AddNonVpnAccounts(List<VpnAccounts> accountsByVpnDetails, List<IAccount> accounts)
-    {
-        var nonVpnAccounts = accountsByVpnDetails.FirstOrDefault(a => !a.Vpn.IsReal);
-        
-        var topUpCount = settingsController.Settings!.VpnAccountCount;
-        if (nonVpnAccounts != null) topUpCount -= nonVpnAccounts.Accounts.Count(a => !a.Done);
-        if (topUpCount <= 0) return;
-
-        var topUpAccounts = accounts.Where(a => !a.Done).Take(topUpCount).ToList();
-
-        if (nonVpnAccounts == null)
-        {
-            accountsByVpnDetails.Add(new VpnAccounts(vpnCollection.GetVpn(""), topUpAccounts));
-        }
-        else
-        {
-            nonVpnAccounts.Accounts.AddRange(topUpAccounts);
-        }
-    }
-
     private async Task SaveMetrics(DateTime startOfRun, List<Client> clients, List<VpnDetails> vpnDetailsList)
     {
         (string, DateTime) AddOffset(DateTime reference, DateTime time, string line)
@@ -199,8 +193,9 @@ public class ClientController
             "Account\tStart\tAuthenticate\tLogin\tEnter\tExit",
         };
 
-        foreach (var client in clients.Where(c => c.Account.Name != null).OrderBy(c => c.StartAt))
+        foreach (var client in clients.Where(c => c.Account.Name != null && c.StartAt > DateTime.MinValue).OrderBy(c => c.StartAt))
         {
+            Logger.Debug($"Client {0} {1} {2}", client.Account.Name, client.AccountIndex, client.StartAt);
             var line = client.Account.Name;
             var reference = startOfRun;
             (line, reference) = AddOffset(reference, client.StartAt, line!);
@@ -234,11 +229,15 @@ public class ClientController
         await File.WriteAllLinesAsync(metricsFile, lines);
         var metricsFileUniquePath = settingsController.UniqueMetricsFile;
         File.Copy(metricsFile, metricsFileUniquePath);
-        Logger.Info($"Metrics saved to {metricsFileUniquePath}");
+        Logger.Info("Metrics saved to {0}", metricsFileUniquePath);
         MetricsUpdated?.Invoke(this, EventArgs.Empty);
     }
 
-    private List<Task> PrimeLaunchTasks(VpnDetails vpnDetails, IEnumerable<Client> clients, SemaphoreSlim exeSemaphore,
+    private List<Task> PrimeLaunchTasks(
+        VpnDetails vpnDetails, 
+        IEnumerable<Client> clients,
+        bool shareArchive,
+        SemaphoreSlim exeSemaphore,
         CancellationToken cancellationToken)
     {
         var tasks = clients.Select(client => Task.Run(async () =>
@@ -246,7 +245,7 @@ public class ClientController
                 var launcher = new Launcher(client, launchType, applicationFolder, settingsController.Settings!, vpnDetails, cancellationToken);
                 launcher.ClientReady += LauncherClientReady;
                 launcher.ClientClosed += LauncherClientClosed;
-                _ = await launcher.LaunchAsync(settingsController.DatFile!, applicationFolder, settingsController.GfxSettingsFile!, authenticationThrottle, loginSemaphore, exeSemaphore);
+                _ = await launcher.LaunchAsync(settingsController.DatFile!, applicationFolder, settingsController.GfxSettingsFile!, shareArchive, authenticationThrottle, loginSemaphore, exeSemaphore);
                 LogManager.Flush();
             }, cancellationToken))
             .ToList();

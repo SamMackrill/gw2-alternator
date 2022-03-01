@@ -39,6 +39,7 @@ public class Launcher
         FileInfo loginFile,
         DirectoryInfo applicationFolder,
         FileInfo gfxSettingsFile,
+        bool shareArchive,
         AuthenticationThrottle authenticationThrottle,
         SemaphoreSlim loginSemaphore,
         SemaphoreSlim exeSemaphore)
@@ -79,6 +80,7 @@ public class Launcher
                     Logger.Info("{0} login failed, giving up to try again", account.Name);
                     authenticationThrottle.LoginFailed(vpnDetails, client);
                     ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
+                    account.SetFail();
                     client.Kill().Wait();
                     break;
                 case RunStage.ReadyToPlay:
@@ -98,6 +100,7 @@ public class Launcher
                 case RunStage.EntryFailed:
                     Logger.Info("{0} entry failed, giving up to try again", account.Name);
                     ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
+                    account.SetFail();
                     client.Kill().Wait();
                     break;
                 case RunStage.WorldEntered:
@@ -118,11 +121,10 @@ public class Launcher
                                 if (account.LoginRequired) account.LoginCount++;
                                 break;
                             case LaunchType.Collect:
-                                account.LoginCount = 0;
                                 account.SetCollected();
                                 break;
                         }
-                        account.LastLogin = DateTime.UtcNow;
+                        account.SetLogin();
                     }
                     finally
                     {
@@ -169,9 +171,9 @@ public class Launcher
 
             // Ready to roll, have login and exe slot
             client.RunStatus = RunState.WaitingForAuthenticationThrottle;
-            await authenticationThrottle.WaitAsync(vpnDetails, launchCancelled);
+            await authenticationThrottle.WaitAsync(client, vpnDetails, launchCancelled);
 
-            await client.Launch(launchType, settings, applicationFolder, launchCancelled);
+            await client.Launch(launchType, settings, shareArchive, applicationFolder, launchCancelled);
 
             client.RunStatus = RunState.Completed;
             vpnDetails.SetSuccess();
@@ -181,7 +183,7 @@ public class Launcher
         catch (OperationCanceledException)
         {
             client.RunStatus = RunState.Cancelled;
-            Logger.Debug("{0} cancelled", account.Name);
+            Logger.Info("{0} cancelled", account.Name);
         }
         catch (Gw2Exception e)
         {
@@ -211,7 +213,7 @@ public class Launcher
             Logger.Debug("{0} GW2 process killed", account.Name);
         }
 
-        vpnDetails.SetFail(client.Account);
+        if (client.RunStatus != RunState.Cancelled) vpnDetails.SetFail(client.Account);
         return false;
     }
 

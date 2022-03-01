@@ -66,21 +66,10 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public string? LastLoginFailAccount { get; set; }
 
-    [field: NonSerialized]
-    [JsonIgnore]
-    public Counter CallCount { get; private set; }
-    
-    [field: NonSerialized]
-    [JsonIgnore]
-    public Counter FailCount { get; private set; }
 
     [field: NonSerialized]
     [JsonIgnore]
-    public Counter SuccessCount { get; private set; }
-
-    [field: NonSerialized]
-    [JsonIgnore]
-    public Counter ConsecutiveFailedCount { get; private set; }
+    public int Priority { get; private set; }
 
     [JsonIgnore]
     public int Delay => LaunchDelay();
@@ -88,12 +77,12 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
     [JsonIgnore]
     public List<VpnConnectionMetrics> Connections { get; private set; }
 
+
+    private SuccessFailCounter successFailCounter;
+
     public VpnDetails()
     {
-        CallCount = new Counter();
-        FailCount = new Counter();
-        SuccessCount = new Counter();
-        ConsecutiveFailedCount = new Counter();
+        successFailCounter = new SuccessFailCounter();
         Connections = new List<VpnConnectionMetrics>();
     }
 
@@ -104,7 +93,8 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
 
     public DateTime Available(DateTime cutoff)
     {
-        var available = LastLoginSuccess.AddSeconds(Delay);
+        var available = successFailCounter.LastAttempt.AddSeconds(Delay);
+        Logger.Debug("{0} VPN offset={1}", DisplayId, available.Subtract(cutoff).TotalSeconds);
         return available > cutoff ? available : cutoff;
     }
 
@@ -198,31 +188,31 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
     public void SetAttempt(Settings currentSettings)
     {
         settings = currentSettings;
-        CallCount.Increment();
+        successFailCounter.SetAttempt();
     }
 
     public void SetSuccess()
     {
-        SuccessCount.Increment();
+        successFailCounter.SetSuccess();
         LastLoginSuccess = DateTime.Now;
     }
 
     public void SetFail(IAccount account)
     {
-        FailCount.Increment();
-        SuccessCount = new Counter();
+        Logger.Debug("{0} VPN SetFail by account {1}", DisplayId, account.Name);
+        successFailCounter.SetFail();
         LastLoginFail = DateTime.Now;
         LastLoginFailAccount = account.Name;
+        Cancellation.Cancel();
     }
 
     private int LaunchDelay()
     {
-        var delay = BandDelay(CallCount.Count);
+        var delay = BandDelay(successFailCounter.CallCount);
 
-        if (FailCount.Count > 0) delay = Math.Max(delay, 60);
-        //if (clientFailedCount > 2) delay = Math.Max(delay, 60 * (clientFailedCount - 2));
-        if (ConsecutiveFailedCount.Count > 0) delay = Math.Max(delay, 60 * ConsecutiveFailedCount.Count);
+        if (successFailCounter.ConsecutiveFails > 0) delay = Math.Max(delay, 40 + 20 * successFailCounter.ConsecutiveFails);
 
+        Logger.Debug("{0} VPN delay={1} ({2})", DisplayId, delay, successFailCounter.ToString());
         return delay;
     }
 
@@ -253,5 +243,27 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
         if (status != null) return status;
 
         return $"OK IP={pubIp}";
+    }
+
+    [JsonIgnore]
+    public string DisplayId => string.IsNullOrWhiteSpace(Id) ? "No" : Id;
+
+    [JsonIgnore]
+    public int RecentFailures => successFailCounter.RecentFails(120);
+
+    [JsonIgnore]
+    public int RecentCalls => successFailCounter.RecentCalls(180);
+
+    [JsonIgnore]
+    public CancellationTokenSource Cancellation { get; set; }
+
+    public int GetPriority(int accountsCount, int maxAccounts)
+    {
+        var real = IsReal ? maxAccounts : 0;
+        var countPriority = (Math.Max(0, maxAccounts - accountsCount) + real) * maxAccounts;
+
+        Priority = RecentCalls + countPriority;
+        Logger.Debug("{0} VPN Priority={1} (R={2} C={3} CP={4} MA={5})", DisplayId, Priority, real, accountsCount, countPriority, maxAccounts);
+        return Priority;
     }
 }

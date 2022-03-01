@@ -268,7 +268,7 @@ public class MainViewModel : ObservableObject
                 launchCancellation.Token.ThrowIfCancellationRequested();
                 var launcher = new ClientController(settingsController.ApplicationFolder, settingsController, authenticationThrottle, vpnCollection, launchType);
                 launcher.MetricsUpdated += Launcher_MetricsUpdated;
-                await launcher.LaunchMultiple(AccountsVM.SelectedAccounts.ToList(), accountCollection, all, ignoreVpn, maxInstances, launchCancellation);
+                await launcher.LaunchMultiple(AccountsVM.SelectedAccounts.ToList(), accountCollection, all, !serial, ignoreVpn, maxInstances, launchCancellation);
 
                 await SaveCollections(accountCollection, vpnCollection);
             }
@@ -414,6 +414,7 @@ public class MainViewModel : ObservableObject
     {
         Logger.Debug("Load VPNs");
         await vpnCollection.Load();
+        //var current = vpnCollection.CurrentLive;
     }
 
     private static async Task SaveCollections(IAccountCollection accountCollection, IVpnCollection vpnCollection)

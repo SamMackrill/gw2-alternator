@@ -19,6 +19,7 @@ public class AccountViewModel : ObservableObject
         { "CreatedAt",      new() { nameof(Age)         } },
         { "StatusMessage",  new() { nameof(TooltipText) } },
         { "Vpns",           new() { nameof(VpnsDisplay) } },
+        { "LoginCount",     new() { nameof(LoginCount), nameof(MysticCoinCount) } },
     };
 
     private void ModelPropertyChanged(object? sender, PropertyChangedEventArgs args)

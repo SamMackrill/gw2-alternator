@@ -1,32 +1,30 @@
-﻿using System.Text.Json;
+﻿using System.Net.NetworkInformation;
+using System.Text.Json;
 
 namespace guildwars2.tools.alternator.MVVM.model;
 
-public interface IVpnCollection
+public interface IVpnCollection : IJsonCollection
 {
     List<VpnDetails>? Vpns { get; }
-    bool Ready { get; set; }
-    event EventHandler? Loaded;
-    event EventHandler? LoadFailed;
-    event EventHandler? Updated;
-    Task Save();
-    Task Load();
     VpnDetails GetVpn(string key);
     List<AccountVpnViewModel> GetAccountVpns(IAccount account);
     VpnDetails AddNew();
     void Remove(VpnDetails deadVpn);
     bool Any();
-    event PropertyChangedEventHandler? PropertyChanged;
-    event PropertyChangingEventHandler? PropertyChanging;
+    //? CurrentLive { get; }
 }
 
 public class VpnCollection : JsonCollection<VpnDetails>, IVpnCollection
 {
     private const string vpnFileName = "vpnconnections.json";
 
-    public VpnCollection(FileSystemInfo folderPath) : base(folderPath, vpnFileName) { }
+    public VpnCollection(FileSystemInfo folderPath) : base(folderPath, vpnFileName)
+    {
+        NonVpn = new VpnDetails {Id = ""};
+    }
 
     public List<VpnDetails>? Vpns => Items;
+    public VpnDetails NonVpn { get; }
 
     public override event EventHandler? Loaded;
     public override event EventHandler? LoadFailed;
@@ -41,7 +39,8 @@ public class VpnCollection : JsonCollection<VpnDetails>, IVpnCollection
 
             await using (var stream = new FileStream(vpnJson, FileMode.Create))
             {
-                await JsonSerializer.SerializeAsync(stream, Items, new JsonSerializerOptions { AllowTrailingCommas = true, WriteIndented = true });
+                await JsonSerializer.SerializeAsync(stream, Items,
+                    new JsonSerializerOptions {AllowTrailingCommas = true, WriteIndented = true});
             }
 
             Logger.Debug("VPNs saved to {0}", vpnJson);
@@ -78,7 +77,7 @@ public class VpnCollection : JsonCollection<VpnDetails>, IVpnCollection
 
     public VpnDetails GetVpn(string key)
     {
-        return Vpns?.FirstOrDefault(v => v.Id == key) ?? new VpnDetails();
+        return Vpns?.FirstOrDefault(v => v.Id == key) ?? NonVpn;
     }
 
     public List<AccountVpnViewModel> GetAccountVpns(IAccount account)
@@ -88,7 +87,8 @@ public class VpnCollection : JsonCollection<VpnDetails>, IVpnCollection
 
     public VpnDetails AddNew()
     {
-        var newVpnDetails = new VpnDetails { Id = "New" };
+        // TODO new Id should be unique
+        var newVpnDetails = new VpnDetails {Id = "New"};
         Items ??= new List<VpnDetails>();
         Items.Add(newVpnDetails);
         OnPropertyChanged(nameof(Vpns));
@@ -104,4 +104,30 @@ public class VpnCollection : JsonCollection<VpnDetails>, IVpnCollection
     }
 
     public bool Any() => Vpns?.Any() ?? false;
+
+
+    //public string? CurrentLive
+    //{
+    //    get
+    //    {
+    //        if (!NetworkInterface.GetIsNetworkAvailable()) return null;
+
+    //        var interfaces = NetworkInterface.GetAllNetworkInterfaces();
+    //        foreach (NetworkInterface i in interfaces)
+    //        {
+    //            if (i.OperationalStatus == OperationalStatus.Up)
+    //            {
+    //                return i.Description;
+    //            }
+    //        }
+
+    //        return null;
+
+    //        ////return NetworkInterface.GetAllNetworkInterfaces()
+    //        ////    .Where(i => i.OperationalStatus == OperationalStatus.Up)
+    //        ////    .Select(i => i.Description)
+    //        ////    .FirstOrDefault();
+    //    }
+    //}
+
 }

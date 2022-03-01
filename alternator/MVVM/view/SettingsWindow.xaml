@@ -172,12 +172,14 @@
                 </Button>
 
                 <Label Padding="0" Grid.Row="5" Grid.Column="1" Margin="0,4,0,0"
+                       Visibility="{Binding VpnVisibility}"
                    Content="VPN Pattern:" />
                 <TextBox Grid.Row="5" Grid.Column="2"
                      BorderThickness="1"
                      Margin="4,4,0,0"
                      MinWidth="100"
                      HorizontalAlignment="Stretch"
+                     Visibility="{Binding VpnVisibility}"
                      Text="{Binding Path=VpnMatch, Mode=TwoWay, FallbackValue='\\w+-\\w+-st\\d+\\.prod\\.surfshark\\.com'}" />
                 <Button Grid.Row="5" Grid.Column="3"  
                     Margin="4,0,0,0" 
@@ -186,6 +188,7 @@
                     BorderThickness="0" 
                     Height="16" Width="16"
                     Background="Transparent"
+                    Visibility="{Binding VpnVisibility}"
                     Style="{StaticResource FadeOutButton}"
                     Command="{Binding Path=ResetVpnMatchCommand, Mode=OneWay}" >
 

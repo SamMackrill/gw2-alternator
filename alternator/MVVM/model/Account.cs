@@ -9,7 +9,6 @@ public interface IAccount : IEquatable<IAccount>
     string? Character { get; set; }
     string? LoginFilePath { get; set; }
     string? ApiKey { get; set; }
-    ObservableCollectionEx<Currency>? Counts { get; set; }
     ObservableCollectionEx<string>? Vpns { get; }
     bool HasVpn { get; }
     DateTime LastLogin { get; set; }
@@ -22,21 +21,25 @@ public interface IAccount : IEquatable<IAccount>
     double MysticCoinsGuess { get; }
     double LaurelsGuess { get; }
     event PropertyChangedEventHandler? PropertyChanged;
-    // Client
-    Task<Client> NewClient();
-    Client? CurrentClient { get; }
     int Attempt { get; }
     int LoginCount { get; set; }
-    RunState RunStatus { get; }
-    string? StatusMessage { get; }
     bool Done { get; set; }
     void UpdateVpn(VpnDetails vpn, bool isChecked);
+    void SetLogin();
     void SetCollected();
+    void SetFail();
     Task<string> TestApiKey();
     bool CheckApiKeyValid(string pasteText);
     void SetUndo();
     void Undo();
     Task FetchAccountDetails(CancellationToken cancellationToken);
+
+    Task<Client> NewClient();
+    Client? CurrentClient { get; }
+    RunState RunStatus { get; }
+    string? StatusMessage { get; }
+    DateTime Available(DateTime cutoff);
+    int VpnPriority { get; }
 }
 
 [Serializable]
@@ -101,7 +104,9 @@ public class Account : ObservableObject, IAccount
     public ObservableCollectionEx<string>? Vpns { get; set; }
 
 
+    [JsonIgnore]
     public double MysticCoinsGuess => (GetCurrency("MysticCoin") ?? 0) + LoginCount * 20 / 28;
+    [JsonIgnore]
     public double LaurelsGuess => (GetCurrency("Laurel") ?? 0) + LoginCount * 55 / 28;
 
     public void UpdateVpn(VpnDetails vpn, bool isChecked)
@@ -134,14 +139,26 @@ public class Account : ObservableObject, IAccount
         }
     }
 
+    public void SetLogin()
+    {
+        LastLogin = DateTime.Now;
+        successFailCounter.SetSuccess();
+    }
+
     private Task? apiLookup;
 
     public void SetCollected()
     {
+        LoginCount = 0;
         LastCollection = DateTime.UtcNow;
         AccountCollected?.Invoke(this, EventArgs.Empty);
         apiLookup?.Wait();
         apiLookup = FetchAccountDetails(new CancellationToken());
+    }
+
+    public void SetFail()
+    {
+        successFailCounter.SetFail();
     }
 
     private Regex apiKeyMatch = new(@"[\da-z]{8}(?>-[\da-z]{4}){3}-[\da-z]{20}(?>-[\da-z]{4}){3}-[\da-z]{12}",
@@ -213,16 +230,20 @@ public class Account : ObservableObject, IAccount
         }
     }
 
-    private Counter attempt;
     [JsonIgnore]
-    public int Attempt => attempt.Count;
+    public int Attempt => successFailCounter.CallCount;
+
+    private SuccessFailCounter successFailCounter;
 
     public Account()
     {
-        attempt = new Counter();
+        successFailCounter = new SuccessFailCounter();
+
         LastLogin = DateTime.MinValue;
         LastCollection = DateTime.MinValue;
         CreatedAt = DateTime.Now;
+
+        clients = new Counter();
     }
 
     public Account(string? name) : this()
@@ -245,12 +266,11 @@ public class Account : ObservableObject, IAccount
         get => currentClient!;
         private set
         {
-            if (SetProperty(ref currentClient, value))
-            {
-                OnPropertyChanged(nameof(Attempt));
-                OnPropertyChanged(nameof(RunStatus));
-                OnPropertyChanged(nameof(StatusMessage));
-            }
+            if (!SetProperty(ref currentClient, value)) return;
+
+            OnPropertyChanged(nameof(Attempt));
+            OnPropertyChanged(nameof(RunStatus));
+            OnPropertyChanged(nameof(StatusMessage));
         }
     }
 
@@ -258,6 +278,27 @@ public class Account : ObservableObject, IAccount
     public RunState RunStatus => CurrentClient?.RunStatus ?? RunState.Unset;
     [JsonIgnore]
     public string? StatusMessage => CurrentClient?.StatusMessage;
+
+    [JsonIgnore]
+    public int Delay => LaunchDelay();
+
+    private int LaunchDelay()
+    {
+        var delay = 10;
+
+        if (Attempt > 1) delay = Math.Max(delay, 20 * (Attempt-1));
+
+        return delay;
+    }
+
+    public DateTime Available(DateTime cutoff)
+    {
+        var available = LastLogin.AddSeconds(Delay);
+        return available > cutoff ? available : cutoff;
+    }
+
+    [JsonIgnore]
+    public int VpnPriority => Vpns == null || !Vpns.Any() ? 0 : Vpns.Count;
 
     private bool done;
     [JsonIgnore]
@@ -267,6 +308,7 @@ public class Account : ObservableObject, IAccount
         set => SetProperty(ref done, value);
     }
 
+    private Counter clients;
     public async Task<Client> NewClient()
     {
         if (CurrentClient != null)
@@ -275,8 +317,9 @@ public class Account : ObservableObject, IAccount
             await CurrentClient.Kill();
         }
 
-        attempt.Increment();
-        CurrentClient = new Client(this);
+        successFailCounter.SetAttempt();
+        clients.Increment();
+        CurrentClient = new Client(this, clients.Count);
         CurrentClient.PropertyChanged += CurrentClientOnPropertyChanged();
         OnPropertyChanged(nameof(Attempt));
         return CurrentClient;

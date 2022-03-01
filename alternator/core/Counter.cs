@@ -12,6 +12,7 @@ public class Counter : ObservableObject
         OnPropertyChanged(nameof(Count));
     }
 
-    private string DebugDisplay => $"{count}";
+    private string DebugDisplay => count.ToString();
 
+    public override string ToString() => DebugDisplay;
 }

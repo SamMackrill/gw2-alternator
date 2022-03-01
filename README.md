@@ -41,11 +41,16 @@ Tool to help logging-in to multiple Guild Wars 2 alt accounts so as to harvest t
    * Speculation: This is linked to using email aliases
    * Using a VPN seems not to help here
  * Logging into the game will become slower after multiple (>10?) accounts and may block entirely
-  * Using a VPN will help
-  * Waiting a few minutes (5?) will help
-  * GW2-Alternator tries to counter this by slowing down the login attempts after a failure
-    * However the delay required depend on the past login history and is difficult to guess
-    * There are tuning parameters in Settings to help adjust this
+   * Using a VPN will help
+   * Waiting a few minutes (5?) will help
+   * GW2-Alternator tries to counter this by slowing down the login attempts after a failure
+     * However the delay required depend on the past login history and is difficult to guess
+     * There are tuning parameters in Settings to help adjust this
+ * To update the GW2 settings for accounts
+   * Check Force Serial
+   * Check Ignore VPN
+   * Select some accounts
+   * Use the Collect button
 
 ## Advanced
  * Settings, Account details, metrics and logs are found here: %AppData%\gw2-alternator
