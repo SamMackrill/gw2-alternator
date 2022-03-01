@@ -66,7 +66,7 @@ Tool to help logging-in to multiple Guild Wars 2 alt accounts so as to harvest t
  ![Create Key](images/api_create.png)
 
 ### VPN
- * If you create manual VPN configurations in Windows then alternator can use these automatically
+ * If you create manual VPN configurations in Windows then alternator can be configured these automatically
    * Ensure that the connection is a static IP or restricted to 255.255.255.0 subnet (for smooth GW2 authentication)
    * [Shark VPN instructions](https://support.surfshark.com/hc/en-us/articles/360003144894-How-to-set-up-an-IKEv2-connection-manually-on-Windows-)
      * [Mighty Teapot Referral](http://surfshark.deals/MightyTeapot)
