@@ -72,9 +72,6 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
     public int Priority { get; private set; }
 
     [JsonIgnore]
-    public int Delay => LaunchDelay();
-
-    [JsonIgnore]
     public List<VpnConnectionMetrics> Connections { get; private set; }
 
 
@@ -91,9 +88,9 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
     [JsonIgnore]
     public bool IsReal => !string.IsNullOrEmpty(Id) && !string.IsNullOrEmpty(ConnectionName);
 
-    public DateTime Available(DateTime cutoff)
+    public DateTime Available(DateTime cutoff, bool ignoreCalls)
     {
-        var available = successFailCounter.LastAttempt.AddSeconds(Delay);
+        var available = successFailCounter.LastAttempt.AddSeconds(LaunchDelay(ignoreCalls));
         Logger.Debug("{0} VPN offset={1}", DisplayId, available.Subtract(cutoff).TotalSeconds);
         return available > cutoff ? available : cutoff;
     }
@@ -203,12 +200,12 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
         successFailCounter.SetFail();
         LastLoginFail = DateTime.Now;
         LastLoginFailAccount = account.Name;
-        Cancellation.Cancel();
+        Cancellation?.Cancel();
     }
 
-    private int LaunchDelay()
+    public int LaunchDelay(bool ignoreCalls)
     {
-        var delay = BandDelay(successFailCounter.CallCount);
+        var delay = ignoreCalls ? 0 : BandDelay(successFailCounter.CallCount);
 
         if (successFailCounter.ConsecutiveFails > 0) delay = Math.Max(delay, 40 + 20 * successFailCounter.ConsecutiveFails);
 
@@ -255,7 +252,7 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
     public int RecentCalls => successFailCounter.RecentCalls(180);
 
     [JsonIgnore]
-    public CancellationTokenSource Cancellation { get; set; }
+    public CancellationTokenSource? Cancellation { get; set; }
 
     public int GetPriority(int accountsCount, int maxAccounts)
     {

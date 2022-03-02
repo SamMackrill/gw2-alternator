@@ -224,11 +224,11 @@ public class MainViewModel : ObservableObject
         authenticationThrottle.PropertyChanged += ThrottlePropertyChanged;
 
 
-        QueryGw2Version().SafeFireAndForget(onException: ex =>
+        QueryGw2Version().SafeFireAndForget(ex =>
         {
             Logger.Error(ex, "Query GW2 Version");
         });
-        LoadAccounts().SafeFireAndForget(onException: ex =>
+        LoadAccounts().SafeFireAndForget(ex =>
         {
             Logger.Error(ex, "Load Accounts");
             if (ex is Gw2Exception)
@@ -244,12 +244,16 @@ public class MainViewModel : ObservableObject
             }
 
         });
-        LoadVpns().SafeFireAndForget(onException: ex =>
+        LoadVpns().SafeFireAndForget(ex =>
         {
             Logger.Error(ex, "Load VPNs");
         });
 
-        async Task LaunchMultipleAccounts(LaunchType launchType, bool all, bool serial, bool ignoreVpn)
+        async Task LaunchMultipleAccounts(
+            LaunchType launchType, 
+            bool all, 
+            bool serial, 
+            bool ignoreVpn)
         {
             try
             {
@@ -264,11 +268,21 @@ public class MainViewModel : ObservableObject
                     _ => 1
                 };
 
+                var vpnAccountCount = launchType == LaunchType.Update ? accountCollection.Accounts!.Count : settingsController.Settings!.VpnAccountCount;
+
                 launchCancellation = new CancellationTokenSource();
                 launchCancellation.Token.ThrowIfCancellationRequested();
                 var launcher = new ClientController(settingsController.ApplicationFolder, settingsController, authenticationThrottle, vpnCollection, launchType);
                 launcher.MetricsUpdated += Launcher_MetricsUpdated;
-                await launcher.LaunchMultiple(AccountsVM.SelectedAccounts.ToList(), accountCollection, all, !serial, ignoreVpn, maxInstances, launchCancellation);
+                await launcher.LaunchMultiple(
+                    AccountsVM.SelectedAccounts.ToList(), 
+                    accountCollection, 
+                    all, 
+                    !serial, 
+                    ignoreVpn, 
+                    maxInstances,
+                    vpnAccountCount,
+                    launchCancellation);
 
                 await SaveCollections(accountCollection, vpnCollection);
             }
@@ -282,7 +296,12 @@ public class MainViewModel : ObservableObject
         AsyncRelayCommand CreateLaunchCommand(LaunchType launchType, Action? tidyUp) =>
             new(async () =>
             {
-                await LaunchMultipleAccounts(launchType, ForceAllOverride, ForceSerialOverride, IgnoreVpnOverride || settingsController.Settings!.AlwaysIgnoreVpn);
+                await LaunchMultipleAccounts(
+                    launchType, 
+                    ForceAllOverride, 
+                    ForceSerialOverride, 
+                    IgnoreVpnOverride || settingsController.Settings!.AlwaysIgnoreVpn
+                    );
                 tidyUp?.Invoke();
             }, () => CanRun(launchType));
 

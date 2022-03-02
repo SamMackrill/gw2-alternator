@@ -82,7 +82,7 @@ public class AuthenticationThrottle : ObservableObject
             if (launchType is LaunchType.Update) return;
 
             Logger.Debug("{0} launchCount={1}", account.Name, launchCount.Count);
-            var delay = vpnDetails.Delay;
+            var delay = vpnDetails.LaunchDelay(false);
             Logger.Debug("{0} Authentication {1} VPN release delay={2}s", account.Name, vpnDetails.DisplayId, delay);
             if (delay > 0)
             {

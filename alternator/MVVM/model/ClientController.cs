@@ -39,6 +39,7 @@ public class ClientController
         bool shareArchive,
         bool ignoreVpn,
         int maxInstances,
+        int vpnAccountSize,
         CancellationTokenSource cancellationTokenSource
         )
     {
@@ -76,9 +77,9 @@ public class ClientController
                     .ToList();
 
                 var vpnSets = accountsByVpnDetails
-                    .OrderBy(s => s.Vpn.Available(now.Subtract(new TimeSpan(1,0,0))))
+                    .OrderBy(s => s.Vpn.Available(now.Subtract(new TimeSpan(1,0,0)), launchType==LaunchType.Update))
                     .ThenBy(s => s.Vpn.RecentFailures)
-                    .ThenBy(s => s.Vpn.GetPriority(s.Accounts.Count, settingsController.Settings!.VpnAccountCount))
+                    .ThenBy(s => s.Vpn.GetPriority(s.Accounts.Count, vpnAccountSize))
                     .ToList();
 
                 Logger.Debug("{0} launch sets found", vpnSets.Count);
@@ -90,7 +91,7 @@ public class ClientController
 
                 var accountsToLaunch = accountsAvailableToLaunch
                     .OrderBy(a => a.VpnPriority)
-                    .Take(settingsController.Settings!.VpnAccountCount)
+                    .Take(vpnAccountSize)
                     .ToList();
 
                 Logger.Debug("{0} VPN Chosen with {1} accounts", vpn.DisplayId, accountsToLaunch.Count);
@@ -105,7 +106,7 @@ public class ClientController
                 }
                 clients.AddRange(clientsToLaunch);
 
-                var waitUntil = vpn.Available(now).Subtract(now);
+                var waitUntil = vpn.Available(now, launchType == LaunchType.Update).Subtract(now);
                 if (waitUntil.TotalSeconds > 0)
                 {
                     Logger.Debug($"VPN {vpn.Id} on login cooldown {waitUntil}");
