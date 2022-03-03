@@ -2,6 +2,11 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
 
+    <Style x:Key="WindowsDefault" TargetType="{x:Type Window}">
+        <Setter Property="FontFamily"
+                Value="Segoe UI Variable" />
+    </Style>
+
     <Color x:Key="ForegroundColor">#FFFB651D</Color>
     <SolidColorBrush x:Key="ForegroundBrush" Color="{DynamicResource ForegroundColor}" />
     <Color x:Key="BackgroundColor">#FF242424</Color>

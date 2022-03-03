@@ -16,6 +16,7 @@
                   SizeToContent="WidthAndHeight"
                   d:DataContext="{d:DesignInstance Type=viewmodel:AccountApisViewModel}"
                   d:DesignWidth="320" 
+                  FontSize="{Binding FontSize, FallbackValue=10}"
 >
 
     <Grid>
@@ -61,7 +62,7 @@
                     </Button>
 
                     <Label Padding="0" 
-                       FontWeight="DemiBold"
+                       FontWeight="DemiBold" FontSize="{Binding HeaderFontSize, FallbackValue=16}"
                        Content="GW2 API Keys" />
 
                 </DockPanel>

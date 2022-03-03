@@ -24,13 +24,7 @@ public class AccountViewModel : ObservableObject
 
     private void ModelPropertyChanged(object? sender, PropertyChangedEventArgs args)
     {
-        if (args.PropertyName == null) return;
-        var propertyNames = new List<string> { args.PropertyName };
-        if (propertyConverter.ContainsKey(args.PropertyName)) propertyNames.AddRange(propertyConverter[args.PropertyName]);
-        foreach (var propertyName in propertyNames)
-        {
-            OnPropertyChanged(propertyName);
-        }
+        args.PassOnChanges(OnPropertyChanged, propertyConverter);
     }
     private static string DateTimeDisplay(DateTime dateTime) => dateTime == DateTime.MinValue ? "Never" : $"{dateTime.ToShortDateString()} {dateTime.ToShortTimeString()}";
 

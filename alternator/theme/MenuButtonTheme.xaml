@@ -24,7 +24,6 @@
             </Setter>
 
             <Setter Property="Opacity" Value="0.8"/>
-            <Setter Property="FontSize" Value="14"/>
             <Setter Property="Margin" Value="15,15,0,5"/>
             <Setter Property="BorderThickness" Value="2"/>
         </Style.Setters>

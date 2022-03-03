@@ -1,4 +1,6 @@
-﻿namespace guildwars2.tools.alternator.MVVM.model;
+﻿using System.Text.Json.Serialization;
+
+namespace guildwars2.tools.alternator.MVVM.model;
 
 [Serializable]
 public class Settings : ObservableObject
@@ -70,6 +72,16 @@ public class Settings : ObservableObject
         get => vpnAccountCount;
         set => SetProperty(ref vpnAccountCount, value);
     }
+
+    private int fontSize;
+    public int FontSize
+    {
+        get => fontSize;
+        set => SetProperty(ref fontSize, value);
+    }
+
+    [JsonIgnore]
+    public double HeaderFontSize => FontSize * 1.5 + 1;
 
     private ErrorDetection experimentalErrorDetection;
     public ErrorDetection ExperimentalErrorDetection

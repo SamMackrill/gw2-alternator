@@ -74,6 +74,7 @@ public class SettingsController : ObservableObject, ISettingsController
             var settingsFromFile = JsonSerializer.Deserialize<Settings>(stream);
             Logger.Debug("Settings loaded from {0}", settingsJson);
             Settings = settingsFromFile ?? DefaultSettings;
+            ValidateSettings();
             return;
         }
         catch (Exception e)
@@ -85,6 +86,16 @@ public class SettingsController : ObservableObject, ISettingsController
             semaphore.Release();
         }
         Settings = DefaultSettings;
+    }
+
+    private void ValidateSettings()
+    {
+        var defaults = DefaultSettings;
+        if (Settings!.MaxLoginInstances == default) Settings!.MaxLoginInstances = defaults.MaxLoginInstances;
+        if (Settings!.StuckTimeout == default) Settings!.StuckTimeout = defaults.StuckTimeout;
+        if (Settings!.VpnAccountCount == default) Settings!.VpnAccountCount = defaults.VpnAccountCount;
+        if (Settings!.FontSize == default) Settings!.FontSize = defaults.FontSize;
+        Settings!.VpnMatch ??= defaults.VpnMatch;
     }
 
     public void Save()
@@ -151,6 +162,7 @@ public class SettingsController : ObservableObject, ISettingsController
         settings.AccountBand3Delay = 45;
         settings.StuckTimeout = 30;
         settings.VpnAccountCount = 10;
+        settings.FontSize = 12;
         settings.ExperimentalErrorDetection = ErrorDetection.Delay;
         settings.AlwaysIgnoreVpn = false;
         settings.VpnMatch = @"\w+-\w+-st\d+\.prod\.surfshark\.com";

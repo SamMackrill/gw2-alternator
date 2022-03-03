@@ -58,13 +58,7 @@ public class VpnConnectionViewModel : ObservableObject
 
     private void External_PropertyChanged(object? sender, PropertyChangedEventArgs args)
     {
-        if (args.PropertyName == null) return;
-        var propertyNames = new List<string> { args.PropertyName };
-        if (propertyConverter.ContainsKey(args.PropertyName)) propertyNames.AddRange(propertyConverter[args.PropertyName]);
-        foreach (var propertyName in propertyNames)
-        {
-            OnPropertyChanged(propertyName);
-        }
+        args.PassOnChanges(OnPropertyChanged, propertyConverter);
     }
 
     public bool IsSelected { get; set; }

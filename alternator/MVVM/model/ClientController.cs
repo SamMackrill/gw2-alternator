@@ -101,7 +101,7 @@ public class ClientController
                 var clientsToLaunch = new List<Client>();
                 foreach (var account in accountsToLaunch)
                 {
-                    Logger.Debug($"Launching client for Account {account.Name}");
+                    Logger.Debug("Launching client for Account {0}", account.Name);
                     clientsToLaunch.Add(await account.NewClient());
                 }
                 clients.AddRange(clientsToLaunch);
@@ -109,7 +109,7 @@ public class ClientController
                 var waitUntil = vpn.Available(now, launchType == LaunchType.Update).Subtract(now);
                 if (waitUntil.TotalSeconds > 0)
                 {
-                    Logger.Debug($"VPN {vpn.Id} on login cooldown {waitUntil}");
+                    Logger.Debug("VPN {0} on login cooldown {1}", vpn.Id, waitUntil);
                     await Task.Delay(waitUntil, cancellationTokenSource.Token);
                 }
 
@@ -123,11 +123,11 @@ public class ClientController
                     var status = await vpn.Connect(cancellationTokenSource.Token);
                     if (status != null)
                     {
-                        Logger.Error($"VPN {vpn} Connection {vpn} : {status}");
+                        Logger.Error("VPN {0} Connection {1} : {2}", vpn.Id, vpn.ConnectionName, status);
                         continue;
                     }
 
-                    Logger.Debug($"Launching {clientsToLaunch.Count} clients");
+                    Logger.Debug("Launching {0} clients", clientsToLaunch.Count);
                     var tasks = PrimeLaunchTasks(vpn, clientsToLaunch, shareArchive, exeSemaphore, doubleTrouble.Token);
                     if (cancellationTokenSource.IsCancellationRequested) return;
 
@@ -147,14 +147,14 @@ public class ClientController
                 {
                     authenticationThrottle.Reset();
                     if (cancellationTokenSource.IsCancellationRequested) return;
-                    Logger.Debug($"VPN {vpn.Id} failure detected, skipping");
+                    Logger.Debug("VPN {0} failure detected, skipping", vpn.Id);
                 }
                 finally
                 {
                     var status = await vpn.Disconnect(cancellationTokenSource.Token);
                     if (status != null)
                     {
-                        Logger.Error($"VPN {vpn} Disconnection failed : {status}");
+                        Logger.Error("VPN {0} Disconnection failed : {1}", vpn, status);
                     }
                     else
                     {
@@ -180,6 +180,8 @@ public class ClientController
 
     private async Task SaveMetrics(DateTime startOfRun, List<Client> clients, List<VpnDetails> vpnDetailsList)
     {
+        Logger.Debug("Metrics being saved");
+
         (string, DateTime) AddOffset(DateTime reference, DateTime time, string line)
         {
             if (time < reference) return (line + "\t", reference);
@@ -196,7 +198,7 @@ public class ClientController
 
         foreach (var client in clients.Where(c => c.Account.Name != null && c.StartAt > DateTime.MinValue).OrderBy(c => c.StartAt))
         {
-            Logger.Debug($"Client {0} {1} {2}", client.Account.Name, client.AccountIndex, client.StartAt);
+            Logger.Debug("Client {0} {1} {2}", client.Account.Name, client.AccountIndex, client.StartAt);
             var line = client.Account.Name;
             var reference = startOfRun;
             (line, reference) = AddOffset(reference, client.StartAt, line!);

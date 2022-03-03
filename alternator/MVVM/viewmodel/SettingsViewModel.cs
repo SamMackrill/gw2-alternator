@@ -23,13 +23,7 @@ public class SettingsViewModel : ObservableObject
 
     private void ModelPropertyChanged(object? sender, PropertyChangedEventArgs args)
     {
-        if (args.PropertyName == null) return;
-        var propertyNames = new List<string> { args.PropertyName };
-        if (propertyConverter.ContainsKey(args.PropertyName)) propertyNames.AddRange(propertyConverter[args.PropertyName]);
-        foreach (var propertyName in propertyNames)
-        {
-            OnPropertyChanged(propertyName);
-        }
+        args.PassOnChanges(OnPropertyChanged, propertyConverter);
     }
 
     public string? Gw2Folder
@@ -108,6 +102,12 @@ public class SettingsViewModel : ObservableObject
         set => Settings.VpnMatch = value;
     }
 
+    public int FontSize
+    {
+        get => Settings.FontSize;
+        set => Settings.FontSize = value;
+    }
+
     public Visibility VpnVisibility => settingsController.Settings?.AlwaysIgnoreVpn ?? true ? Visibility.Hidden : Visibility.Visible;
 
     public Array ErrorDetectionArray => Enum.GetValues(typeof(ErrorDetection));
@@ -183,6 +183,11 @@ public class SettingsViewModel : ObservableObject
     {
         var defaultSettings = SettingsController.DefaultSettings;
         Settings.VpnMatch = defaultSettings.VpnMatch;
+    });
+    public RelayCommand<object> ResetFontSizeCommand => new(_ =>
+    {
+        var defaultSettings = SettingsController.DefaultSettings;
+        Settings.FontSize = defaultSettings.FontSize;
     });
     public RelayCommand<object> ResetAllCommand => new(_ =>
     {

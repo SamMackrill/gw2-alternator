@@ -136,6 +136,9 @@ public class MainViewModel : ObservableObject
         }
     }
 
+    public double FontSize => settingsController.Settings?.FontSize ?? SettingsController.DefaultSettings.FontSize;
+    public double HeaderFontSize => settingsController.Settings?.HeaderFontSize ?? SettingsController.DefaultSettings.FontSize;
+
     private bool loginChecked;
     public bool LoginChecked
     {
@@ -189,18 +192,13 @@ public class MainViewModel : ObservableObject
 
     private readonly Dictionary<string, List<string>> propertyConverter = new()
     {
-        { "AlwaysIgnoreVpn", new() { "VpnVisibility" } },
+        { "AlwaysIgnoreVpn", new() { nameof(VpnVisibility) } },
+        { "FontSize", new() { nameof(HeaderFontSize) } },
     };
 
     private void SettingsController_PropertyChanged(object? sender, PropertyChangedEventArgs args)
     {
-        if (args.PropertyName == null) return;
-        var propertyNames = new List<string> { args.PropertyName };
-        if (propertyConverter.ContainsKey(args.PropertyName)) propertyNames.AddRange(propertyConverter[args.PropertyName]);
-        foreach (var propertyName in propertyNames)
-        {
-            OnPropertyChanged(propertyName);
-        }
+        args.PassOnChanges(OnPropertyChanged, propertyConverter);
     }
 
     public MainViewModel(IDialogService dialogService)
@@ -217,7 +215,7 @@ public class MainViewModel : ObservableObject
 
         SettingsVM = new SettingsViewModel(settingsController, accountCollection, () => Version);
         AccountsVM = new AccountsViewModel(settingsController, vpnCollection);
-        AccountApisVM = new AccountApisViewModel();
+        AccountApisVM = new AccountApisViewModel(settingsController);
         VpnConnectionsVM = new VpnConnectionsViewModel(vpnCollection, settingsController);
 
         authenticationThrottle = new AuthenticationThrottle(settingsController.Settings);

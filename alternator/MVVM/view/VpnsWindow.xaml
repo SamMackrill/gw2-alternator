@@ -16,6 +16,7 @@
                   SizeToContent="WidthAndHeight"
                   d:DataContext="{d:DesignInstance Type=viewmodel:VpnConnectionsViewModel}"
                   d:DesignWidth="360" 
+                  FontSize="{Binding FontSize, FallbackValue=10}"
 >
 
     <Grid>
@@ -75,8 +76,8 @@
                     </Button>
 
                     <Label Padding="0" 
-                       FontWeight="DemiBold"
-                       Content="VPN Connections" />
+                           FontWeight="DemiBold" FontSize="{Binding HeaderFontSize, FallbackValue=16}"
+                           Content="VPN Connections" />
 
                 </DockPanel>
 

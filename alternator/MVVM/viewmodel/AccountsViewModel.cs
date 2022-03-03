@@ -28,13 +28,7 @@ public class AccountsViewModel : ObservableObject
 
     private void SettingsController_PropertyChanged(object? sender, PropertyChangedEventArgs args)
     {
-        if (args.PropertyName == null) return;
-        var propertyNames = new List<string> { args.PropertyName };
-        if (propertyConverter.ContainsKey(args.PropertyName)) propertyNames.AddRange(propertyConverter[args.PropertyName]);
-        foreach (var propertyName in propertyNames)
-        {
-            OnPropertyChanged(propertyName);
-        }
+        args.PassOnChanges(OnPropertyChanged, propertyConverter);
     }
 
     public void Add(IEnumerable<IAccount>? accounts)

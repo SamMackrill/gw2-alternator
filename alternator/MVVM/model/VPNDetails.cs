@@ -132,7 +132,7 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
     {
         if (!IsReal) return null;
 
-        Logger.Info($"{display} VPN {ToString()}");
+        Logger.Info("{0} VPN {1}", display, ToString());
         var psi = new ProcessStartInfo("rasdial", $@"""{ConnectionName}""{arg}")
         {
             RedirectStandardOutput = true,
@@ -142,7 +142,7 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
         var vpnProcess = Process.Start(psi);
         if (vpnProcess == null)
         {
-            Logger.Error($"{display} VPN {ToString()} Process null");
+            Logger.Error("{0} VPN {1} Process null", display, ToString());
             if (record)
             {
                 LastConnectionFail = DateTime.Now;
@@ -151,13 +151,13 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
             return $"{display} VPN Process null";
         }
 
-        _ = Task.Run(() => ReadStream(vpnProcess.StandardOutput, s => Logger.Debug($"VPN: {s}")), cancellationToken);
-        _ = Task.Run(() => ReadStream(vpnProcess.StandardError, s => Logger.Debug($"VPN Error: {s}")), cancellationToken);
+        _ = Task.Run(() => ReadStream(vpnProcess.StandardOutput, s => Logger.Debug("VPN: {0}", s)), cancellationToken);
+        _ = Task.Run(() => ReadStream(vpnProcess.StandardError, s => Logger.Debug("VPN Error: {0}", s)), cancellationToken);
 
         await vpnProcess.WaitForExitAsync(cancellationToken);
         if (vpnProcess.ExitCode > 0)
         {
-            Logger.Error($"{display} VPN {ToString()} Error={vpnProcess.ExitCode}");
+            Logger.Error("{0} VPN {1} Error={2}", display, ToString(), vpnProcess.ExitCode);
             if (record)
             {
                 LastConnectionFail = DateTime.Now;

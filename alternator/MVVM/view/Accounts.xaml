@@ -16,7 +16,7 @@
     </UserControl.Resources>
 
     <DataGrid Background="Transparent"
-              Margin="20"
+              Margin="20,20,20,0"
               AutoGenerateColumns="False"
               CanUserSortColumns="True"
               CanUserResizeColumns="True"
@@ -96,7 +96,6 @@
             </DataGridTextColumn>
 
             <DataGridTextColumn Header="Attempt" Binding="{Binding Attempt, FallbackValue=0}"/>
-
 
         </DataGrid.Columns>
 

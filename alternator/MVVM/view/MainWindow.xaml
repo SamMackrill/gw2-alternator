@@ -18,7 +18,9 @@
         Background="Transparent"
         AllowsTransparency="True"
         RememberPosition="True"
->
+        Style="{StaticResource WindowsDefault}"
+        FontSize="{Binding FontSize, FallbackValue=10}"
+        >
 
     <Grid>
         <Border BorderBrush="{StaticResource ForegroundBrush}" 
@@ -40,80 +42,25 @@
 
                 <DockPanel x:Name="TitleBar" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" 
                        Background="#242424" 
-                       Height="24" 
                        HorizontalAlignment="Stretch"
                        VerticalAlignment="Top"
                        LastChildFill="true" 
-                       Margin="5,5,10,5">
+                       Margin="5,0,10,5">
 
                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" Margin="0" VerticalAlignment="Center">
-                        <TextBlock FontSize="22" 
+                        <TextBlock FontSize="{Binding HeaderFontSize, FallbackValue=20}" 
                                HorizontalAlignment="Left"
                                VerticalAlignment="Center"
                                Padding="0"
                                Margin="0,0,-4,0"
                                Text="GW2" />
-                        <Image Source="/images/alternate_orange-wide.png" Height="24" Margin="0" />
-                        <TextBlock FontSize="22" 
+                        <Image Source="/images/alternate_orange-wide.png" Height="{Binding HeaderFontSize, FallbackValue=20}" Margin="0" />
+                        <TextBlock FontSize="{Binding HeaderFontSize, FallbackValue=20}" 
                                HorizontalAlignment="Left"
                                VerticalAlignment="Center"
                                Padding="0"
                                Margin="-5,0,0,0"
                                Text="Alternator" />
-                    </StackPanel>
-
-                    <StackPanel Orientation="Horizontal" 
-                            DockPanel.Dock="Left"
-                            Margin="0" 
-                            VerticalAlignment="Bottom">
-
-                        <TextBlock FontSize="22" 
-                               Padding="0"
-                               Margin="20,0,0,0"
-                               FontWeight="DemiBold"
-                               FontFamily="Consolas"
-                               Text="{Binding TimeUtc, FallbackValue='00:00'}" />
-                        <TextBlock FontSize="22" 
-                               Padding="0"
-                               Margin="3,0,0,0"
-                               FontWeight="DemiBold"
-                               FontFamily="Consolas"
-                               Text="UTC" />
-
-                        <TextBlock FontSize="22" 
-                               Padding="0"
-                               Margin="20,0,0,0"
-                               FontWeight="DemiBold"
-                               FontFamily="Consolas"
-                               Text="Reset:" />
-                        <TextBlock FontSize="22" 
-                               Padding="0"
-                               Margin="4,0,0,0"
-                               FontWeight="DemiBold"
-                               FontFamily="Consolas"
-                               Text="{Binding ResetCountdown, FallbackValue='8hr 12min'}" />
-
-                        <TextBlock FontSize="22" 
-                               Padding="0"
-                               Margin="20,0,0,0"
-                               Background = "{StaticResource HighlightBrush}"
-                               FontFamily="Consolas"
-                               FontWeight="DemiBold"
-                               Visibility="{Binding CurrentVpnVisible}"
-                               Text="{Binding Vpn, FallbackValue='NYK'}" />
-
-                        <TextBlock FontSize="22" 
-                               Padding="0"
-                               Margin="20,0,0,0"
-                               FontFamily="Consolas"
-                               Visibility="{Binding ThrottleVisible}"
-                               Text="Throttle:" />
-                        <TextBlock FontSize="22" 
-                               Padding="0"
-                               Margin="4,0,0,0"
-                               FontFamily="Consolas"
-                               Visibility="{Binding ThrottleVisible}"
-                               Text="{Binding ThrottleDelay, FallbackValue='37s'}" />
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" 
@@ -206,6 +153,59 @@
                             <Image Source="/images/close-window.png"  Width="24" />
                         </Button>
 
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" 
+                            Margin="0"
+                            VerticalAlignment="Bottom">
+
+                        <TextBlock FontSize="{Binding HeaderFontSize, FallbackValue=20}" 
+                               Padding="0"
+                               Margin="20,0,0,0"
+                               FontWeight="DemiBold"
+                               FontFamily="Consolas"
+                               Text="{Binding TimeUtc, FallbackValue='00:00'}" />
+                        <TextBlock FontSize="{Binding HeaderFontSize, FallbackValue=20}" 
+                               Padding="0"
+                               Margin="3,0,0,0"
+                               FontWeight="DemiBold"
+                               FontFamily="Consolas"
+                               Text="UTC" />
+
+                        <TextBlock FontSize="{Binding HeaderFontSize, FallbackValue=20}" 
+                               Padding="0"
+                               Margin="20,0,0,0"
+                               FontWeight="DemiBold"
+                               FontFamily="Consolas"
+                               Text="Reset:" />
+                        <TextBlock FontSize="{Binding HeaderFontSize, FallbackValue=20}" 
+                               Padding="0"
+                               Margin="4,0,0,0"
+                               FontWeight="DemiBold"
+                               FontFamily="Consolas"
+                               Text="{Binding ResetCountdown, FallbackValue='8hr 12min'}" />
+
+                        <TextBlock FontSize="{Binding HeaderFontSize, FallbackValue=20}" 
+                               Padding="0"
+                               Margin="20,0,0,0"
+                               Background = "{StaticResource HighlightBrush}"
+                               FontFamily="Consolas"
+                               FontWeight="DemiBold"
+                               Visibility="{Binding CurrentVpnVisible}"
+                               Text="{Binding Vpn, FallbackValue='NYK'}" />
+
+                        <TextBlock FontSize="{Binding HeaderFontSize, FallbackValue=20}" 
+                               Padding="0"
+                               Margin="20,0,0,0"
+                               FontFamily="Consolas"
+                               Visibility="{Binding ThrottleVisible}"
+                               Text="Throttle:" />
+                        <TextBlock FontSize="{Binding HeaderFontSize, FallbackValue=20}" 
+                               Padding="0"
+                               Margin="4,0,0,0"
+                               FontFamily="Consolas"
+                               Visibility="{Binding ThrottleVisible}"
+                               Text="{Binding ThrottleDelay, FallbackValue='37s'}" />
                     </StackPanel>
 
 

@@ -14,11 +14,13 @@ public class VpnConnectionsViewModel : ObservableObject
     public VpnConnectionsViewModel(IVpnCollection vpnCollection, ISettingsController settingsController)
     {
         this.vpnCollection = vpnCollection;
-        this.settingsController = settingsController;
 
         VpnConnections = new ObservableCollectionEx<VpnConnectionViewModel>();
         VpnConnections.CollectionChanged += VpnConnections_CollectionChanged;
         connectionNames = new List<string>();
+
+        this.settingsController = settingsController;
+        settingsController.PropertyChanged += SettingsController_PropertyChanged;
 
         AddNewConnectionCommand = new RelayCommand<object>(_ =>
         {
@@ -38,6 +40,16 @@ public class VpnConnectionsViewModel : ObservableObject
 
     }
 
+    private readonly Dictionary<string, List<string>> propertyConverter = new()
+    {
+        { "FontSize", new() { "HeaderFontSize" } },
+    };
+
+    private void SettingsController_PropertyChanged(object? sender, PropertyChangedEventArgs args)
+    {
+        args.PassOnChanges(OnPropertyChanged, propertyConverter);
+    }
+
     private void VpnConnections_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         if (e.Action != NotifyCollectionChangedAction.Remove || e.OldItems == null) return;
@@ -46,6 +58,10 @@ public class VpnConnectionsViewModel : ObservableObject
             vpnCollection.Remove(deadVpn.VpnDetails);
         }
     }
+
+    public double FontSize => settingsController.Settings?.FontSize ?? SettingsController.DefaultSettings.FontSize;
+    public double HeaderFontSize => settingsController.Settings?.HeaderFontSize ?? SettingsController.DefaultSettings.FontSize;
+
 
     public void Update()
     {

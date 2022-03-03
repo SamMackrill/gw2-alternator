@@ -4,17 +4,17 @@ public static class Extensions
 {
     public static long GetValue(this IntPtr ptr)
     {
-        return (long)ptr;
+        return (long) ptr;
     }
 
     public static int GetValue32(this IntPtr ptr)
     {
-        return (int)(long)ptr;
+        return (int) (long) ptr;
     }
 
     public static ulong GetValue(this UIntPtr ptr)
     {
-        return (ulong)ptr;
+        return (ulong) ptr;
     }
 
     public static bool IsTheSameAs(this byte[] a, byte[] b)
@@ -28,4 +28,19 @@ public static class Extensions
 
         return true;
     }
+
+    public static void PassOnChanges(this PropertyChangedEventArgs args, Action<string> onPropertyChanged, Dictionary<string, List<string>>? propertyConverter = null)
+    {
+        var propertyName = args.PropertyName;
+        if (propertyName == null) return;
+
+        var propertyNames = new List<string> {propertyName};
+        if (propertyConverter != null && propertyConverter.ContainsKey(propertyName)) propertyNames.AddRange(propertyConverter[propertyName]);
+        foreach (var name in propertyNames)
+        {
+            onPropertyChanged(name);
+        }
+
+    }
+
 }
