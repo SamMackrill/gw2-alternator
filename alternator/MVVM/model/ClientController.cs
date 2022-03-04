@@ -143,7 +143,7 @@ public class ClientController
 
                     await Task.WhenAll(tasks.ToArray());
                 }
-                catch (OperationCanceledException ex)
+                catch (OperationCanceledException)
                 {
                     authenticationThrottle.Reset();
                     if (cancellationTokenSource.IsCancellationRequested) return;
