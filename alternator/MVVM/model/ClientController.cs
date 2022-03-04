@@ -44,6 +44,8 @@ public class ClientController
         )
     {
         readyClients.Clear();
+        vpnCollection.ResetConnections();
+
         var accounts = selectedAccounts.Any() ? selectedAccounts : accountCollection.AccountsToRun(launchType, all);
 
         if (accounts == null || !accounts.Any())

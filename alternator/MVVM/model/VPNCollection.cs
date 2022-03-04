@@ -1,5 +1,4 @@
-﻿using System.Net.NetworkInformation;
-using System.Text.Json;
+﻿using System.Text.Json;
 
 namespace guildwars2.tools.alternator.MVVM.model;
 
@@ -12,6 +11,7 @@ public interface IVpnCollection : IJsonCollection
     void Remove(VpnDetails deadVpn);
     bool Any();
     //? CurrentLive { get; }
+    void ResetConnections();
 }
 
 public class VpnCollection : JsonCollection<VpnDetails>, IVpnCollection
@@ -105,29 +105,14 @@ public class VpnCollection : JsonCollection<VpnDetails>, IVpnCollection
 
     public bool Any() => Vpns?.Any() ?? false;
 
+    public void ResetConnections()
+    {
+        if (Vpns == null) return;
+        foreach (var vpn in Vpns)
+        {
+            vpn.Connections.Clear();
+        }
+    }
 
-    //public string? CurrentLive
-    //{
-    //    get
-    //    {
-    //        if (!NetworkInterface.GetIsNetworkAvailable()) return null;
-
-    //        var interfaces = NetworkInterface.GetAllNetworkInterfaces();
-    //        foreach (NetworkInterface i in interfaces)
-    //        {
-    //            if (i.OperationalStatus == OperationalStatus.Up)
-    //            {
-    //                return i.Description;
-    //            }
-    //        }
-
-    //        return null;
-
-    //        ////return NetworkInterface.GetAllNetworkInterfaces()
-    //        ////    .Where(i => i.OperationalStatus == OperationalStatus.Up)
-    //        ////    .Select(i => i.Description)
-    //        ////    .FirstOrDefault();
-    //    }
-    //}
 
 }
