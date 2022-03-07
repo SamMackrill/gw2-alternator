@@ -229,7 +229,7 @@ public class MainViewModel : ObservableObject
         LoadAccounts().SafeFireAndForget(ex =>
         {
             Logger.Error(ex, "Load Accounts");
-            if (ex is Gw2Exception)
+            if (ex is Gw2NoAccountsException)
             {
                 _ = dialogService.ShowMessageBox(
                     this,
@@ -424,7 +424,7 @@ public class MainViewModel : ObservableObject
     {
         Logger.Debug("Load Accounts");
         await accountCollection.Load();
-        if (!accountCollection.Any()) throw new Gw2Exception("No Accounts");
+        if (!accountCollection.Any()) throw new Gw2NoAccountsException("No Accounts");
     }
 
     private async ValueTask LoadVpns()
