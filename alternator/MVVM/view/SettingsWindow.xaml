@@ -460,8 +460,13 @@
 
 
                 <Label Padding="0" Grid.Row="25" Grid.Column="1" Margin="0,4,0,0"
+                       Visibility="{Binding VpnVisibility}"
                    Content="VPN Max Count:" />
-                <StackPanel Grid.Row="25" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,0">
+                <StackPanel 
+                    Grid.Row="25" Grid.Column="2" 
+                    Orientation="Horizontal" 
+                    Visibility="{Binding VpnVisibility}"
+                    Margin="0,4,0,0">
                     <Slider Margin="4,0,0,0"
                             MinWidth="35"
                             Width="50"
@@ -479,6 +484,7 @@
                     BorderThickness="0" 
                     Height="16" Width="16"
                     Background="Transparent"
+                    Visibility="{Binding VpnVisibility}"
                     Style="{StaticResource FadeOutButton}"
                     Command="{Binding Path=ResetVpnAccountCountCommand, Mode=OneWay}" >
 

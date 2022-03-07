@@ -86,10 +86,12 @@ public class SettingsController : ObservableObject, ISettingsController
             semaphore.Release();
         }
         Settings = DefaultSettings;
+        DiscoverGw2ExeLocation();
     }
 
     private void ValidateSettings()
     {
+        DiscoverGw2ExeLocation();
         var defaults = DefaultSettings;
         if (Settings!.MaxLoginInstances == default) Settings!.MaxLoginInstances = defaults.MaxLoginInstances;
         if (Settings!.StuckTimeout == default) Settings!.StuckTimeout = defaults.StuckTimeout;
@@ -164,7 +166,7 @@ public class SettingsController : ObservableObject, ISettingsController
         settings.VpnAccountCount = 10;
         settings.FontSize = 12;
         settings.ExperimentalErrorDetection = ErrorDetection.Delay;
-        settings.AlwaysIgnoreVpn = false;
+        settings.AlwaysIgnoreVpn = true;
         settings.VpnMatch = @"\w+-\w+-st\d+\.prod\.surfshark\.com";
     }
 
@@ -172,7 +174,7 @@ public class SettingsController : ObservableObject, ISettingsController
     public string UniqueMetricsFile => Path.Combine(ApplicationFolder.FullName, $"gw2-alternator-metrics_{DateTime.UtcNow:yyyy-MM-dd_HH-mm-ss}.txt");
 
 
-    public void DiscoverGw2ExeLocation( )
+    public void DiscoverGw2ExeLocation()
     {
         if (Settings==null || GfxSettingsFile is not {Exists: true} || Directory.Exists(Settings.Gw2Folder)) return;
 

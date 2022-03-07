@@ -59,7 +59,9 @@ public class AuthenticationThrottle : ObservableObject
 
     Client? releaseTaskClient;
 
+#pragma warning disable CS1998
     public async Task LoginDone(VpnDetails vpnDetails, Client client, LaunchType launchType, CancellationToken launchCancelled)
+#pragma warning restore CS1998
     {
         Logger.Debug("{0} LoginDone {1}", client.Account.Name, launchType);
         if (releaseTask is {IsCompleted: false})
@@ -68,6 +70,7 @@ public class AuthenticationThrottle : ObservableObject
         }
         releaseTaskClient = client;
 
+        // ReSharper disable once MethodSupportsCancellation
         releaseTask = Task.Factory.StartNew(async () =>
         {
             await Release(vpnDetails, client, launchType, launchCancelled);

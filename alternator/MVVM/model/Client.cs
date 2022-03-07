@@ -160,7 +160,7 @@ public class Client : ObservableObject, IEquatable<Client>
             await ChangeRunStage(RunStage.LoginFailed, 20, stuckReason, cancellationToken);
         }
 
-        bool DetectCrash() => !closed && launchType != LaunchType.Collect && launchType != LaunchType.Update;
+        bool DetectCrash() => !closed && launchType == LaunchType.Login;
 
         Dictionary<string, RunStage> runStageFromModules = new()
         {
@@ -232,7 +232,7 @@ public class Client : ObservableObject, IEquatable<Client>
             {
                 Logger.Debug("{0} Timed-out after {1}s, giving up)", Account.Name, timeout.TotalSeconds);
                 await Shutdown();
-                throw new Gw2Exception("GW2 process timed-out");
+                throw new Gw2TimeoutException("GW2 process timed-out");
             }
 
             await CheckIfStageUpdated();
@@ -241,8 +241,8 @@ public class Client : ObservableObject, IEquatable<Client>
         }
 
         if (closed) return;
-        if (!string.IsNullOrEmpty(stuckReason)) throw new Gw2Exception($"GW2 process stuck: {stuckReason}");
-        if (DetectCrash()) throw new Gw2Exception("GW2 process crashed");
+        if (!string.IsNullOrEmpty(stuckReason)) throw new Gw2TimeoutException($"GW2 process stuck: {stuckReason}");
+        if (DetectCrash()) throw new Gw2CrashedException("GW2 process crashed");
     }
 
     private void UpdateEngineSpeed()

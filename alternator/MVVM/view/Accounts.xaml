@@ -16,7 +16,7 @@
     </UserControl.Resources>
 
     <DataGrid Background="Transparent"
-              Margin="20,20,20,0"
+              Margin="4"
               AutoGenerateColumns="False"
               CanUserSortColumns="True"
               CanUserResizeColumns="True"

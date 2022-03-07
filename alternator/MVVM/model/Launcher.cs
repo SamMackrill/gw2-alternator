@@ -145,6 +145,8 @@ public class Launcher
         loginInProcess = false;
         var exeInProcess = false;
 
+        bool alsoFailVpn = true;
+
         try
         {
             Logger.Info("{0} login attempt={1}", account.Name, account.Attempt);
@@ -157,7 +159,7 @@ public class Launcher
                 releaseLoginTask = null;
             }
             Logger.Debug("{0} login semaphore entry, count={1}", account.Name, loginSemaphore.CurrentCount);
-            await loginSemaphore.WaitAsync(launchCancelled);
+            if (!await loginSemaphore.WaitAsync(new TimeSpan(0, 10, 0), launchCancelled)) throw new Gw2TimeoutException("Time-out waiting for Login Semaphore");
             loginInProcess = true;
             Logger.Debug("{0} Login slot Free", account.Name);
 
@@ -165,7 +167,7 @@ public class Launcher
 
             Logger.Debug("{0} exe semaphore entry, count={1}", account.Name, exeSemaphore.CurrentCount);
             client.RunStatus = RunState.WaitingForExeSlot;
-            await exeSemaphore.WaitAsync(launchCancelled);
+            if (!await exeSemaphore.WaitAsync(new TimeSpan(0, 10, 0), launchCancelled)) throw new Gw2TimeoutException("Time-out waiting for Exe Semaphore");
             exeInProcess = true;
             Logger.Debug("{0} Exe slot Free", account.Name);
 
@@ -184,12 +186,14 @@ public class Launcher
         {
             client.RunStatus = RunState.Cancelled;
             Logger.Info("{0} cancelled", account.Name);
+            alsoFailVpn = false;
         }
         catch (Gw2Exception e)
         {
             client.RunStatus = RunState.Error;
             client.StatusMessage = $"Launch failed: {e.Message}";
             Logger.Error(e, "{0} launch failed", account.Name);
+            alsoFailVpn = e is Gw2TimeoutException;
         }
         catch (Exception e)
         {
@@ -213,7 +217,7 @@ public class Launcher
             Logger.Debug("{0} GW2 process killed", account.Name);
         }
 
-        if (client.RunStatus != RunState.Cancelled) vpnDetails.SetFail(client.Account);
+        if (alsoFailVpn) vpnDetails.SetFail(client.Account);
         return false;
     }
 

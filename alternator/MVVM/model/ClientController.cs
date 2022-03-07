@@ -44,6 +44,8 @@ public class ClientController
         )
     {
         readyClients.Clear();
+        vpnCollection.ResetConnections();
+
         var accounts = selectedAccounts.Any() ? selectedAccounts : accountCollection.AccountsToRun(launchType, all);
 
         if (accounts == null || !accounts.Any())
@@ -143,7 +145,7 @@ public class ClientController
 
                     await Task.WhenAll(tasks.ToArray());
                 }
-                catch (OperationCanceledException ex)
+                catch (OperationCanceledException)
                 {
                     authenticationThrottle.Reset();
                     if (cancellationTokenSource.IsCancellationRequested) return;
@@ -248,7 +250,15 @@ public class ClientController
                 var launcher = new Launcher(client, launchType, applicationFolder, settingsController.Settings!, vpnDetails, cancellationToken);
                 launcher.ClientReady += LauncherClientReady;
                 launcher.ClientClosed += LauncherClientClosed;
-                _ = await launcher.LaunchAsync(settingsController.DatFile!, applicationFolder, settingsController.GfxSettingsFile!, shareArchive, authenticationThrottle, loginSemaphore, exeSemaphore);
+                _ = await launcher.LaunchAsync(
+                    settingsController.DatFile!, 
+                    applicationFolder, 
+                    settingsController.GfxSettingsFile!, 
+                    shareArchive, 
+                    authenticationThrottle, 
+                    loginSemaphore, 
+                    exeSemaphore
+                    );
                 LogManager.Flush();
             }, cancellationToken))
             .ToList();

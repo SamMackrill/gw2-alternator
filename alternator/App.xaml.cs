@@ -89,9 +89,7 @@ public partial class App : Application
         });
 
         serviceCollection.AddSingleton<IAccountCollection, AccountCollection>(_ => new AccountCollection(applicationFolder, Path.Combine(appData, @"Gw2 Launchbuddy"), Path.Combine(appData, @"Gw2Launcher")));
-        
         serviceCollection.AddSingleton<IVpnCollection, VpnCollection>(_ => new VpnCollection(applicationFolder));
-
         serviceCollection.AddTransient<MainViewModel>();
 
         Ioc.Default.ConfigureServices(serviceCollection.BuildServiceProvider());

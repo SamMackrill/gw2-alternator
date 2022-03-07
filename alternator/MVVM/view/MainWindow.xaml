@@ -4,14 +4,15 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:alternator="clr-namespace:guildwars2.tools.alternator"
         xmlns:view="clr-namespace:guildwars2.tools.alternator.MVVM.view"
         xmlns:viewmodel="clr-namespace:guildwars2.tools.alternator.MVVM.viewmodel"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=viewmodel:MainViewModel}"
         xmlns:md="https://github.com/fantasticfiasco/mvvm-dialogs"
         md:DialogServiceViews.IsRegistered="True"
-        DataContext="{Binding Source={StaticResource Locator}, Path=MainWindow}"
-        Height="450" Width="1200"
+        DataContext="{Binding Source={StaticResource Locator}, Path=MainWindowVM}"
+        Height="450" Width="900"
         MinHeight="350" MinWidth="560"
         WindowStyle="None"
         ResizeMode="CanResize"
@@ -20,6 +21,7 @@
         RememberPosition="True"
         Style="{StaticResource WindowsDefault}"
         FontSize="{Binding FontSize, FallbackValue=10}"
+        alternator:LoadedBindings.LoadedAction="{Binding LoadAction}"
         >
 
     <Grid>

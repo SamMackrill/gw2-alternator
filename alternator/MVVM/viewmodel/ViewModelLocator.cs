@@ -6,6 +6,5 @@ namespace guildwars2.tools.alternator.MVVM.viewmodel;
 /// </summary>
 public class ViewModelLocator
 {
-    public MainViewModel MainWindow => Ioc.Default.GetRequiredService<MainViewModel>();
+    public MainViewModel MainWindowVM => Ioc.Default.GetRequiredService<MainViewModel>();
 }
-

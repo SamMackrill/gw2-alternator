@@ -81,11 +81,9 @@ public static class WindowPlacement
 
         try
         {
-            WINDOWPLACEMENT placement;
-            using (var memoryStream = new MemoryStream(xmlBytes))
-            {
-                placement = (WINDOWPLACEMENT)Serializer.Deserialize(memoryStream);
-            }
+            using var memoryStream = new MemoryStream(xmlBytes);
+            var deserialize = Serializer.Deserialize(memoryStream);
+            if (deserialize is not WINDOWPLACEMENT placement) return;
 
             placement.length = Marshal.SizeOf(typeof(WINDOWPLACEMENT));
             placement.flags = 0;
