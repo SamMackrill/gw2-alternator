@@ -4,14 +4,20 @@ public class SettingsViewModel : ObservableObject
 {
     private readonly ISettingsController settingsController;
     private readonly IAccountCollection accountCollection;
+    private readonly IDialogService dialogService;
     private Func<string>? GetVersion { get; }
 
     private Settings Settings => settingsController.Settings!;
 
-    public SettingsViewModel(ISettingsController settingsController, IAccountCollection accountCollection, Func<string>? getVersion)
+    public SettingsViewModel(
+        ISettingsController settingsController, 
+        IAccountCollection accountCollection,
+        Func<string>? getVersion, 
+        IDialogService dialogService)
     {
         this.settingsController = settingsController;
         this.accountCollection = accountCollection;
+        this.dialogService = dialogService;
         GetVersion = getVersion;
         if (settingsController.Settings != null) settingsController.Settings.PropertyChanged += ModelPropertyChanged;
     }
@@ -108,6 +114,8 @@ public class SettingsViewModel : ObservableObject
         set => Settings.FontSize = value;
     }
 
+    public double HeaderFontSize => Settings.HeaderFontSize;
+
     public Visibility VpnVisibility => settingsController.Settings?.AlwaysIgnoreVpn ?? true ? Visibility.Hidden : Visibility.Visible;
 
     public Array ErrorDetectionArray => Enum.GetValues(typeof(ErrorDetection));
@@ -196,11 +204,26 @@ public class SettingsViewModel : ObservableObject
 
     public RelayCommand<object> ImportFromLaunchBuddyCommand => new(_ =>
     {
-        accountCollection.ImportFromLaunchbuddy();
+        int count = accountCollection.ImportFromLaunchbuddy();
+
+        _ = dialogService.ShowMessageBox(
+            this,
+            $"{count} accounts imported from GW2 Launchbuddy",
+            "GW2-Alternator",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
+
     }, _ => accountCollection.CanImportFromLaunchbuddy);
 
     public RelayCommand<object> ImportFromLauncherCommand => new(_ =>
     {
-        accountCollection.ImportFromLauncher();
+        int count = accountCollection.ImportFromLauncher();
+        _ = dialogService.ShowMessageBox(
+            this,
+            $"{count} accounts imported from GW2 Launcher",
+            "GW2-Alternator",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
+
     }, _ => accountCollection.CanImportFromLauncher);
 }

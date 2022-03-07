@@ -9,8 +9,8 @@ public interface IAccountCollection : IJsonCollection
     bool CanImportFromLaunchbuddy { get; }
     bool CanImportFromLauncher { get; }
     List<IAccount>? AccountsToRun(LaunchType launchType, bool all);
-    void ImportFromLaunchbuddy();
-    void ImportFromLauncher();
+    int ImportFromLaunchbuddy();
+    int ImportFromLauncher();
     void SetUndo();
     bool Any();
 }
@@ -93,17 +93,18 @@ public class AccountCollection : JsonCollection<Account>, IAccountCollection
 
     public bool CanImportFromLaunchbuddy => Directory.Exists(launchbuddyFolder);
 
-    public void ImportFromLaunchbuddy()
+    public int ImportFromLaunchbuddy()
     {
+        int accountsLoaded = 0;
         try
         {
             semaphore.Wait();
             var accountsXmlPath = Path.Combine(launchbuddyFolder, @"Accs.xml");
             var doc = XDocument.Load(accountsXmlPath);
-            if (doc.Root == null) return;
+            if (doc.Root == null) return accountsLoaded;
             var lbAccounts = doc.Root.Elements().ToArray();
             Logger.Debug("{0} Accounts loaded from {1}", lbAccounts.Length, accountsXmlPath);
-            if (!lbAccounts.Any()) return;
+            if (!lbAccounts.Any()) return accountsLoaded;
 
             Items ??= new List<Account>();
             foreach (var lbAccount in lbAccounts)
@@ -142,6 +143,7 @@ public class AccountCollection : JsonCollection<Account>, IAccountCollection
                 else
                 {
                     var newAccount = new Account(accountName, characterName, pathToLoginDat);
+                    accountsLoaded++;
                     Items.Add(newAccount);
                     account = newAccount;
                 }
@@ -166,12 +168,14 @@ public class AccountCollection : JsonCollection<Account>, IAccountCollection
                 Updated?.Invoke(this, EventArgs.Empty);
             }
         }
+        return accountsLoaded;
     }
 
     public bool CanImportFromLauncher => Directory.Exists(launchbuddyFolder);
 
-    public void ImportFromLauncher()
+    public int ImportFromLauncher()
     {
+        int accountsLoaded = 0;
 
         bool[] ExpandBooleans(byte[] bytes)
         {
@@ -467,6 +471,7 @@ public class AccountCollection : JsonCollection<Account>, IAccountCollection
                         else
                         {
                             var newAccount = new Account(accountName, null, pathToLoginDat);
+                            accountsLoaded++;
                             Items.Add(newAccount);
                             account = newAccount;
                         }
@@ -610,7 +615,7 @@ public class AccountCollection : JsonCollection<Account>, IAccountCollection
                     }
 
                 }
-            } 
+            }
         }
         catch (Exception e)
         {
@@ -625,6 +630,7 @@ public class AccountCollection : JsonCollection<Account>, IAccountCollection
                 Updated?.Invoke(this, EventArgs.Empty);
             }
         }
+        return accountsLoaded;
     }
 
     public static Dictionary<string, List<IAccount>> AccountsByVpn(List<IAccount> accounts, bool ignoreVpn)

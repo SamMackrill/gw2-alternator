@@ -445,6 +445,18 @@ public class Account : ObservableObject, IAccount
 
     private void LinkFiles(FileSystemInfo from, FileSystemInfo to)
     {
+        if (!to.Exists)
+        {
+            try
+            {
+                File.Copy(from.FullName, to.FullName);
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e, "Error creating reference {0} from {1}", to.FullName, from.FullName);
+            }
+        }
+
         if (from.Exists)
         {
             if (from.LinkTarget != null)

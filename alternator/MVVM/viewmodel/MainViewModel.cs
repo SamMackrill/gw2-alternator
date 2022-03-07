@@ -185,9 +185,7 @@ public class MainViewModel : ObservableObject
 
     private bool CanRun(LaunchType launchType)
     {
-        var canRun = !Running && settingsController.Settings != null && accountCollection.Ready && vpnCollection.Ready;
-        //Logger.Debug("{0} {1} ? {2}", nameof(CanRun), launchType, canRun);
-        return canRun;
+        return !Running && settingsController.Settings != null && accountCollection.Ready;
     }
 
     private readonly Dictionary<string, List<string>> propertyConverter = new()
@@ -201,8 +199,16 @@ public class MainViewModel : ObservableObject
         args.PassOnChanges(OnPropertyChanged, propertyConverter);
     }
 
+
+    public DelegateLoadedAction LoadAction { get; }
+
     public MainViewModel(IDialogService dialogService)
     {
+
+        LoadAction = new DelegateLoadedAction(() => {
+            Logger.Debug("Main Window Loaded");
+        });
+
         settingsController = Ioc.Default.GetRequiredService<ISettingsController>();
         settingsController.PropertyChanged += SettingsController_PropertyChanged;
         settingsController.Load();
@@ -213,7 +219,7 @@ public class MainViewModel : ObservableObject
         vpnCollection = Ioc.Default.GetRequiredService<IVpnCollection>();
         vpnCollection.Loaded += VpnCollection_Loaded;
 
-        SettingsVM = new SettingsViewModel(settingsController, accountCollection, () => Version);
+        SettingsVM = new SettingsViewModel(settingsController, accountCollection, () => Version, dialogService);
         AccountsVM = new AccountsViewModel(settingsController, vpnCollection);
         AccountApisVM = new AccountApisViewModel(settingsController);
         VpnConnectionsVM = new VpnConnectionsViewModel(vpnCollection, settingsController);
@@ -231,14 +237,20 @@ public class MainViewModel : ObservableObject
             Logger.Error(ex, "Load Accounts");
             if (ex is Gw2NoAccountsException)
             {
-                _ = dialogService.ShowMessageBox(
-                    this,
-                    "No accounts defined, please import via settings",
-                    "GW2-Alternator",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Exclamation);
-
-                Application.Current.Dispatcher.Invoke(ShowSettings);
+                Logger.Error(ex, "Load Accounts");
+                Application.Current.Dispatcher.Invoke(() => {
+                    Application.Current.MainWindow.Show();
+                    var showerVM = new MessageShowerViewModel();
+                    var showerView = new MessageShowerView { DataContext = showerVM };
+                    showerView.Show();
+                    _ = dialogService.ShowMessageBox(
+                        showerVM,
+                        "No accounts defined, please import via settings",
+                        "GW2-Alternator",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Exclamation);
+                    ShowSettings();
+                });
             }
 
         });
@@ -317,6 +329,7 @@ public class MainViewModel : ObservableObject
         {
             await SaveCollections(accountCollection, vpnCollection);
             w?.Close();
+            Application.Current.Shutdown(0);
         }, _ => !Running);
 
         ShowSettingsCommand = new RelayCommand<object>(_ => ShowSettings());
@@ -401,12 +414,14 @@ public class MainViewModel : ObservableObject
 
     private void ShowSettings()
     {
-        var window = new SettingsWindow
+        Application.Current.MainWindow.Show();
+        var settingsWindow = new SettingsWindow
         {
             DataContext = SettingsVM,
             Owner = Application.Current.MainWindow
         };
-        window.ShowDialog();
+        settingsWindow.ShowDialog();
+        RefreshRunState();
     }
 
     private async ValueTask QueryGw2Version()
@@ -431,7 +446,6 @@ public class MainViewModel : ObservableObject
     {
         Logger.Debug("Load VPNs");
         await vpnCollection.Load();
-        //var current = vpnCollection.CurrentLive;
     }
 
     private static async Task SaveCollections(IAccountCollection accountCollection, IVpnCollection vpnCollection)
