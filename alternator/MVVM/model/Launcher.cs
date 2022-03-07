@@ -157,7 +157,7 @@ public class Launcher
                 releaseLoginTask = null;
             }
             Logger.Debug("{0} login semaphore entry, count={1}", account.Name, loginSemaphore.CurrentCount);
-            await loginSemaphore.WaitAsync(launchCancelled);
+            if (!await loginSemaphore.WaitAsync(new TimeSpan(0, 10, 0), launchCancelled)) throw new Gw2Exception("Time-out waiting for Login Semaphore");
             loginInProcess = true;
             Logger.Debug("{0} Login slot Free", account.Name);
 
@@ -165,7 +165,7 @@ public class Launcher
 
             Logger.Debug("{0} exe semaphore entry, count={1}", account.Name, exeSemaphore.CurrentCount);
             client.RunStatus = RunState.WaitingForExeSlot;
-            await exeSemaphore.WaitAsync(launchCancelled);
+            if (!await exeSemaphore.WaitAsync(new TimeSpan(0, 10, 0), launchCancelled)) throw new Gw2Exception("Time-out waiting for Exe Semaphore");
             exeInProcess = true;
             Logger.Debug("{0} Exe slot Free", account.Name);
 
