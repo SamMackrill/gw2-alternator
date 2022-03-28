@@ -75,11 +75,11 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
     public List<VpnConnectionMetrics> Connections { get; private set; }
 
 
-    private SuccessFailCounter successFailCounter;
+    private SuccessFailCounter accountSuccessFailCounter;
 
     public VpnDetails()
     {
-        successFailCounter = new SuccessFailCounter();
+        accountSuccessFailCounter = new SuccessFailCounter();
         Connections = new List<VpnConnectionMetrics>();
     }
 
@@ -90,10 +90,27 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
 
     public DateTime Available(DateTime cutoff, bool ignoreCalls)
     {
-        var available = successFailCounter.LastAttempt.AddSeconds(LaunchDelay(ignoreCalls));
+        var vnpAvailable = VnpAvailable();
+        var accountAvailable = accountSuccessFailCounter.LastAttempt.AddSeconds(LaunchDelay(ignoreCalls));
+        var available = vnpAvailable > accountAvailable ? vnpAvailable : accountAvailable;
         Logger.Debug("{0} VPN offset={1}", DisplayId, available.Subtract(cutoff).TotalSeconds);
         return available > cutoff ? available : cutoff;
     }
+
+    private static readonly List<int> CriticalVpnErrors = new() { 809 };
+
+    private DateTime VnpAvailable()
+    {
+        if (DateTime.Now.Subtract(LastConnectionFail).TotalHours < 1 && CriticalVpnErrors.Contains(LastConnectionFailCode))
+        {
+            return DateTime.MaxValue;
+        }
+
+        if (LastConnectionFail > LastLoginSuccess) return LastConnectionFail.AddSeconds(30);
+
+        return DateTime.MinValue;
+    }
+
 
     public bool Equals(VpnDetails? other)
     {
@@ -111,7 +128,10 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
         Connections.Add(currentConnectionMetrics);
 
         var status = await RunRasdial("Connecting to", "", true, cancellationToken);
-        if (status != null) return status;
+        if (status != null)
+        {
+            return status;
+        }
 
         currentConnectionMetrics.Connected();
         return null;
@@ -185,19 +205,19 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
     public void SetAttempt(Settings currentSettings)
     {
         settings = currentSettings;
-        successFailCounter.SetAttempt();
+        accountSuccessFailCounter.SetAttempt();
     }
 
     public void SetSuccess()
     {
-        successFailCounter.SetSuccess();
+        accountSuccessFailCounter.SetSuccess();
         LastLoginSuccess = DateTime.Now;
     }
 
     public void SetFail(IAccount account)
     {
         Logger.Debug("{0} VPN SetFail by account {1}", DisplayId, account.Name);
-        successFailCounter.SetFail();
+        accountSuccessFailCounter.SetFail();
         LastLoginFail = DateTime.Now;
         LastLoginFailAccount = account.Name;
         Cancellation?.Cancel();
@@ -205,11 +225,11 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
 
     public int LaunchDelay(bool ignoreCalls)
     {
-        var delay = ignoreCalls ? 0 : BandDelay(successFailCounter.CallCount);
+        var delay = ignoreCalls ? 0 : BandDelay(accountSuccessFailCounter.CallCount);
 
-        if (successFailCounter.ConsecutiveFails > 0) delay = Math.Max(delay, 40 + 20 * successFailCounter.ConsecutiveFails);
+        if (accountSuccessFailCounter.ConsecutiveFails > 0) delay = Math.Max(delay, 40 + 20 * accountSuccessFailCounter.ConsecutiveFails);
 
-        Logger.Debug("{0} VPN delay={1} ({2})", DisplayId, delay, successFailCounter.ToString());
+        Logger.Debug("{0} VPN delay={1} ({2})", DisplayId, delay, accountSuccessFailCounter.ToString());
         return delay;
     }
 
@@ -246,10 +266,10 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
     public string DisplayId => string.IsNullOrWhiteSpace(Id) ? "No" : Id;
 
     [JsonIgnore]
-    public int RecentFailures => successFailCounter.RecentFails(120);
+    public int RecentFailures => accountSuccessFailCounter.RecentFails(120);
 
     [JsonIgnore]
-    public int RecentCalls => successFailCounter.RecentCalls(180);
+    public int RecentCalls => accountSuccessFailCounter.RecentCalls(180);
 
     [JsonIgnore]
     public CancellationTokenSource? Cancellation { get; set; }

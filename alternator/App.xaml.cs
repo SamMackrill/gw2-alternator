@@ -29,10 +29,10 @@ global using System.Runtime.CompilerServices;
 global using System.Runtime.InteropServices;
 global using System.Runtime.InteropServices.ComTypes;
 
-global using Microsoft.Toolkit.Mvvm.ComponentModel;
-global using Microsoft.Toolkit.Mvvm.Input;
+global using CommunityToolkit.Mvvm.ComponentModel;
+global using CommunityToolkit.Mvvm.Input;
+global using CommunityToolkit.Mvvm.DependencyInjection;
 
-global using Microsoft.Toolkit.Mvvm.DependencyInjection;
 global using Microsoft.Extensions.DependencyInjection;
 
 global using AsyncAwaitBestPractices;

@@ -218,403 +218,401 @@ public class AccountCollection : JsonCollection<Account>, IAccountCollection
 
             var settingsPath = Path.Combine(launcherFolder, "settings.dat");
 
-            using (var reader = new BinaryReader(new BufferedStream(File.Open(settingsPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))))
+            using var reader = new BinaryReader(new BufferedStream(File.Open(settingsPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)));
+            var header = reader.ReadBytes(expectedHeader.Length);
+            if (!header.IsTheSameAs(expectedHeader)) throw new IOException("Invalid GW2-Launcher settings header");
+            var version = reader.ReadUInt16();
+
+            if (version != 11) throw new IOException("Only GW2-Launcher V11 supported");
+
+            var count = reader.ReadByte();
+            for (var i = 0; i < count; i++)
             {
-                var header = reader.ReadBytes(expectedHeader.Length);
-                if (!header.IsTheSameAs(expectedHeader)) throw new IOException("Invalid GW2-Launcher settings header");
-                var version = reader.ReadUInt16();
+                _ = reader.ReadByte();
+                _ = reader.ReadInt32();
+                _ = reader.ReadInt32();
+                _ = reader.ReadInt32();
+                _ = reader.ReadInt32();
+            }
 
-                if (version != 11) throw new IOException("Only GW2-Launcher V11 supported");
+            var booleans = ExpandBooleans(reader.ReadBytes(reader.ReadByte()));
 
-                var count = reader.ReadByte();
-                for (var i = 0; i < count; i++)
+            if (booleans[0]) _ = reader.ReadBytes(SortingOptions_ARRAY_SIZE);
+
+            if (booleans[1])
+            {
+                _ = reader.ReadByte();
+                _ = reader.ReadBytes(reader.ReadByte());
+            }
+
+            if (booleans[7]) _ = reader.ReadString();
+            if (booleans[8]) _ = reader.ReadString();
+            if (booleans[9]) _ = reader.ReadInt32();
+            if (booleans[10]) _ = reader.ReadString();
+            if (booleans[11]) _ = reader.ReadString();
+
+            if (booleans[20])
+            {
+                _ = reader.ReadInt64();
+                _ = reader.ReadUInt16();
+            }
+
+            if (booleans[21]) _ = reader.ReadUInt16();
+            if (booleans[24]) _ = reader.ReadByte();
+
+            if (booleans[25])
+            {
+                _ = reader.ReadByte();
+                _ = reader.ReadByte();
+            }
+
+            if (booleans[26]) _ = reader.ReadByte();
+            if (booleans[27]) _ = reader.ReadInt32();
+            if (booleans[28]) _ = reader.ReadByte();
+
+            if (booleans[29])
+            {
+                var count29 = ReadVariableLength(reader);
+                for (var i = 0; i < count29; i++)
                 {
+                    _ = reader.ReadString();
+                    _ = reader.ReadString();
+                    _ = reader.ReadString();
                     _ = reader.ReadByte();
-                    _ = reader.ReadInt32();
-                    _ = reader.ReadInt32();
-                    _ = reader.ReadInt32();
+                }
+            }
+
+            if (booleans[30]) _ = reader.ReadByte();
+            if (booleans[36]) _ = reader.ReadUInt16();
+            if (booleans[37]) _ = reader.ReadString();
+            if (booleans[41]) _ = reader.ReadByte();
+            if (booleans[42]) _ = reader.ReadUInt16();
+            if (booleans[43]) _ = reader.ReadByte();
+            if (booleans[44]) _ = reader.ReadString();
+            if (booleans[46]) _ = reader.ReadString();
+            if (booleans[47]) _ = reader.ReadString();
+            if (booleans[48]) _ = reader.ReadByte();
+            if (booleans[49]) _ = reader.ReadByte();
+            if (booleans[50]) _ = reader.ReadByte();
+
+            if (booleans[51])
+            {
+                _ = reader.ReadInt32();
+                _ = reader.ReadInt32();
+                _ = reader.ReadInt32();
+                _ = reader.ReadInt32();
+            }
+
+            if (booleans[52]) _ = reader.ReadByte();
+            if (booleans[53]) _ = reader.ReadString();
+
+            if (booleans[54])
+            {
+                _ = reader.ReadByte();
+                _ = reader.ReadByte();
+            }
+
+            if (booleans[56]) _ = reader.ReadByte();
+            if (booleans[57]) _ = reader.ReadInt64();
+
+            if (booleans[59])
+            {
+                _ = reader.ReadByte();
+                _ = reader.ReadBoolean();
+            }
+
+            if (booleans[60]) _ = reader.ReadByte();
+            if (booleans[65]) _ = reader.ReadByte();
+            if (booleans[70]) _ = reader.ReadByte();
+            if (booleans[71]) _ = reader.ReadByte();
+            if (booleans[72]) _ = reader.ReadBytes(SortingOptions_ARRAY_SIZE);
+
+            if (booleans[73])
+            {
+                _ = reader.ReadByte();
+                _ = reader.ReadByte();
+            }
+
+
+            if (booleans[74]) _ = reader.ReadByte();
+            if (booleans[76]) _ = reader.ReadByte();
+            if (booleans[78]) _ = reader.ReadByte();
+            if (booleans[79]) _ = reader.ReadByte();
+            if (booleans[80]) _ = reader.ReadByte();
+
+            if (booleans[81])
+            {
+                _ = reader.ReadUInt16();
+                _ = reader.ReadUInt16();
+                _ = reader.ReadUInt16();
+                _ = reader.ReadUInt16();
+            }
+
+            if (booleans[98]) _ = reader.ReadString();
+            if (booleans[99]) _ = reader.ReadByte();
+            if (booleans[100]) _ = reader.ReadByte();
+            if (booleans[101]) _ = reader.ReadString();
+            if (booleans[102]) _ = reader.ReadByte();
+            if (booleans[105]) _ = reader.ReadString();
+
+            if (booleans[106])
+            {
+                var count106 = reader.ReadByte();
+                for (var i = 0; i < count106; i++)
+                {
                     _ = reader.ReadInt32();
                 }
+            }
 
-                var booleans = ExpandBooleans(reader.ReadBytes(reader.ReadByte()));
+            if (booleans[107]) _ = reader.ReadString();
+            if (booleans[108]) _ = reader.ReadString();
+            if (booleans[109]) _ = reader.ReadByte();
+            if (booleans[110]) _ = reader.ReadInt64();
+            if (booleans[111]) _ = reader.ReadByte();
 
-                if (booleans[0]) _ = reader.ReadBytes(SortingOptions_ARRAY_SIZE);
-
-                if (booleans[1])
+            if (booleans[112])
+            {
+                var count112 = ReadVariableLength(reader);
+                for (var i = 0; i < count112; i++)
                 {
-                    _ = reader.ReadByte();
-                    _ = reader.ReadBytes(reader.ReadByte());
-                }
-
-                if (booleans[7]) _ = reader.ReadString();
-                if (booleans[8]) _ = reader.ReadString();
-                if (booleans[9]) _ = reader.ReadInt32();
-                if (booleans[10]) _ = reader.ReadString();
-                if (booleans[11]) _ = reader.ReadString();
-
-                if (booleans[20])
-                {
-                    _ = reader.ReadInt64();
-                    _ = reader.ReadUInt16();
-                }
-
-                if (booleans[21]) _ = reader.ReadUInt16();
-                if (booleans[24]) _ = reader.ReadByte();
-
-                if (booleans[25])
-                {
-                    _ = reader.ReadByte();
+                    _ = reader.ReadString();
+                    _ = reader.ReadString();
+                    _ = reader.ReadString();
                     _ = reader.ReadByte();
                 }
+            }
 
-                if (booleans[26]) _ = reader.ReadByte();
-                if (booleans[27]) _ = reader.ReadInt32();
-                if (booleans[28]) _ = reader.ReadByte();
+            if (booleans[113]) _ = reader.ReadByte();
+            if (booleans[114]) _ = reader.ReadString();
+            if (booleans[115]) _ = reader.ReadByte();
 
-                if (booleans[29])
+            if (booleans[116])
+            {
+                var windowCount = ReadVariableLength(reader);
+                for (var i = 0; i < windowCount; i++)
                 {
-                    var count29 = ReadVariableLength(reader);
-                    for (var i = 0; i < count29; i++)
+                    var screenCount = ReadVariableLength(reader);
+                    for (var j = 0; j < screenCount; j++)
                     {
-                        _ = reader.ReadString();
-                        _ = reader.ReadString();
-                        _ = reader.ReadString();
-                        _ = reader.ReadByte();
-                    }
-                }
-
-                if (booleans[30]) _ = reader.ReadByte();
-                if (booleans[36]) _ = reader.ReadUInt16();
-                if (booleans[37]) _ = reader.ReadString();
-                if (booleans[41]) _ = reader.ReadByte();
-                if (booleans[42]) _ = reader.ReadUInt16();
-                if (booleans[43]) _ = reader.ReadByte();
-                if (booleans[44]) _ = reader.ReadString();
-                if (booleans[46]) _ = reader.ReadString();
-                if (booleans[47]) _ = reader.ReadString();
-                if (booleans[48]) _ = reader.ReadByte();
-                if (booleans[49]) _ = reader.ReadByte();
-                if (booleans[50]) _ = reader.ReadByte();
-
-                if (booleans[51])
-                {
-                    _ = reader.ReadInt32();
-                    _ = reader.ReadInt32();
-                    _ = reader.ReadInt32();
-                    _ = reader.ReadInt32();
-                }
-
-                if (booleans[52]) _ = reader.ReadByte();
-                if (booleans[53]) _ = reader.ReadString();
-
-                if (booleans[54])
-                {
-                    _ = reader.ReadByte();
-                    _ = reader.ReadByte();
-                }
-
-                if (booleans[56]) _ = reader.ReadByte();
-                if (booleans[57]) _ = reader.ReadInt64();
-
-                if (booleans[59])
-                {
-                    _ = reader.ReadByte();
-                    _ = reader.ReadBoolean();
-                }
-
-                if (booleans[60]) _ = reader.ReadByte();
-                if (booleans[65]) _ = reader.ReadByte();
-                if (booleans[70]) _ = reader.ReadByte();
-                if (booleans[71]) _ = reader.ReadByte();
-                if (booleans[72]) _ = reader.ReadBytes(SortingOptions_ARRAY_SIZE);
-
-                if (booleans[73])
-                {
-                    _ = reader.ReadByte();
-                    _ = reader.ReadByte();
-                }
-
-
-                if (booleans[74]) _ = reader.ReadByte();
-                if (booleans[76]) _ = reader.ReadByte();
-                if (booleans[78]) _ = reader.ReadByte();
-                if (booleans[79]) _ = reader.ReadByte();
-                if (booleans[80]) _ = reader.ReadByte();
-
-                if (booleans[81])
-                {
-                    _ = reader.ReadUInt16();
-                    _ = reader.ReadUInt16();
-                    _ = reader.ReadUInt16();
-                    _ = reader.ReadUInt16();
-                }
-
-                if (booleans[98]) _ = reader.ReadString();
-                if (booleans[99]) _ = reader.ReadByte();
-                if (booleans[100]) _ = reader.ReadByte();
-                if (booleans[101]) _ = reader.ReadString();
-                if (booleans[102]) _ = reader.ReadByte();
-                if (booleans[105]) _ = reader.ReadString();
-
-                if (booleans[106])
-                {
-                    var count106 = reader.ReadByte();
-                    for (var i = 0; i < count106; i++)
-                    {
-                        _ = reader.ReadInt32();
-                    }
-                }
-
-                if (booleans[107]) _ = reader.ReadString();
-                if (booleans[108]) _ = reader.ReadString();
-                if (booleans[109]) _ = reader.ReadByte();
-                if (booleans[110]) _ = reader.ReadInt64();
-                if (booleans[111]) _ = reader.ReadByte();
-
-                if (booleans[112])
-                {
-                    var count112 = ReadVariableLength(reader);
-                    for (var i = 0; i < count112; i++)
-                    {
-                        _ = reader.ReadString();
-                        _ = reader.ReadString();
-                        _ = reader.ReadString();
-                        _ = reader.ReadByte();
-                    }
-                }
-
-                if (booleans[113]) _ = reader.ReadByte();
-                if (booleans[114]) _ = reader.ReadString();
-                if (booleans[115]) _ = reader.ReadByte();
-
-                if (booleans[116])
-                {
-                    var windowCount = ReadVariableLength(reader);
-                    for (var i = 0; i < windowCount; i++)
-                    {
-                        var screenCount = ReadVariableLength(reader);
-                        for (var j = 0; j < screenCount; j++)
+                        var rectangleCount = ReadVariableLength(reader);
+                        for (var k = 0; k < rectangleCount; k++)
                         {
-                            var rectangleCount = ReadVariableLength(reader);
-                            for (var k = 0; k < rectangleCount; k++)
-                            {
-                                _ = reader.ReadInt32();
-                                _ = reader.ReadInt32();
-                                _ = reader.ReadInt32();
-                                _ = reader.ReadInt32();
-                            }
+                            _ = reader.ReadInt32();
+                            _ = reader.ReadInt32();
+                            _ = reader.ReadInt32();
+                            _ = reader.ReadInt32();
                         }
                     }
                 }
+            }
 
-                if (booleans[119]) _ = reader.ReadByte();
-                if (booleans[122]) _ = reader.ReadByte();
-                if (booleans[123]) _ = reader.ReadByte();
-                if (booleans[124]) _ = reader.ReadByte();
-                if (booleans[127]) _ = reader.ReadByte();
-                if (booleans[128]) _ = reader.ReadByte();
-                if (booleans[129]) _ = reader.ReadByte();
-                if (booleans[132]) _ = reader.ReadByte();
-                if (booleans[133]) _ = reader.ReadByte();
+            if (booleans[119]) _ = reader.ReadByte();
+            if (booleans[122]) _ = reader.ReadByte();
+            if (booleans[123]) _ = reader.ReadByte();
+            if (booleans[124]) _ = reader.ReadByte();
+            if (booleans[127]) _ = reader.ReadByte();
+            if (booleans[128]) _ = reader.ReadByte();
+            if (booleans[129]) _ = reader.ReadByte();
+            if (booleans[132]) _ = reader.ReadByte();
+            if (booleans[133]) _ = reader.ReadByte();
 
-                // Dat
-                var datCount = reader.ReadUInt16();
-                var datPaths = new Dictionary<uint, string>();
-                for (var i = 0; i < datCount; i++)
+            // Dat
+            var datCount = reader.ReadUInt16();
+            var datPaths = new Dictionary<uint, string>();
+            for (var i = 0; i < datCount; i++)
+            {
+                var id = reader.ReadUInt16();
+                var path = reader.ReadString();
+                _ = reader.ReadByte();
+                datPaths.Add(id, path);
+            }
+
+            // Gfx
+            var gfxCount = reader.ReadUInt16();
+            for (var i = 0; i < gfxCount; i++)
+            {
+                _ = reader.ReadUInt16();
+                _ = reader.ReadString();
+                _ = reader.ReadByte();
+            }
+
+            // Dat2
+            var dat2Count = reader.ReadUInt16();
+            for (var i = 0; i < dat2Count; i++)
+            {
+                _ = reader.ReadUInt16();
+                _ = reader.ReadString();
+                _ = reader.ReadByte();
+            }
+
+            // Accounts
+            var accountCount = reader.ReadUInt16();
+            for (var i = 0; i < accountCount; i++)
+            {
+                var type = reader.ReadByte();
+                var uid = reader.ReadUInt16();
+                var accountName = reader.ReadString();
+                var windowsAccount = reader.ReadString();
+                var createdUtc = DateTime.FromBinary(reader.ReadInt64());
+                var lastUsedUtc = DateTime.FromBinary(reader.ReadInt64());
+                var totalUses = reader.ReadUInt16();
+                var arguments = reader.ReadString();
+
+                var pathToLoginDat = datPaths.ContainsKey(uid) ? datPaths[uid] : null;
+                IAccount? account = null;
+                if (File.Exists(pathToLoginDat))
                 {
-                    var id = reader.ReadUInt16();
-                    var path = reader.ReadString();
-                    _ = reader.ReadByte();
-                    datPaths.Add(id, path);
+                    account = Accounts!.FirstOrDefault(a => string.Equals(a.Name, accountName, StringComparison.OrdinalIgnoreCase));
+                    if (account != null)
+                    {
+                        account.LoginFilePath = pathToLoginDat;
+                    }
+                    else
+                    {
+                        var newAccount = new Account(accountName, null, pathToLoginDat);
+                        accountsLoaded++;
+                        Items.Add(newAccount);
+                        account = newAccount;
+                    }
+
+                    if (lastUsedUtc > account.LastLogin) account.LastLogin = lastUsedUtc;
                 }
 
-                // Gfx
-                var gfxCount = reader.ReadUInt16();
-                for (var i = 0; i < gfxCount; i++)
+                var accountFlags = ExpandBooleans(reader.ReadBytes(reader.ReadByte()));
+
+                if (accountFlags[1]) _ = reader.ReadByte();
+                if (accountFlags[3]) _ = reader.ReadByte();
+                if (accountFlags[4]) _ = reader.ReadByte();
+                if (accountFlags[5]) _ = reader.ReadByte();
+
+                if (accountFlags[6])
                 {
-                    _ = reader.ReadUInt16();
+                    var runAfterCount = ReadVariableLength(reader);
+                    for (var j = 0; j < runAfterCount; j++)
+                    {
+                        _ = reader.ReadString();
+                        _ = reader.ReadString();
+                        _ = reader.ReadString();
+                        _ = reader.ReadByte();
+                    }
+                }
+
+
+                if (accountFlags[7]) _ = reader.ReadString();
+
+                if (accountFlags[8])
+                {
+                    var length = reader.ReadUInt16();
+                    if (length > 0)
+                    {
+                        _ = reader.ReadBytes(length);
+                        _ = reader.ReadUInt16();
+                    }
+                }
+
+                if (accountFlags[9]) _ = reader.ReadString();
+
+                if (accountFlags[10])
+                {
                     _ = reader.ReadString();
                     _ = reader.ReadByte();
                 }
 
-                // Dat2
-                var dat2Count = reader.ReadUInt16();
-                for (var i = 0; i < dat2Count; i++)
+
+                if (accountFlags[12]) _ = reader.ReadString();
+
+                if (accountFlags[13])
                 {
-                    _ = reader.ReadUInt16();
-                    _ = reader.ReadString();
-                    _ = reader.ReadByte();
+                    var pageDataCount = reader.ReadByte();
+                    for (var j = 0; j < pageDataCount; j++)
+                    {
+                        _ = reader.ReadByte();
+                        _ = reader.ReadUInt16();
+                        _ = reader.ReadBoolean();
+                    }
                 }
 
-                // Accounts
-                var accountCount = reader.ReadUInt16();
-                for (var i = 0; i < accountCount; i++)
+                if (accountFlags[14]) _ = reader.ReadBytes(reader.ReadByte());
+
+                if (accountFlags[16])
                 {
-                    var type = reader.ReadByte();
-                    var uid = reader.ReadUInt16();
-                    var accountName = reader.ReadString();
-                    var windowsAccount = reader.ReadString();
-                    var createdUtc = DateTime.FromBinary(reader.ReadInt64());
-                    var lastUsedUtc = DateTime.FromBinary(reader.ReadInt64());
-                    var totalUses = reader.ReadUInt16();
-                    var arguments = reader.ReadString();
+                    _ = reader.ReadInt32();
+                    _ = reader.ReadInt32();
+                    _ = reader.ReadInt32();
+                    _ = reader.ReadInt32();
+                }
 
-                    var pathToLoginDat = datPaths.ContainsKey(uid) ? datPaths[uid] : null;
-                    IAccount? account = null;
-                    if (File.Exists(pathToLoginDat))
+                if (accountFlags[20]) _ = reader.ReadByte();
+                if (accountFlags[21]) _ = reader.ReadByte();
+                if (accountFlags[22]) _ = reader.ReadByte();
+                if (accountFlags[23]) _ = reader.ReadByte();
+                if (accountFlags[24]) _ = reader.ReadInt64();
+
+                if (accountFlags[25])
+                {
+                    var length = ReadVariableLength(reader);
+                    if (length > 0)
                     {
-                        account = Accounts!.FirstOrDefault(a => string.Equals(a.Name, accountName, StringComparison.OrdinalIgnoreCase));
-                        if (account != null)
-                        {
-                            account.LoginFilePath = pathToLoginDat;
-                        }
-                        else
-                        {
-                            var newAccount = new Account(accountName, null, pathToLoginDat);
-                            accountsLoaded++;
-                            Items.Add(newAccount);
-                            account = newAccount;
-                        }
-
-                        if (lastUsedUtc > account.LastLogin) account.LastLogin = lastUsedUtc;
+                        _ = reader.ReadUInt16();
+                        _ = reader.ReadInt64();
+                        _ = reader.ReadBoolean();
                     }
-
-                    var accountFlags = ExpandBooleans(reader.ReadBytes(reader.ReadByte()));
-
-                    if (accountFlags[1]) _ = reader.ReadByte();
-                    if (accountFlags[3]) _ = reader.ReadByte();
-                    if (accountFlags[4]) _ = reader.ReadByte();
-                    if (accountFlags[5]) _ = reader.ReadByte();
-
-                    if (accountFlags[6])
-                    {
-                        var runAfterCount = ReadVariableLength(reader);
-                        for (var j = 0; j < runAfterCount; j++)
-                        {
-                            _ = reader.ReadString();
-                            _ = reader.ReadString();
-                            _ = reader.ReadString();
-                            _ = reader.ReadByte();
-                        }
-                    }
+                }
 
 
-                    if (accountFlags[7]) _ = reader.ReadString();
+                if (accountFlags[26]) _ = reader.ReadInt32();
 
-                    if (accountFlags[8])
-                    {
-                        var length = reader.ReadUInt16();
-                        if (length > 0)
-                        {
-                            _ = reader.ReadBytes(length);
-                            _ = reader.ReadUInt16();
-                        }
-                    }
-
-                    if (accountFlags[9]) _ = reader.ReadString();
-
-                    if (accountFlags[10])
+                if (accountFlags[27])
+                {
+                    if (reader.ReadByte() == 1) // File
                     {
                         _ = reader.ReadString();
-                        _ = reader.ReadByte();
+                    }
+                }
+
+                if (accountFlags[28]) _ = reader.ReadUInt16();
+
+
+                var gwAccountFlags = ExpandBooleans(reader.ReadBytes(reader.ReadByte()));
+                if (type == 1) // GW1
+                {
+                    if (gwAccountFlags[0]) _ = reader.ReadUInt16();
+                    if (gwAccountFlags[1]) _ = reader.ReadString();
+                }
+                else // GW2
+                {
+                    if (gwAccountFlags[0]) _ = reader.ReadUInt16();
+                    if (gwAccountFlags[1]) _ = reader.ReadUInt16();
+
+                    if (gwAccountFlags[3])
+                    {
+                        var apiKey = reader.ReadString();
+                        if (account != null) account.ApiKey = apiKey;
                     }
 
-
-                    if (accountFlags[12]) _ = reader.ReadString();
-
-                    if (accountFlags[13])
+                    if (accountFlags[4])
                     {
-                        var pageDataCount = reader.ReadByte();
-                        for (var j = 0; j < pageDataCount; j++)
+                        var booleansApi = ExpandBooleans(reader.ReadBytes(reader.ReadByte()));
+                        if (booleansApi[0])
                         {
-                            _ = reader.ReadByte();
-                            _ = reader.ReadUInt16();
-                            _ = reader.ReadBoolean();
-                        }
-                    }
-
-                    if (accountFlags[14]) _ = reader.ReadBytes(reader.ReadByte());
-
-                    if (accountFlags[16])
-                    {
-                        _ = reader.ReadInt32();
-                        _ = reader.ReadInt32();
-                        _ = reader.ReadInt32();
-                        _ = reader.ReadInt32();
-                    }
-
-                    if (accountFlags[20]) _ = reader.ReadByte();
-                    if (accountFlags[21]) _ = reader.ReadByte();
-                    if (accountFlags[22]) _ = reader.ReadByte();
-                    if (accountFlags[23]) _ = reader.ReadByte();
-                    if (accountFlags[24]) _ = reader.ReadInt64();
-
-                    if (accountFlags[25])
-                    {
-                        var length = ReadVariableLength(reader);
-                        if (length > 0)
-                        {
-                            _ = reader.ReadUInt16();
                             _ = reader.ReadInt64();
-                            _ = reader.ReadBoolean();
+                            _ = reader.ReadByte();
+                            _ = reader.ReadUInt16();
                         }
-                    }
 
-
-                    if (accountFlags[26]) _ = reader.ReadInt32();
-
-                    if (accountFlags[27])
-                    {
-                        if (reader.ReadByte() == 1) // File
+                        if (booleansApi[1])
                         {
-                           _ = reader.ReadString();
+                            _ = reader.ReadInt64();
+                            _ = reader.ReadByte();
+                            _ = reader.ReadInt32();
                         }
                     }
 
-                    if (accountFlags[28]) _ = reader.ReadUInt16();
-
-
-                    var gwAccountFlags = ExpandBooleans(reader.ReadBytes(reader.ReadByte()));
-                    if (type == 1) // GW1
-                    {
-                        if (gwAccountFlags[0]) _ = reader.ReadUInt16();
-                        if (gwAccountFlags[1]) _ = reader.ReadString();
-                    }
-                    else // GW2
-                    {
-                        if (gwAccountFlags[0]) _ = reader.ReadUInt16();
-                        if (gwAccountFlags[1]) _ = reader.ReadUInt16();
-
-                        if (gwAccountFlags[3])
-                        {
-                            var apiKey = reader.ReadString();
-                            if (account != null) account.ApiKey = apiKey;
-                        }
-
-                        if (accountFlags[4])
-                        {
-                            var booleansApi = ExpandBooleans(reader.ReadBytes(reader.ReadByte()));
-                            if (booleansApi[0])
-                            {
-                                _ = reader.ReadInt64();
-                                _ = reader.ReadByte();
-                                _ = reader.ReadUInt16();
-                            }
-
-                            if (booleansApi[1])
-                            {
-                                _ = reader.ReadInt64();
-                                _ = reader.ReadByte();
-                                _ = reader.ReadInt32();
-                            }
-                        }
-
-                        if (accountFlags[5]) _ = reader.ReadUInt16();
-                        if (accountFlags[6]) _ = reader.ReadInt64();
-                        if (accountFlags[7]) _ = reader.ReadString();
-                    }
-
+                    if (accountFlags[5]) _ = reader.ReadUInt16();
+                    if (accountFlags[6]) _ = reader.ReadInt64();
+                    if (accountFlags[7]) _ = reader.ReadString();
                 }
+
             }
         }
         catch (Exception e)
