@@ -62,7 +62,7 @@ public class ClientController
         var vpnsUsed = new List<VpnDetails>();
         var clients = new List<Client>();
         var first = true;
-        var start = DateTime.Now;
+        var start = DateTime.UtcNow;
         try
         {
             var exeSemaphore = new SemaphoreSlim(0, maxInstances);
@@ -71,7 +71,7 @@ public class ClientController
             var accountsByVpn = AccountCollection.AccountsByVpn(accounts, ignoreVpn);
             while (accounts.Any(a => !a.Done))
             {
-                var now = DateTime.Now;
+                var now = DateTime.UtcNow;
 
                 var accountsByVpnDetails = accountsByVpn
                     .Select(kv => new VpnAccounts(vpnCollection.GetVpn(kv.Key), kv.Value.Where(a => !a.Done).ToList()))
@@ -194,7 +194,7 @@ public class ClientController
         var lines = new List<string>
         {
             $"Started\t{startOfRun:d}\t{startOfRun:T}", 
-            $"Total Time\t{DateTime.Now.Subtract(startOfRun).TotalSeconds}\ts",
+            $"Total Time\t{DateTime.UtcNow.Subtract(startOfRun).TotalSeconds}\ts",
             "Account\tStart\tAuthenticate\tLogin\tEnter\tExit",
         };
 

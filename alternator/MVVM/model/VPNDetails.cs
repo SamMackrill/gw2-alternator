@@ -7,8 +7,8 @@ public class EventMetrics
 {
     public DateTime StartAt { get; }
     public DateTime FinishAt { get; private set; }
-    public EventMetrics() => StartAt = DateTime.Now;
-    public void Done() => FinishAt = DateTime.Now;
+    public EventMetrics() => StartAt = DateTime.UtcNow;
+    public void Done() => FinishAt = DateTime.UtcNow;
     public TimeSpan Duration => FinishAt.Subtract(StartAt);
 }
 
@@ -101,7 +101,7 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
 
     private DateTime VnpAvailable()
     {
-        if (DateTime.Now.Subtract(LastConnectionFail).TotalHours < 1 && CriticalVpnErrors.Contains(LastConnectionFailCode))
+        if (DateTime.UtcNow.Subtract(LastConnectionFail).TotalHours < 1 && CriticalVpnErrors.Contains(LastConnectionFailCode))
         {
             return DateTime.MaxValue;
         }
@@ -165,7 +165,7 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
             Logger.Error("{0} VPN {1} Process null", display, ToString());
             if (record)
             {
-                LastConnectionFail = DateTime.Now;
+                LastConnectionFail = DateTime.UtcNow;
                 LastConnectionFailCode = -999;
             }
             return $"{display} VPN Process null";
@@ -180,13 +180,13 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
             Logger.Error("{0} VPN {1} Error={2}", display, ToString(), vpnProcess.ExitCode);
             if (record)
             {
-                LastConnectionFail = DateTime.Now;
+                LastConnectionFail = DateTime.UtcNow;
                 LastConnectionFailCode = vpnProcess.ExitCode;
             }
             return $"{display} VPN Error={vpnProcess.ExitCode}";
         }
 
-        if (record) LastConnectionSuccess = DateTime.Now;
+        if (record) LastConnectionSuccess = DateTime.UtcNow;
         await Task.Delay(new TimeSpan(0, 0, 1), cancellationToken);
         return null;
     }
@@ -211,14 +211,14 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
     public void SetSuccess()
     {
         accountSuccessFailCounter.SetSuccess();
-        LastLoginSuccess = DateTime.Now;
+        LastLoginSuccess = DateTime.UtcNow;
     }
 
     public void SetFail(IAccount account)
     {
         Logger.Debug("{0} VPN SetFail by account {1}", DisplayId, account.Name);
         accountSuccessFailCounter.SetFail();
-        LastLoginFail = DateTime.Now;
+        LastLoginFail = DateTime.UtcNow;
         LastLoginFailAccount = account.Name;
         Cancellation?.Cancel();
     }
