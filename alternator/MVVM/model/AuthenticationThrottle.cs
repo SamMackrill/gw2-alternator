@@ -31,7 +31,7 @@ public class AuthenticationThrottle : ObservableObject
     }
 
     private DateTime FreeAt { get; set; }
-    public double FreeIn => FreeAt.Subtract(DateTime.Now).TotalSeconds;
+    public double FreeIn => FreeAt.Subtract(DateTime.UtcNow).TotalSeconds;
 
     public string? Vpn => CurrentVpn?.Id;
 
@@ -89,7 +89,7 @@ public class AuthenticationThrottle : ObservableObject
             Logger.Debug("{0} Authentication {1} VPN release delay={2}s", account.Name, vpnDetails.DisplayId, delay);
             if (delay > 0)
             {
-                FreeAt = DateTime.Now.AddSeconds(delay);
+                FreeAt = DateTime.UtcNow.AddSeconds(delay);
                 await Task.Delay(new TimeSpan(0, 0, delay), launchCancelled);
             }
             else

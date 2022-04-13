@@ -141,7 +141,7 @@ public class Account : ObservableObject, IAccount
 
     public void SetLogin()
     {
-        LastLogin = DateTime.Now;
+        LastLogin = DateTime.UtcNow;
         successFailCounter.SetSuccess();
     }
 
@@ -241,7 +241,7 @@ public class Account : ObservableObject, IAccount
 
         LastLogin = DateTime.MinValue;
         LastCollection = DateTime.MinValue;
-        CreatedAt = DateTime.Now;
+        CreatedAt = DateTime.UtcNow;
 
         clients = new Counter();
     }

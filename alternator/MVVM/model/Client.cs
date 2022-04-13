@@ -150,7 +150,7 @@ public class Client : ObservableObject, IEquatable<Client>
 
             if (diff >= tuning.StuckTolerance) return;
 
-            var switchTime = DateTime.Now.Subtract(lastStageSwitchTime);
+            var switchTime = DateTime.UtcNow.Subtract(lastStageSwitchTime);
             if (switchTime < tuning.StuckDelay) return;
 
             stuckReason = $"Stuck, took too long ({switchTime.TotalSeconds:F1}s>{tuning.StuckDelay.TotalSeconds}s)";
@@ -228,7 +228,7 @@ public class Client : ObservableObject, IEquatable<Client>
         // State Engine
         while (Alive)
         {
-            if (DateTime.Now.Subtract(StartAt) > timeout)
+            if (DateTime.UtcNow.Subtract(StartAt) > timeout)
             {
                 Logger.Debug("{0} Timed-out after {1}s, giving up)", Account.Name, timeout.TotalSeconds);
                 await Shutdown();
@@ -268,20 +268,20 @@ public class Client : ObservableObject, IEquatable<Client>
         switch (newRunStage)
         {
             case RunStage.Authenticated:
-                AuthenticationAt = DateTime.Now;
+                AuthenticationAt = DateTime.UtcNow;
                 break;
             case RunStage.ReadyToPlay:
-                LoginAt = DateTime.Now;
+                LoginAt = DateTime.UtcNow;
                 break;
             case RunStage.CharacterSelected:
-                EnterAt = DateTime.Now;
+                EnterAt = DateTime.UtcNow;
                 break;
         }
 
         var eventArgs = new ClientStateChangedEventArgs(RunStage, newRunStage);
         RunStage = newRunStage;
         if (!p!.HasExited) lastStageMemoryUsage = p!.WorkingSet64 / 1024;
-        lastStageSwitchTime = DateTime.Now;
+        lastStageSwitchTime = DateTime.UtcNow;
         UpdateEngineSpeed();
         RunStatusChanged?.Invoke(this, eventArgs);
     }
@@ -291,7 +291,7 @@ public class Client : ObservableObject, IEquatable<Client>
         if (!p!.Start()) throw new Gw2Exception($"{Account.Name} Failed to start");
 
         RunStatus = RunState.Running;
-        StartAt = p.StartTime;
+        StartAt = p.StartTime.ToUniversalTime();
         Logger.Debug("{0} Started {1}", Account.Name, launchType);
         await ChangeRunStage(RunStage.Started, 200, "Normal start", cancellationToken);
     }
@@ -394,7 +394,7 @@ public class Client : ObservableObject, IEquatable<Client>
     {
         ChangeRunStage(RunStage.Exited, "Process.Exit event");
         Logger.Debug("{0} GW2 process exited", Account.Name);
-        ExitAt = DateTime.Now;
+        ExitAt = DateTime.UtcNow;
     }
 
     public bool Equals(Client? other) => Account.Equals(other?.Account) && AccountIndex.Equals(other?.AccountIndex);

@@ -29,27 +29,27 @@ public class SuccessFailCounter
 
     public void SetAttempt()
     {
-        LastAttempt = DateTime.Now;
+        LastAttempt = DateTime.UtcNow;
         calls.Add(LastAttempt);
     }
 
     public void SetSuccess()
     {
-        successes.Add(DateTime.Now);
+        successes.Add(DateTime.UtcNow);
         consecutiveFails = new Counter();
         consecutiveSuccesses.Increment();
     }
 
     public void SetFail()
     {
-        fails.Add(DateTime.Now);
+        fails.Add(DateTime.UtcNow);
         consecutiveFails.Increment();
         consecutiveSuccesses = new Counter();
     }
 
-    public int RecentFails(int cutoff) => fails.Count(d => DateTime.Now.Subtract(d).TotalSeconds <= cutoff);
-    public int RecentSuccesses(int cutoff) => successes.Count(d => DateTime.Now.Subtract(d).TotalSeconds <= cutoff);
-    public int RecentCalls(int cutoff) => calls.Count(d => DateTime.Now.Subtract(d).TotalSeconds <= cutoff);
+    public int RecentFails(int cutoff) => fails.Count(d => DateTime.UtcNow.Subtract(d).TotalSeconds <= cutoff);
+    public int RecentSuccesses(int cutoff) => successes.Count(d => DateTime.UtcNow.Subtract(d).TotalSeconds <= cutoff);
+    public int RecentCalls(int cutoff) => calls.Count(d => DateTime.UtcNow.Subtract(d).TotalSeconds <= cutoff);
 
     private string DebugDisplay => ToString();
 
