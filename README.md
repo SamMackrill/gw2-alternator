@@ -18,9 +18,10 @@ Tool to help logging-in to multiple Guild Wars 2 alt accounts so as to harvest t
 
 ## Before You Start
  * Configure all your accounts in either GW2Launcher or GW2Launchbuddy
- * Ensure that the Two Factor Authentication (SMS/Email) is trusted on all your networks for all you accounts
+ * Ensure that the [Two Factor Authentication](https://help.guildwars2.com/hc/en-us/articles/230672927-Securing-Your-Account-With-Authentication) ([SMS](https://help.guildwars2.com/hc/en-us/articles/230429447-Help-with-SMS-Authentication)/[Email](https://help.guildwars2.com/hc/en-us/articles/201862858-Help-With-Email-Authentication)/[App](https://help.guildwars2.com/hc/en-us/articles/230673087-Help-with-the-Authenticator-App)) is trusted on all your networks for all you accounts
    * Click Remember this network
 ![Running](images/SMS.png)
+   * This can be a bit painful to setup on multiple accounts but only needs to be done once
 
 ## Getting Started
  * On first launch you will see a security warning
