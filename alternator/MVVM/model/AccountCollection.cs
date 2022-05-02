@@ -659,4 +659,5 @@ public class AccountCollection : JsonCollection<Account>, IAccountCollection
     }
 
     public bool Any() => Accounts?.Any() ?? false;
+
 }

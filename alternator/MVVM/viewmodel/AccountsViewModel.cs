@@ -34,7 +34,7 @@ public class AccountsViewModel : ObservableObject
     public void Add(IEnumerable<IAccount>? accounts)
     {
         if (accounts == null) return;
-        Accounts.AddRange(accounts.Select(a => new AccountViewModel(a, vpnCollection)));
+        Accounts.AddRange(accounts.Select(a => new AccountViewModel(a)));
         OnPropertyChanged(nameof(ApiVisibility));
     }
 
@@ -53,4 +53,11 @@ public class AccountsViewModel : ObservableObject
     public Visibility VpnVisibility => (settingsController.Settings?.AlwaysIgnoreVpn ?? true) || !vpnCollection.Any() ? Visibility.Hidden : Visibility.Visible;
     public Visibility ApiVisibility => Accounts.Any(a => !string.IsNullOrEmpty(a.Account.ApiKey)) ? Visibility.Visible : Visibility.Hidden;
 
+    public void SetVpns()
+    {
+        foreach (var account in Accounts)
+        {
+            account.Vpns = vpnCollection.GetAccountVpns(account.Account).OrderBy(v => v.Id).ToList();
+        }
+    }
 }

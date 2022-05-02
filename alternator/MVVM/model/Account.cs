@@ -9,7 +9,7 @@ public interface IAccount : IEquatable<IAccount>
     string? Character { get; set; }
     string? LoginFilePath { get; set; }
     string? ApiKey { get; set; }
-    ObservableCollectionEx<string>? Vpns { get; }
+    ObservableCollectionEx<string>? Vpns { get; set; }
     bool HasVpn { get; }
     DateTime LastLogin { get; set; }
     DateTime LastCollection { get; set; }

@@ -232,7 +232,7 @@ public class MainViewModel : ObservableObject
         {
             Logger.Error(ex, "Query GW2 Version");
         });
-        LoadAccounts().SafeFireAndForget(ex =>
+        LoadAccountsAndVpns().SafeFireAndForget(ex =>
         {
             Logger.Error(ex, "Load Accounts");
             if (ex is Gw2NoAccountsException)
@@ -253,10 +253,6 @@ public class MainViewModel : ObservableObject
                 });
             }
 
-        });
-        LoadVpns().SafeFireAndForget(ex =>
-        {
-            Logger.Error(ex, "Load VPNs");
         });
 
         async Task LaunchMultipleAccounts(
@@ -435,18 +431,17 @@ public class MainViewModel : ObservableObject
         // TODO check versions
     }
 
-    private async ValueTask LoadAccounts()
+    private async ValueTask LoadAccountsAndVpns()
     {
         Logger.Debug("Load Accounts");
-        await accountCollection.Load();
+        var vpnLoadTask = vpnCollection.Load();
+        var accountLoadTask = accountCollection.Load();
+        await Task.WhenAll(vpnLoadTask, accountLoadTask);
+        AccountsVM.SetVpns();
+
         if (!accountCollection.Any()) throw new Gw2NoAccountsException("No Accounts");
     }
 
-    private async ValueTask LoadVpns()
-    {
-        Logger.Debug("Load VPNs");
-        await vpnCollection.Load();
-    }
 
     private static async Task SaveCollections(IAccountCollection accountCollection, IVpnCollection vpnCollection)
     {

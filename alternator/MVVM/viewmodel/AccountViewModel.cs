@@ -4,11 +4,10 @@ public class AccountViewModel : ObservableObject
 {
     public IAccount Account { get;}
 
-    public AccountViewModel(IAccount account, IVpnCollection vpnCollection)
+    public AccountViewModel(IAccount account)
     {
         Account = account;
         account.PropertyChanged += ModelPropertyChanged;
-        Vpns = vpnCollection.GetAccountVpns(Account).OrderBy(v => v.Id).ToList();
     }
 
     private readonly Dictionary<string, List<string>> propertyConverter = new()
@@ -40,7 +39,7 @@ public class AccountViewModel : ObservableObject
 
     public string VpnsDisplay => string.Join(',', Account.Vpns?.OrderBy(v => v).ToArray() ?? Array.Empty<string>());
 
-    public List<AccountVpnViewModel> Vpns { get; }
+    public List<AccountVpnViewModel> Vpns { get; set; }
 
     public string LaurelCount => Account.LaurelsGuess.ToString("F0");
     public string MysticCoinCount => Account.MysticCoinsGuess.ToString("F0");
