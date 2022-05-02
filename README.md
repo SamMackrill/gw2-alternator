@@ -16,6 +16,12 @@ Tool to help logging-in to multiple Guild Wars 2 alt accounts so as to harvest t
  * Application has no access to your GW2 authentication details
  * Whilst you can still use your PC while this is running focus will constantly be stolen and this can be annoying
 
+## Before You Start
+ * Configure all your accounts in either GW2Launcher or GW2Launchbuddy
+ * Ensure that the Two Factor Authentication (SMS/Email) is trusted on all your networks for all you accounts
+   * Click Remember this network
+![Running](images/SMS.png)
+
 ## Getting Started
  * On first launch you will see a security warning
    * Click "More info" then "Run Anyway"
@@ -24,13 +30,13 @@ Tool to help logging-in to multiple Guild Wars 2 alt accounts so as to harvest t
  * On application launch you will be asked to confirm admin access
    * This is so symbolic links can be created (similar to GW2LaunchBuddy)
  * If you have no accounts defined then go to settings and import from GW2Launcher and/or GW2Launchbuddy
- * Hit Login to login to all the accounts
+ * Click Login to login to all the accounts
    * Only accounts not logged-in that day will launch (unless you click Force all or make a selection)
    * If you have > 20 accounts expect that some will fail (they will retry automatically)
    * The first character on the account will be automatically selected, this will be the one that logged in most recently
  * You can select accounts if you just want to launch a subset, this will ignore the date filtering
    * Use CTRL-click to unselect
- * To harvest it is best not to run the Login step that day as this may trigger ArenaNet's login throttling
+ * Click Collect to harvest, it is best not to run the Login step that day as this may trigger ArenaNet's login throttling
 
  ## Working with Multiple Accounts
  * ArenaNet's anti-botting measures tend to make dealing with more than 10 accounts difficult
