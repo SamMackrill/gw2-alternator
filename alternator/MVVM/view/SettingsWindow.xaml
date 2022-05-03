@@ -137,6 +137,7 @@
                 </DockPanel>
 
                 <Label Padding="0" Grid.Row="2" Grid.Column="1" Margin="0,4,0,0"
+                       ToolTip="path to GW2 exe folder"
                    Content="GW2 Folder" />
                 <TextBox Grid.Row="2" Grid.Column="2"
                      BorderThickness="1"
@@ -170,6 +171,7 @@
                 </Button>
 
                 <Label Padding="0" Grid.Row="3" Grid.Column="1" Margin="0,4,0,0"
+                       ToolTip="Error detection method (disabled)"
                    Content="Detect Errors" />
                 <StackPanel Grid.Row="3" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,0">
                     <ComboBox BorderThickness="1"
@@ -223,6 +225,7 @@
 
 
                 <Label Padding="0" Grid.Row="5" Grid.Column="1" Margin="0,4,0,0"
+                       ToolTip="Always ignore and hide VPNs"
                    Content="No VPNs" />
                 <StackPanel Grid.Row="5" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,0">
                     <CheckBox IsChecked="{Binding AlwaysIgnoreVpn}" d:IsChecked="true" />
@@ -242,6 +245,7 @@
 
 
                 <Label Padding="0" Grid.Row="6" Grid.Column="1" Margin="0,4,0,0"
+                       ToolTip="RegEx to match existing VPNs"
                        Visibility="{Binding VpnVisibility}"
                    Content="VPN Pattern" />
                 <TextBox Grid.Row="6" Grid.Column="2"
@@ -436,6 +440,7 @@
 
 
                 <Label Padding="0" Grid.Row="24" Grid.Column="1" Margin="0,4,0,0"
+                       ToolTip="Kill GW2 if it does respond within this time"
                    Content="Stuck Timeout" />
                 <StackPanel Grid.Row="24" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,0">
                     <Slider Margin="4,0,0,0"
@@ -464,6 +469,7 @@
 
 
                 <Label Padding="0" Grid.Row="25" Grid.Column="1" Margin="0,4,0,0"
+                       ToolTip="Memory threshold to detect Authorisation phase"
                        Content="Auth.Threshold" />
                 <StackPanel Grid.Row="25" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,0">
                     <Slider Margin="4,0,0,0"
@@ -492,6 +498,7 @@
 
 
                 <Label Padding="0" Grid.Row="26" Grid.Column="1" Margin="0,4,0,0"
+                       ToolTip="Memory threshold to detect Character Selection phase"
                        Content="Char.Threshold" />
                 <StackPanel Grid.Row="26" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,0">
                     <Slider Margin="4,0,0,0"
@@ -520,6 +527,7 @@
 
 
                 <Label Padding="0" Grid.Row="27" Grid.Column="1" Margin="0,4,0,0"
+                       ToolTip="Memory delta to detect stage change"
                        Content="Delta Threshold" />
                 <StackPanel Grid.Row="27" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,0">
                     <Slider Margin="4,0,0,0"
@@ -554,7 +562,7 @@
                     <Slider Margin="4,0,0,0"
                             MinWidth="35"
                             Width="50"
-                            Minimum="0"
+                            Minimum="1"
                             Maximum="5000"
                             HorizontalAlignment="Left"
                             Style="{StaticResource IntegerSlider}"
@@ -576,6 +584,7 @@
                 </Button>
 
                 <Label Padding="0" Grid.Row="29" Grid.Column="1" Margin="0,4,0,0"
+                       ToolTip="Maximum accounts to launch under a single VPN"
                        Visibility="{Binding VpnVisibility}"
                    Content="VPN Max Count" />
                 <StackPanel 
