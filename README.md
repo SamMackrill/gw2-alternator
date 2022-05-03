@@ -72,6 +72,9 @@ Logging in every day can be a chore but a few factors make this much less so:
    * Use the Collect button
 
 ## Advanced
+ * Launchbuddy Account/Character auto extraction
+   * Set the name to "account : character" and they will be extracted automatically
+   * ![Metrics](images/LBNAMES.png)
  * Settings, Account details, metrics and logs are found here: %AppData%\gw2-alternator
 
 ![Metrics](images/AccountLoginMetrics.png)

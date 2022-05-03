@@ -111,7 +111,7 @@ public class AccountCollection : JsonCollection<Account>, IAccountCollection
             {
                 var nickname = lbAccount.Element("Nickname")?.Value;
                 if (nickname == null) continue;
-                var nameParts = nickname.Split('-', 3, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+                var nameParts = nickname.Split(':', 3, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
                 string? accountName = null;
                 string? characterName = null;
                 switch (nameParts.Length)

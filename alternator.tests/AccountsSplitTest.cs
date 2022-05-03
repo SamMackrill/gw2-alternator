@@ -7,7 +7,12 @@ public class AccountsSplitTest
     {
         var accounts = new List<IAccount>();
         var result = AccountCollection.AccountsByVpn(accounts, false);
-        result.Should().BeEmpty();
+
+        var expected = new Dictionary<string, List<IAccount>>
+        {
+            { "", accounts },
+        };
+        result.Should().BeEquivalentTo(expected);
     }
 
     [Fact]
@@ -22,6 +27,7 @@ public class AccountsSplitTest
 
         var expected = new Dictionary<string, List<IAccount>>
         {
+            { "", accounts },
             { "V1", new List<IAccount> { accounts[0] } },
         };
         result.Should().BeEquivalentTo(expected);
@@ -40,6 +46,7 @@ public class AccountsSplitTest
 
         var expected = new Dictionary<string, List<IAccount>>
         {
+            { "", accounts },
             { "V1", new List<IAccount> { accounts[0], accounts[1] } },
         };
         result.Should().BeEquivalentTo(expected);
@@ -58,6 +65,7 @@ public class AccountsSplitTest
 
         var expected = new Dictionary<string, List<IAccount>>
         {
+            { "", accounts },
             { "V1", new List<IAccount> { accounts[0] } },
             { "V2", new List<IAccount> { accounts[1] } },
         };
@@ -77,6 +85,7 @@ public class AccountsSplitTest
 
         var expected = new Dictionary<string, List<IAccount>>
         {
+            { "", accounts },
             { "V1", new List<IAccount> { accounts[0], accounts[1] } },
             { "V2", new List<IAccount> { accounts[0], accounts[1] } },
         };
@@ -100,6 +109,7 @@ public class AccountsSplitTest
 
         var expected = new Dictionary<string, List<IAccount>>
         {
+            { "", accounts },
             { "V1", new List<IAccount> { accounts[0], accounts[1], accounts[2] } },
             { "V2", new List<IAccount> { accounts[3], accounts[4] } },
             { "V3", new List<IAccount> { accounts[5] } },
@@ -124,6 +134,7 @@ public class AccountsSplitTest
 
         var expected = new Dictionary<string, List<IAccount>>
         {
+            { "", accounts },
             { "V1", new List<IAccount> { accounts[0], accounts[1], accounts[2] } },
             { "V2", new List<IAccount> { accounts[1], accounts[3], accounts[4] } },
             { "V3", new List<IAccount> { accounts[2], accounts[4], accounts[5] } },
@@ -149,10 +160,10 @@ public class AccountsSplitTest
 
         var expected = new Dictionary<string, List<IAccount>>
         {
+            { "", accounts },
             { "V1", new List<IAccount> { accounts[0], accounts[1], accounts[2] } },
             { "V2", new List<IAccount> { accounts[1], accounts[3], accounts[4] } },
             { "V3", new List<IAccount> { accounts[2], accounts[4], accounts[5] } },
-            { "", new List<IAccount> { accounts[6] } },
         };
         result.Should().BeEquivalentTo(expected);
     }
@@ -162,8 +173,10 @@ public class AccountsSplitTest
         var accounts = new List<IAccount>();
         foreach (var postfix in names)
         {
-            var account = new Account(postfix.Item2);
-            account.Vpns = postfix.Item1 == null ? null : new ObservableCollectionEx<string>(postfix.Item1);
+            var account = new Account(postfix.Item2)
+            {
+                Vpns = postfix.Item1 == null ? null : new ObservableCollectionEx<string>(postfix.Item1)
+            };
             accounts.Add(account);
         }
         return accounts;

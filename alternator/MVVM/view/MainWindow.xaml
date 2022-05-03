@@ -43,7 +43,7 @@
                 </Grid.RowDefinitions>
 
                 <DockPanel x:Name="TitleBar" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" 
-                       Background="#242424" 
+                       Background="Transparent" 
                        HorizontalAlignment="Stretch"
                        VerticalAlignment="Top"
                        LastChildFill="true" 
@@ -233,13 +233,16 @@
                         </Border.BorderBrush>
 
                         <StackPanel>
-                            <CheckBox Content="Force All" 
+                            <CheckBox Content="Force All"
+                                  ToolTip="Force all accounts to run"
                                   IsChecked="{Binding ForceAllOverride}"
                         />
                             <CheckBox Content="Force Serial" 
-                                  IsChecked="{Binding ForceSerialOverride}"
+                                      ToolTip="Force accounts to launch one at a time"
+                                      IsChecked="{Binding ForceSerialOverride}"
                         />
                             <CheckBox Content="Ignore VPN" 
+                                      ToolTip="Do not switch VPN"
                                   Visibility="{Binding VpnVisibility}"
                                   IsChecked="{Binding IgnoreVpnOverride}"
                         />
@@ -248,18 +251,22 @@
                     </Border>
                     <RadioButton Command="{Binding LoginCommand}"
                              d:IsChecked="True"
+                             ToolTip="Launch GW2 briefly to claim login"
                              IsChecked="{Binding LoginChecked}"
                              Content="{Binding LoginText, FallbackValue=Login}"
                              Style="{StaticResource MenuButtonTheme}" />
                     <RadioButton Command="{Binding CollectCommand}"
+                                 ToolTip="Launch GW2 to harvest rewards"
                              IsChecked="{Binding CollectChecked}"
                              Content="{Binding CollectText, FallbackValue=Collect}"
                              Style="{StaticResource MenuButtonTheme}" />
                     <RadioButton Command="{Binding UpdateCommand}"
+                                 ToolTip="Launch GW2 to update clients"
                              IsChecked="{Binding UpdateChecked}"
                              Content="{Binding UpdateText, FallbackValue=Update}"
                              Style="{StaticResource MenuButtonTheme}" />
                     <RadioButton Command="{Binding StopCommand}"
+                                 ToolTip="Stop current run"
                              IsChecked="{Binding StopChecked}"
                              Content="{Binding StopText, FallbackValue=Stop!}"
                              Style="{StaticResource MenuButtonTheme}" />
