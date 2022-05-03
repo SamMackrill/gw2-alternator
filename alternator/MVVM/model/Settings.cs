@@ -73,6 +73,34 @@ public class Settings : ObservableObject
         set => SetProperty(ref vpnAccountCount, value);
     }
 
+    private int authenticationMemoryThreshold;
+    public int AuthenticationMemoryThreshold
+    {
+        get => authenticationMemoryThreshold;
+        set => SetProperty(ref authenticationMemoryThreshold, value);
+    }
+
+    private int characterSelectedMemoryThreshold;
+    public int CharacterSelectedMemoryThreshold
+    {
+        get => characterSelectedMemoryThreshold;
+        set => SetProperty(ref characterSelectedMemoryThreshold, value);
+    }
+
+    private int deltaMemoryThreshold;
+    public int DeltaMemoryThreshold
+    {
+        get => deltaMemoryThreshold;
+        set => SetProperty(ref deltaMemoryThreshold, value);
+    }
+
+    private int shutDownDelay;
+    public int ShutDownDelay
+    {
+        get => shutDownDelay;
+        set => SetProperty(ref shutDownDelay, value);
+    }
+
     private int fontSize;
     public int FontSize
     {

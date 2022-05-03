@@ -95,7 +95,7 @@ public class Launcher
                     client.MinimiseWindow();
                     break;
                 case RunStage.CharacterSelected:
-                    if (launchType is LaunchType.Login) client.Shutdown().Wait();
+                    if (launchType is LaunchType.Login) client.Shutdown(settings.ShutDownDelay).Wait();
                     break;
                 case RunStage.EntryFailed:
                     Logger.Info("{0} entry failed, giving up to try again", account.Name);
@@ -106,7 +106,7 @@ public class Launcher
                 case RunStage.WorldEntered:
                     if (launchType == LaunchType.Login)
                     {
-                        client.Shutdown().Wait();
+                        client.Shutdown(settings.ShutDownDelay).Wait();
                         return;
                     }
                     ClientReady?.Invoke(client, EventArgs.Empty);
@@ -225,6 +225,7 @@ public class Launcher
                 Logger.Debug("{0} exe semaphore released, count={1}", account.Name, exeSemaphore.CurrentCount);
             }
             client.RunStatusChanged -= Client_RunStatusChanged;
+            client.ClearLogging();
         }
 
         if (await client.Kill())

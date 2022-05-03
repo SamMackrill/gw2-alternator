@@ -104,7 +104,7 @@ public class ClientController
                 foreach (var account in accountsToLaunch)
                 {
                     Logger.Debug("Launching client for Account {0}", account.Name);
-                    clientsToLaunch.Add(await account.NewClient());
+                    clientsToLaunch.Add(await account.NewClient(applicationFolder.FullName));
                 }
                 clients.AddRange(clientsToLaunch);
 

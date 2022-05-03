@@ -90,6 +90,30 @@ public class SettingsViewModel : ObservableObject
         set => Settings.VpnAccountCount = value;
     }
 
+    public int AuthenticationMemoryThreshold
+    {
+        get => Settings.AuthenticationMemoryThreshold;
+        set => Settings.AuthenticationMemoryThreshold = value;
+    }
+
+    public int CharacterSelectedMemoryThreshold
+    {
+        get => Settings.CharacterSelectedMemoryThreshold;
+        set => Settings.CharacterSelectedMemoryThreshold = value;
+    }
+
+    public int DeltaMemoryThreshold
+    {
+        get => Settings.DeltaMemoryThreshold;
+        set => Settings.DeltaMemoryThreshold = value;
+    }
+
+    public int ShutDownDelay
+    {
+        get => Settings.ShutDownDelay;
+        set => Settings.ShutDownDelay = value;
+    }
+
     public ErrorDetection ExperimentalErrorDetection
     {
         get => Settings.ExperimentalErrorDetection;
@@ -191,6 +215,26 @@ public class SettingsViewModel : ObservableObject
     {
         var defaultSettings = SettingsController.DefaultSettings;
         Settings.VpnMatch = defaultSettings.VpnMatch;
+    });
+    public RelayCommand<object> ResetAuthenticationMemoryThresholdCommand => new(_ =>
+    {
+        var defaultSettings = SettingsController.DefaultSettings;
+        Settings.AuthenticationMemoryThreshold = defaultSettings.AuthenticationMemoryThreshold;
+    });
+    public RelayCommand<object> ResetCharacterSelectedMemoryThresholdCommand => new(_ =>
+    {
+        var defaultSettings = SettingsController.DefaultSettings;
+        Settings.CharacterSelectedMemoryThreshold = defaultSettings.CharacterSelectedMemoryThreshold;
+    });
+    public RelayCommand<object> ResetDeltaMemoryThresholdCommand => new(_ =>
+    {
+        var defaultSettings = SettingsController.DefaultSettings;
+        Settings.DeltaMemoryThreshold = defaultSettings.DeltaMemoryThreshold;
+    });
+    public RelayCommand<object> ResetShutDownDelayCommand => new(_ =>
+    {
+        var defaultSettings = SettingsController.DefaultSettings;
+        Settings.ShutDownDelay = defaultSettings.ShutDownDelay;
     });
     public RelayCommand<object> ResetFontSizeCommand => new(_ =>
     {

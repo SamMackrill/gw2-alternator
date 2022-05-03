@@ -99,9 +99,26 @@ public class Client : ObservableObject, IEquatable<Client>
         get => statusMessage;
         set => SetProperty(ref statusMessage, value);
     }
-
-    public Client(IAccount account, int accountIndex)
+    private ILogger? accountLogger;
+    private readonly LogFactory? logFactory;
+    public void ClearLogging()
     {
+        logFactory?.Shutdown();
+    }
+
+    public Client(IAccount account, int accountIndex, string folderPath)
+    {
+        //logFactory = new LogFactory();
+        //logFactory.Configuration = new NLog.Config.LoggingConfiguration(logFactory);
+        //var fileTarget = new NLog.Targets.FileTarget("AccountLogger")
+        //{
+        //    FileName = Path.Combine(folderPath, $"{account.Name!.GetSafeFileName() }-log.txt"),
+        //    DeleteOldFileOnStartup = true
+        //};
+        //logFactory.Configuration.AddTarget(fileTarget);
+        //logFactory.Configuration.AddRuleForAllLevels(fileTarget);
+        //accountLogger = logFactory.GetCurrentClassLogger();
+
         Account = account;
         AccountIndex = accountIndex;
         RunStatus = RunState.Ready;
@@ -120,9 +137,9 @@ public class Client : ObservableObject, IEquatable<Client>
         async Task CheckIfMovedOn(long memoryUsage)
         {
             var stageDiff = Math.Abs(memoryUsage - lastStageMemoryUsage);
-            if (RunStage == RunStage.CharacterSelectReached && stageDiff > 100)
+            if (RunStage == RunStage.CharacterSelectReached && stageDiff > settings.DeltaMemoryThreshold)
             {
-                await ChangeRunStage(RunStage.CharacterSelected, 200, "Memory increased", cancellationToken);
+                await ChangeRunStage(RunStage.CharacterSelected, 200, $"Memory increased by {stageDiff} > {settings.DeltaMemoryThreshold}", cancellationToken);
             }
         }
 
@@ -135,11 +152,11 @@ public class Client : ObservableObject, IEquatable<Client>
             //Logger.Debug("{0} Memory={1} ({2}<{3})", Account.Name, memoryUsage, diff, tuning.MinDiff);
             switch (RunStage)
             {
-                case RunStage.Authenticated when memoryUsage > 120_000:
-                    await ChangeRunStage(RunStage.ReadyToPlay, 4000, "Memory threshold", cancellationToken);
+                case RunStage.Authenticated when memoryUsage > settings.AuthenticationMemoryThreshold * 1000:
+                    await ChangeRunStage(RunStage.ReadyToPlay, 4000, $"Memory threshold {memoryUsage / 1000} > {settings.AuthenticationMemoryThreshold}", cancellationToken);
                     break;
-                case RunStage.CharacterSelected when memoryUsage > 1_400_000:
-                    await ChangeRunStage(RunStage.WorldEntered, 1800, "Memory threshold", cancellationToken);
+                case RunStage.CharacterSelected when memoryUsage > settings.CharacterSelectedMemoryThreshold * 1000:
+                    await ChangeRunStage(RunStage.WorldEntered, 1800, $"Memory threshold {memoryUsage / 1000} > {settings.CharacterSelectedMemoryThreshold}", cancellationToken);
                     break;
             }
         }
@@ -154,19 +171,21 @@ public class Client : ObservableObject, IEquatable<Client>
             if (switchTime < tuning.StuckDelay) return;
 
             stuckReason = $"Stuck, took too long ({switchTime.TotalSeconds:F1}s>{tuning.StuckDelay.TotalSeconds}s)";
-            
+
             Logger.Debug("{0} Stuck awaiting login, mem={1} diff={2} (because: {3})", Account.Name, memoryUsage, diff, stuckReason);
+            accountLogger?.Debug("Stuck awaiting login, mem={1} diff={2} (because: {3})", Account.Name, memoryUsage, diff, stuckReason);
+
             //CaptureWindow(RunStage.EntryFailed, applicationFolder);
             await ChangeRunStage(RunStage.LoginFailed, 20, stuckReason, cancellationToken);
         }
 
         bool DetectCrash() => !closed && launchType == LaunchType.Login;
 
-        Dictionary<string, RunStage> runStageFromModules = new()
+        Dictionary<RunStage, List<string>> runStageFromModules = new()
         {
-            { @"winnsi.dll", RunStage.Authenticated },
-            { @"userenv.dll", RunStage.CharacterSelectReached },
-            { @"mmdevapi.dll", RunStage.Playing },
+            { RunStage.Authenticated,          new List<string> { @"winnsi.dll" } },
+            { RunStage.CharacterSelectReached, new List<string> { @"userenv.dll", @"mscms.dll", @"coloradapterclient.dll", @"icm32.dll" } },
+            { RunStage.Playing,                new List<string> { @"mmdevapi.dll" } },
         };
 
 
@@ -186,10 +205,12 @@ public class Client : ObservableObject, IEquatable<Client>
             tuning.MemoryUsage = memoryUsage;
 
             var newModules = UpdateProcessModules();
-            var stageChanges = runStageFromModules.Where(e => newModules.Contains(e.Key)).OrderBy(e => e.Key);
-            foreach (var (key, value) in stageChanges)
+            foreach (var runStageModules in runStageFromModules)
             {
-                await ChangeRunStage(value, 200, $"Module {key} loaded", cancellationToken);
+                var module = runStageModules.Value.FirstOrDefault(module => newModules.Contains(module));
+                if (module == null) continue;
+                await ChangeRunStage(runStageModules.Key, 200, $"Module {module} loaded", cancellationToken);
+                return;
             }
         }
 
@@ -231,7 +252,8 @@ public class Client : ObservableObject, IEquatable<Client>
             if (DateTime.UtcNow.Subtract(StartAt) > timeout)
             {
                 Logger.Debug("{0} Timed-out after {1}s, giving up)", Account.Name, timeout.TotalSeconds);
-                await Shutdown();
+                accountLogger?.Debug("Timed-out after {1}s, giving up)", Account.Name, timeout.TotalSeconds);
+                await Shutdown(0);
                 throw new Gw2TimeoutException("GW2 process timed-out");
             }
 
@@ -265,6 +287,7 @@ public class Client : ObservableObject, IEquatable<Client>
     private void ChangeRunStage(RunStage newRunStage, string? reason)
     {
         Logger.Debug("{0} Change State to {1} because {2}", Account.Name, newRunStage, reason);
+        accountLogger?.Debug("Change State to {1} because {2}", Account.Name, newRunStage, reason);
         switch (newRunStage)
         {
             case RunStage.Authenticated:
@@ -293,6 +316,7 @@ public class Client : ObservableObject, IEquatable<Client>
         RunStatus = RunState.Running;
         StartAt = p.StartTime.ToUniversalTime();
         Logger.Debug("{0} Started {1}", Account.Name, launchType);
+        accountLogger?.Debug("Started {1}", Account.Name, launchType);
         await ChangeRunStage(RunStage.Started, 200, "Normal start", cancellationToken);
     }
 
@@ -312,6 +336,7 @@ public class Client : ObservableObject, IEquatable<Client>
         {
             if (p.MainWindowHandle != IntPtr.Zero) return;
             Logger.Error("{0} Mutex will not die, give up", Account.Name);
+            accountLogger?.Error("Mutex will not die, give up", Account.Name);
             p.Kill(true);
             throw new Gw2Exception($"{Account.Name} Mutex will not die, give up");
         }
@@ -319,6 +344,7 @@ public class Client : ObservableObject, IEquatable<Client>
         //Logger.Debug("{0} Got handle to Mutex", account.Name);
         handle.Kill();
         Logger.Debug("{0} Killed Mutex", Account.Name);
+        accountLogger?.Debug("Killed Mutex", Account.Name);
     }
 
     private List<string> UpdateProcessModules()
@@ -330,7 +356,8 @@ public class Client : ObservableObject, IEquatable<Client>
         {
             var moduleName = module?.ModuleName?.ToLowerInvariant();
             if (moduleName == null || loadedModules.Contains(moduleName)) continue;
-            //Logger.Debug("{0} Module: {1}", account.Name, moduleName);
+            Logger.Debug("{0} Module: {1}", Account.Name, moduleName);
+            accountLogger?.Debug("Module: {1}", Account.Name, moduleName);
             loadedModules.Add(moduleName);
             newModules.Add(moduleName);
         }
@@ -353,6 +380,7 @@ public class Client : ObservableObject, IEquatable<Client>
         if (!Alive) return;
 
         Logger.Debug("{0} Send ENTER", Account.Name);
+        accountLogger?.Debug("Send ENTER", Account.Name);
         var currentFocus = Native.GetForegroundWindow();
         try
         {
@@ -375,9 +403,10 @@ public class Client : ObservableObject, IEquatable<Client>
         _ = Native.ShowWindowAsync(p!.MainWindowHandle, ShowWindowCommands.Restore);
     }
 
-    public async Task<bool> Shutdown()
+    public async Task<bool> Shutdown(int delay)
     {
         closed = true;
+        await Task.Delay(delay);
         return await Kill();
     }
 
@@ -394,9 +423,11 @@ public class Client : ObservableObject, IEquatable<Client>
     {
         ChangeRunStage(RunStage.Exited, "Process.Exit event");
         Logger.Debug("{0} GW2 process exited", Account.Name);
+        accountLogger?.Debug("GW2 process exited", Account.Name);
         ExitAt = DateTime.UtcNow;
     }
 
     public bool Equals(Client? other) => Account.Equals(other?.Account) && AccountIndex.Equals(other?.AccountIndex);
+
 }
 

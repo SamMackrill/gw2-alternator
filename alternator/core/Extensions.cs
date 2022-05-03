@@ -43,4 +43,9 @@ public static class Extensions
 
     }
 
+    public static string GetSafeFileName(this string name, char replace = '_')
+    {
+        var invalids = Path.GetInvalidFileNameChars();
+        return new string(name.Select(c => invalids.Contains(c) ? replace : c).ToArray());
+    }
 }

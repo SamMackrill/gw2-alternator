@@ -89,6 +89,10 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <DockPanel x:Name="TitleBar"
@@ -133,7 +137,7 @@
                 </DockPanel>
 
                 <Label Padding="0" Grid.Row="2" Grid.Column="1" Margin="0,4,0,0"
-                   Content="GW2 Folder:" />
+                   Content="GW2 Folder" />
                 <TextBox Grid.Row="2" Grid.Column="2"
                      BorderThickness="1"
                      Margin="4,4,0,0"
@@ -189,7 +193,7 @@
 
 
                 <Label Padding="0" Grid.Row="4" Grid.Column="1" Margin="0,4,0,0"
-                       Content="Font Size:" />
+                       Content="Font Size" />
 
                 <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,0" >
                     <Slider 
@@ -239,7 +243,7 @@
 
                 <Label Padding="0" Grid.Row="6" Grid.Column="1" Margin="0,4,0,0"
                        Visibility="{Binding VpnVisibility}"
-                   Content="VPN Pattern:" />
+                   Content="VPN Pattern" />
                 <TextBox Grid.Row="6" Grid.Column="2"
                      BorderThickness="1"
                      Margin="4,4,0,0"
@@ -291,7 +295,7 @@
 
 
                 <Label Padding="0" Grid.Row="20" Grid.Column="1" Margin="0,4,0,0"
-                   Content="Max Instances:" />
+                   Content="Max Instances" />
 
                 <StackPanel Grid.Row="20" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,0" >
                     <Slider 
@@ -341,7 +345,7 @@
                             Style="{StaticResource IntegerSlider}"
                             Value="{Binding Path=AccountBand1Delay, Mode=TwoWay, FallbackValue=5}"
                     />
-                    <Label Padding="0" Content="s" VerticalAlignment="Center" />
+                    <Label Padding="1,0,0,0" Content="s"  />
                 </StackPanel>
                 <Button Grid.Row="21" Grid.Column="3"  
                     Margin="4,0,0,0" 
@@ -378,7 +382,7 @@
                             Style="{StaticResource IntegerSlider}"
                             Value="{Binding Path=AccountBand2Delay, Mode=TwoWay, FallbackValue=20}"
                     />
-                    <Label Padding="0" Content="s" />
+                    <Label Padding="1,0,0,0" Content="s" />
                 </StackPanel>
                 <Button Grid.Row="22" Grid.Column="3"  
                     Margin="4,0,0,0" 
@@ -415,7 +419,7 @@
                             Style="{StaticResource IntegerSlider}"
                             Value="{Binding Path=AccountBand3Delay, Mode=TwoWay, FallbackValue=45}"
                     />
-                    <Label Padding="0" Content="s" />
+                    <Label Padding="1,0,0,0" Content="s" />
                 </StackPanel>
                 <Button Grid.Row="23" Grid.Column="3"  
                     Margin="4,0,0,0" 
@@ -432,7 +436,7 @@
 
 
                 <Label Padding="0" Grid.Row="24" Grid.Column="1" Margin="0,4,0,0"
-                   Content="Stuck Timeout:" />
+                   Content="Stuck Timeout" />
                 <StackPanel Grid.Row="24" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,0">
                     <Slider Margin="4,0,0,0"
                             MinWidth="35"
@@ -443,7 +447,7 @@
                             Style="{StaticResource IntegerSlider}"
                             Value="{Binding Path=StuckTimeout, Mode=TwoWay, FallbackValue=30}"
                     />
-                    <Label Padding="0" Content="s" />
+                    <Label Padding="1,0,0,0" Content="s" />
                 </StackPanel>
                 <Button Grid.Row="24" Grid.Column="3"  
                     Margin="4,0,0,0" 
@@ -460,10 +464,122 @@
 
 
                 <Label Padding="0" Grid.Row="25" Grid.Column="1" Margin="0,4,0,0"
+                       Content="Auth.Threshold" />
+                <StackPanel Grid.Row="25" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,0">
+                    <Slider Margin="4,0,0,0"
+                            MinWidth="35"
+                            Width="50"
+                            Minimum="50"
+                            Maximum="900"
+                            HorizontalAlignment="Left"
+                            Style="{StaticResource IntegerSlider}"
+                            Value="{Binding Path=AuthenticationMemoryThreshold, Mode=TwoWay, FallbackValue=120}"
+                    />
+                    <Label Padding="1,0,0,0" Content="kB" />
+                </StackPanel>
+                <Button Grid.Row="25" Grid.Column="3"  
+                        Margin="4,0,0,0" 
+                        Opacity="0.6"
+                        VerticalAlignment="Center" 
+                        BorderThickness="0" 
+                        Height="16" Width="16"
+                        Background="Transparent"
+                        Style="{StaticResource FadeOutButton}"
+                        Command="{Binding Path=ResetAuthenticationMemoryThresholdCommand, Mode=OneWay}" >
+
+                    <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
+                </Button>
+
+
+                <Label Padding="0" Grid.Row="26" Grid.Column="1" Margin="0,4,0,0"
+                       Content="Char.Threshold" />
+                <StackPanel Grid.Row="26" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,0">
+                    <Slider Margin="4,0,0,0"
+                            MinWidth="35"
+                            Width="50"
+                            Minimum="500"
+                            Maximum="5000"
+                            HorizontalAlignment="Left"
+                            Style="{StaticResource IntegerSlider}"
+                            Value="{Binding Path=CharacterSelectedMemoryThreshold, Mode=TwoWay, FallbackValue=1400}"
+                    />
+                    <Label Padding="1,0,0,0" Content="kB" />
+                </StackPanel>
+                <Button Grid.Row="26" Grid.Column="3"  
+                        Margin="4,0,0,0" 
+                        Opacity="0.6"
+                        VerticalAlignment="Center" 
+                        BorderThickness="0" 
+                        Height="16" Width="16"
+                        Background="Transparent"
+                        Style="{StaticResource FadeOutButton}"
+                        Command="{Binding Path=ResetCharacterSelectedMemoryThresholdCommand, Mode=OneWay}" >
+
+                    <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
+                </Button>
+
+
+                <Label Padding="0" Grid.Row="27" Grid.Column="1" Margin="0,4,0,0"
+                       Content="Delta Threshold" />
+                <StackPanel Grid.Row="27" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,0">
+                    <Slider Margin="4,0,0,0"
+                            MinWidth="35"
+                            Width="50"
+                            Minimum="10"
+                            Maximum="9999"
+                            HorizontalAlignment="Left"
+                            Style="{StaticResource IntegerSlider}"
+                            Value="{Binding Path=DeltaMemoryThreshold, Mode=TwoWay, FallbackValue=100}"
+                    />
+                    <Label Padding="1,0,0,0" Content="B" />
+                </StackPanel>
+                <Button Grid.Row="27" Grid.Column="3"  
+                        Margin="4,0,0,0" 
+                        Opacity="0.6"
+                        VerticalAlignment="Center" 
+                        BorderThickness="0" 
+                        Height="16" Width="16"
+                        Background="Transparent"
+                        Style="{StaticResource FadeOutButton}"
+                        Command="{Binding Path=ResetDeltaMemoryThresholdCommand, Mode=OneWay}" >
+
+                    <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
+                </Button>
+
+
+                <Label Padding="0" Grid.Row="28" Grid.Column="1" Margin="0,4,0,0"
+                       ToolTip="Client shutdown delay"
+                       Content="Shutdown Delay" />
+                <StackPanel Grid.Row="28" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,0">
+                    <Slider Margin="4,0,0,0"
+                            MinWidth="35"
+                            Width="50"
+                            Minimum="0"
+                            Maximum="5000"
+                            HorizontalAlignment="Left"
+                            Style="{StaticResource IntegerSlider}"
+                            Value="{Binding Path=ShutDownDelay, Mode=TwoWay, FallbackValue=500}"
+                    />
+                    <Label Padding="1,0,0,0" Content="ms" />
+                </StackPanel>
+                <Button Grid.Row="28" Grid.Column="3"  
+                        Margin="4,0,0,0" 
+                        Opacity="0.6"
+                        VerticalAlignment="Center" 
+                        BorderThickness="0" 
+                        Height="16" Width="16"
+                        Background="Transparent"
+                        Style="{StaticResource FadeOutButton}"
+                        Command="{Binding Path=ResetShutDownDelayCommand, Mode=OneWay}" >
+
+                    <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
+                </Button>
+
+                <Label Padding="0" Grid.Row="29" Grid.Column="1" Margin="0,4,0,0"
                        Visibility="{Binding VpnVisibility}"
-                   Content="VPN Max Count:" />
+                   Content="VPN Max Count" />
                 <StackPanel 
-                    Grid.Row="25" Grid.Column="2" 
+                    Grid.Row="29" Grid.Column="2" 
                     Orientation="Horizontal" 
                     Visibility="{Binding VpnVisibility}"
                     Margin="0,4,0,0">
@@ -477,7 +593,7 @@
                             Value="{Binding Path=VpnAccountCount, Mode=TwoWay, FallbackValue=10}"
                     />
                 </StackPanel>
-                <Button Grid.Row="25" Grid.Column="3"  
+                <Button Grid.Row="29" Grid.Column="3"  
                     Margin="4,0,0,0" 
                     Opacity="0.6"
                     VerticalAlignment="Center" 
