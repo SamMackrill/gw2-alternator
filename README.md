@@ -2,6 +2,11 @@
 (If anybody wants to help I would be delighted!)
 
 Tool to help logging-in to multiple Guild Wars 2 alt accounts so as to harvest the [daily rewards](https://wiki.guildwars2.com/wiki/Login_rewards).
+Logging in every day can be a chore but a few factors make this much less so:
+ * You do not need to click the chest, just logging into the world claims the reward
+   * In fact you can force close the GW2 client as soon as the world loading starts
+   * Chests will wait until you collect them (or auto loot if too many stacked)
+ * Harvesting the rewards is even slower and is best done periodically, say once a month
 
 ## Requires at least [.Net 6.0.2](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
 
@@ -38,6 +43,13 @@ Tool to help logging-in to multiple Guild Wars 2 alt accounts so as to harvest t
  * You can select accounts if you just want to launch a subset, this will ignore the date filtering
    * Use CTRL-click to unselect
  * Click Collect to harvest, it is best not to run the Login step that day as this may trigger ArenaNet's login throttling
+
+ ## Usage
+  * TitleBar
+  * ![Running](images/TitleBar.png)
+
+  * SideBar
+  * ![Running](images/SideBar.png)
 
  ## Working with Multiple Accounts
  * ArenaNet's anti-botting measures tend to make dealing with more than 10 accounts difficult
