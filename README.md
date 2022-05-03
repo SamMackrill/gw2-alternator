@@ -46,10 +46,10 @@ Logging in every day can be a chore but a few factors make this much less so:
 
  ## Usage
   * TitleBar
-  * ![Running](images/TitleBar.png)
+  * ![TitleBar](images/TitleBar.png)
 
   * SideBar
-  * ![Running](images/SideBar.png)
+  * ![SideBar](images/SideBar.png)
 
  ## Working with Multiple Accounts
  * ArenaNet's anti-botting measures tend to make dealing with more than 10 accounts difficult
@@ -74,7 +74,7 @@ Logging in every day can be a chore but a few factors make this much less so:
 ## Advanced
  * Launchbuddy Account/Character auto extraction
    * Set the name to "account : character" and they will be extracted automatically
-   * ![Metrics](images/LBNAMES.png)
+   * ![LaunchBuddyNames](images/LBNames.png)
  * Settings, Account details, metrics and logs are found here: %AppData%\gw2-alternator
 
 ![Metrics](images/AccountLoginMetrics.png)
