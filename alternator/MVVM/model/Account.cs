@@ -105,9 +105,9 @@ public class Account : ObservableObject, IAccount
 
 
     [JsonIgnore]
-    public double MysticCoinsGuess => (GetCurrency("MysticCoin") ?? 0) + LoginCount * 20 / 28;
+    public double MysticCoinsGuess => GetCurrency("MysticCoin") ?? 0;
     [JsonIgnore]
-    public double LaurelsGuess => (GetCurrency("Laurel") ?? 0) + LoginCount * 55 / 28;
+    public double LaurelsGuess => GetCurrency("Laurel") ?? 0;
 
     public void UpdateVpn(VpnDetails vpn, bool isChecked)
     {
