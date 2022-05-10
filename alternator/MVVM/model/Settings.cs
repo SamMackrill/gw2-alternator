@@ -125,6 +125,13 @@ public class Settings : ObservableObject
         set => SetProperty(ref alwaysIgnoreVpn, value);
     }
 
+    private bool displayLocalTime;
+    public bool DisplayLocalTime
+    {
+        get => displayLocalTime;
+        set => SetProperty(ref displayLocalTime, value);
+    }
+
     private string? vpnMatch;
     public string? VpnMatch
     {
