@@ -126,6 +126,12 @@ public class SettingsViewModel : ObservableObject
         set => Settings.AlwaysIgnoreVpn = value;
     }
 
+    public bool DisplayLocalTime
+    {
+        get => Settings.DisplayLocalTime;
+        set => Settings.DisplayLocalTime = value;
+    }
+
     public string? VpnMatch
     {
         get => Settings.VpnMatch;
@@ -210,6 +216,11 @@ public class SettingsViewModel : ObservableObject
     {
         var defaultSettings = SettingsController.DefaultSettings;
         Settings.AlwaysIgnoreVpn = defaultSettings.AlwaysIgnoreVpn;
+    });
+    public RelayCommand<object> ResetDisplayLocalTimeCommand => new(_ =>
+    {
+        var defaultSettings = SettingsController.DefaultSettings;
+        Settings.DisplayLocalTime = defaultSettings.DisplayLocalTime;
     });
     public RelayCommand<object> ResetVpnMatchCommand => new(_ =>
     {

@@ -3,11 +3,22 @@
 public class AccountViewModel : ObservableObject
 {
     public IAccount Account { get;}
+    private readonly ISettingsController settingsController;
 
-    public AccountViewModel(IAccount account)
+    public AccountViewModel(IAccount account, ISettingsController settingsController)
     {
         Account = account;
         account.PropertyChanged += ModelPropertyChanged;
+        this.settingsController = settingsController;
+        this.settingsController.PropertyChanged += SettingsController_PropertyChanged;
+    }
+
+    private void SettingsController_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != "DisplayLocalTime") return;
+        OnPropertyChanged(nameof(Login));
+        OnPropertyChanged(nameof(Collected));
+
     }
 
     private readonly Dictionary<string, List<string>> propertyConverter = new()
@@ -25,7 +36,12 @@ public class AccountViewModel : ObservableObject
     {
         args.PassOnChanges(OnPropertyChanged, propertyConverter);
     }
-    private static string DateTimeDisplay(DateTime dateTime) => dateTime == DateTime.MinValue ? "Never" : $"{dateTime.ToShortDateString()} {dateTime.ToShortTimeString()}";
+    private string DateTimeDisplay(DateTime dateTime)
+    {
+        if (dateTime == DateTime.MinValue) return "Never";
+        var displayDateTime = settingsController.Settings is {DisplayLocalTime: true} ? dateTime.ToLocalTime() : dateTime;
+        return $"{displayDateTime.ToShortDateString()} {displayDateTime.ToShortTimeString()}";
+    }
 
     public string AccountName => Account.Name ?? "Unknown";
 

@@ -194,7 +194,7 @@
                 </Button>
 
 
-                <Label Padding="0" Grid.Row="4" Grid.Column="1" Margin="0,4,0,0"
+                <Label Padding="0" Grid.Row="4" Grid.Column="1" Margin="0,0,0,0"
                        Content="Font Size" />
 
                 <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,0" >
@@ -224,10 +224,10 @@
                 </Button>
 
 
-                <Label Padding="0" Grid.Row="5" Grid.Column="1" Margin="0,4,0,0"
+                <Label Padding="0" Grid.Row="5" Grid.Column="1" Margin="0"
                        ToolTip="Always ignore and hide VPNs"
                    Content="No VPNs" />
-                <StackPanel Grid.Row="5" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,0">
+                <StackPanel Grid.Row="5" Grid.Column="2" Orientation="Horizontal" Margin="0">
                     <CheckBox IsChecked="{Binding AlwaysIgnoreVpn}" d:IsChecked="true" />
                 </StackPanel>
                 <Button Grid.Row="5" Grid.Column="3"  
@@ -244,18 +244,38 @@
                 </Button>
 
 
-                <Label Padding="0" Grid.Row="6" Grid.Column="1" Margin="0,4,0,0"
+                <Label Padding="0" Grid.Row="6" Grid.Column="1" Margin="0"
+                       ToolTip="Display dates and times as local"
+                       Content="Local Time" />
+                <StackPanel Grid.Row="6" Grid.Column="2" Orientation="Horizontal" Margin="0">
+                    <CheckBox IsChecked="{Binding DisplayLocalTime}" d:IsChecked="false" />
+                </StackPanel>
+                <Button Grid.Row="6" Grid.Column="3"  
+                        Margin="4,0,0,0" 
+                        Opacity="0.6"
+                        VerticalAlignment="Center" 
+                        BorderThickness="0" 
+                        Height="16" Width="16"
+                        Background="Transparent"
+                        Style="{StaticResource FadeOutButton}"
+                        Command="{Binding Path=ResetDisplayLocalTimeCommand, Mode=OneWay}" >
+
+                    <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
+                </Button>
+
+
+                <Label Padding="0" Grid.Row="7" Grid.Column="1" Margin="0,4,0,0"
                        ToolTip="RegEx to match existing VPNs"
                        Visibility="{Binding VpnVisibility}"
                    Content="VPN Pattern" />
-                <TextBox Grid.Row="6" Grid.Column="2"
+                <TextBox Grid.Row="7" Grid.Column="2"
                      BorderThickness="1"
                      Margin="4,4,0,0"
                      MinWidth="100"
                      HorizontalAlignment="Stretch"
                      Visibility="{Binding VpnVisibility}"
                      Text="{Binding Path=VpnMatch, Mode=TwoWay, FallbackValue='\\w+-\\w+-st\\d+\\.prod\\.surfshark\\.com'}" />
-                <Button Grid.Row="6" Grid.Column="3"  
+                <Button Grid.Row="7" Grid.Column="3"  
                     Margin="4,0,0,0" 
                     Opacity="0.6"
                     VerticalAlignment="Center" 

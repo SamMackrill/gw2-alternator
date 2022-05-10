@@ -34,7 +34,7 @@ public class AccountsViewModel : ObservableObject
     public void Add(IEnumerable<IAccount>? accounts)
     {
         if (accounts == null) return;
-        Accounts.AddRange(accounts.Select(a => new AccountViewModel(a)));
+        Accounts.AddRange(accounts.Select(a => new AccountViewModel(a, settingsController)));
         OnPropertyChanged(nameof(ApiVisibility));
     }
 
