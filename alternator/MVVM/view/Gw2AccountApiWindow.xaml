@@ -1,9 +1,9 @@
-﻿<local:WindowBase x:Class="guildwars2.tools.alternator.MVVM.view.Gw2AccountApiWindow"
+﻿<view:WindowBase x:Class="guildwars2.tools.alternator.MVVM.view.Gw2AccountApiWindow"
                   xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                  xmlns:local="clr-namespace:guildwars2.tools.alternator.MVVM.view"
+                  xmlns:view="clr-namespace:guildwars2.tools.alternator.MVVM.view"
                   xmlns:viewmodel="clr-namespace:guildwars2.tools.alternator.MVVM.viewmodel"
                   mc:Ignorable="d"
                   Title="Account APIs"
@@ -11,11 +11,12 @@
                   WindowStyle="None"
                   AllowsTransparency="True"
                   ResizeMode="CanResize"
+                  SizeToContent="WidthAndHeight"
                   MinWidth="100"
                   MinHeight="40"
-                  SizeToContent="WidthAndHeight"
                   d:DataContext="{d:DesignInstance Type=viewmodel:AccountApisViewModel}"
                   d:DesignWidth="320" 
+                  d:DesignHeight="200" 
                   FontSize="{Binding FontSize, FallbackValue=10}"
 >
 
@@ -30,14 +31,14 @@
             <Grid ShowGridLines="False">
 
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="13"/>
+                    <ColumnDefinition Width="8"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="13"/>
+                    <ColumnDefinition Width="8"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="2"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
                     <RowDefinition Height="2"/>
                 </Grid.RowDefinitions>
 
@@ -45,8 +46,10 @@
                        Grid.Row="1" Grid.Column="1" 
                        Background="{StaticResource BackgroundBrush}" 
                        Height="24" 
-                       HorizontalAlignment="Stretch" 
-                       LastChildFill="true">
+                       HorizontalAlignment="Stretch"
+                       VerticalAlignment="Top"
+                       LastChildFill="true" 
+                       Margin="0,0,8,0">
 
                     <Button DockPanel.Dock="Right"  
                         Padding="0" 
@@ -80,6 +83,7 @@
                       IsReadOnly="False"
                       SelectionUnit="FullRow"
                       BorderThickness="0"
+                      VerticalScrollBarVisibility="Auto"
                       d:ItemsSource="{d:SampleData}"
                       ItemsSource="{Binding AccountApis}">
                     <DataGrid.Columns>
@@ -138,4 +142,4 @@
 
     </Grid>
 
-</local:WindowBase>
+</view:WindowBase>

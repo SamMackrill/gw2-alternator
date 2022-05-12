@@ -101,7 +101,7 @@
                            Height="24" 
                            HorizontalAlignment="Stretch" 
                            LastChildFill="true" 
-                           Margin="0,0,10,0">
+                           Margin="0,0,8,0">
 
                     <Button DockPanel.Dock="Right"  
                             Padding="0"
