@@ -44,10 +44,10 @@
                 <DataGridTextColumn x:Name="Col_Character" Header="Character" Binding="{Binding Character}"   HeaderStyle="{StaticResource LeftHeader}"/>
                 <DataGridTextColumn x:Name="Col_Age"       Header="Age"       Binding="{Binding Age}" 
                                     CellStyle="{StaticResource RightCell}" 
-                                    Visibility="{Binding Data.ApiVisibility, Source={StaticResource proxy}}"/>
+                                    Visibility="{Binding Data.ApiVisibilityHide, Source={StaticResource proxy}}"/>
 
                 <DataGridTemplateColumn x:Name="Col_VPNs" Header="VPNs"
-                                        Visibility="{Binding Data.VpnVisibility, Source={StaticResource proxy}}">
+                                        Visibility="{Binding Data.VpnVisibilityHide, Source={StaticResource proxy}}">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <ComboBox ItemsSource="{Binding Vpns}" 
@@ -77,12 +77,12 @@
 
                 <DataGridTextColumn x:Name="Col_Laurels" Header="Laurels" CellStyle="{StaticResource RightCell}"
                                     Binding="{Binding LaurelCount, FallbackValue=0}"
-                                    Visibility="{Binding Data.ApiVisibility, Source={StaticResource proxy}}">
+                                    Visibility="{Binding Data.ApiVisibilityHide, Source={StaticResource proxy}}">
                 </DataGridTextColumn>
 
                 <DataGridTextColumn x:Name="Col_MC" Header="M.C." CellStyle="{StaticResource RightCell}"
                                     Binding="{Binding MysticCoinCount, FallbackValue=?}"
-                                    Visibility="{Binding Data.ApiVisibility, Source={StaticResource proxy}}">
+                                    Visibility="{Binding Data.ApiVisibilityHide, Source={StaticResource proxy}}">
                 </DataGridTextColumn>
 
                 <DataGridTextColumn x:Name="Col_Status" Header="Status" Binding="{Binding RunStatus}">
@@ -130,18 +130,18 @@
             <TextBox Width="{Binding ElementName=Col_Age,Path=ActualWidth}" 
                      BorderThickness="0" 
                      HorizontalContentAlignment="Right"  
-                     Visibility="{Binding ApiVisibility}"/>
+                     Visibility="{Binding ApiVisibilityHide}"/>
 
-            <TextBox Width="{Binding ElementName=Col_VPNs,Path=ActualWidth}" BorderThickness="0" HorizontalContentAlignment="Right" Visibility="{Binding VpnVisibility}"/>
+            <TextBox Width="{Binding ElementName=Col_VPNs,Path=ActualWidth}" BorderThickness="0" HorizontalContentAlignment="Right" Visibility="{Binding VpnVisibilityCollapse, Mode=OneWay}"/>
             <TextBox Width="{Binding ElementName=Col_LastLogin,Path=ActualWidth}" BorderThickness="0" HorizontalContentAlignment="Right"/>
             <TextBox Width="{Binding ElementName=Col_Login,Path=ActualWidth}" BorderThickness="0" HorizontalContentAlignment="Right"/>
             <TextBox Width="{Binding ElementName=Col_LastCollected,Path=ActualWidth}" BorderThickness="0" HorizontalContentAlignment="Right"/>
             <TextBox Width="{Binding ElementName=Col_Chests,Path=ActualWidth}" BorderThickness="0"
                      Text="{Binding TotalChests, Mode=OneWay, FallbackValue=10}" FontWeight="Bold" HorizontalContentAlignment="Right"/>
             <TextBox Width="{Binding ElementName=Col_Collect,Path=ActualWidth}" BorderThickness="0" HorizontalContentAlignment="Right"/>
-            <TextBox Width="{Binding ElementName=Col_Laurels,Path=ActualWidth}" BorderThickness="0" Visibility="{Binding ApiVisibility}"
+            <TextBox Width="{Binding ElementName=Col_Laurels,Path=ActualWidth}" BorderThickness="0" Visibility="{Binding ApiVisibilityCollapse, Mode=OneWay}"
                      Text="{Binding TotalLaurels, Mode=OneWay, FallbackValue=20}" FontWeight="Bold" HorizontalContentAlignment="Right"/>
-            <TextBox Width="{Binding ElementName=Col_MC,Path=ActualWidth}" BorderThickness="0" Visibility="{Binding ApiVisibility}"
+            <TextBox Width="{Binding ElementName=Col_MC,Path=ActualWidth}" BorderThickness="0" Visibility="{Binding ApiVisibilityCollapse, Mode=OneWay}"
                      Text="{Binding TotalMC, Mode=OneWay, FallbackValue=30}" FontWeight="Bold" HorizontalContentAlignment="Right"/>
             <TextBox Width="{Binding ElementName=Col_Status,Path=ActualWidth}" BorderThickness="0" HorizontalContentAlignment="Right"/>
             <TextBox Width="{Binding ElementName=Col_Attempt,Path=ActualWidth}" BorderThickness="0" HorizontalContentAlignment="Right"/>
