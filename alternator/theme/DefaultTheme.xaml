@@ -92,6 +92,12 @@
     <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource DefaultStyle}">
         <Setter Property="HorizontalAlignment" Value="Left" />
         <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style x:Key="SettingsText" TargetType="{x:Type TextBox}" BasedOn="{StaticResource DefaultStyle}" >
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="Background" Value="{StaticResource HighlightBrush}" />
         <Setter Property="Foreground" Value="{StaticResource BackgroundBrush}" />
     </Style>
