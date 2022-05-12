@@ -459,8 +459,9 @@ public class MainViewModel : ObservableObject
     {
         if (accounts==null) return;
 
-        var options = new ParallelOptions { MaxDegreeOfParallelism = 3 };
-        await Parallel.ForEachAsync(accounts.Where(a => !string.IsNullOrEmpty(a.ApiKey)), options, async (account, _) => await account.FetchAccountDetails(cancellationToken));
+        var options = new ParallelOptions { MaxDegreeOfParallelism = 3, CancellationToken = cancellationToken };
+        var delay = new TimeSpan(0, 0, 0, 0, 200);
+        await Parallel.ForEachAsync(accounts.Where(a => !string.IsNullOrEmpty(a.ApiKey)), options, async (account, _) => await account.FetchAccountDetails(delay, cancellationToken));
     }
 
 }

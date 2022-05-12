@@ -18,8 +18,8 @@ public interface IAccount : IEquatable<IAccount>
     bool CollectionRequired { get; }
     bool UpdateRequired { get; }
     Task SwapFilesAsync(FileInfo gw2LocalDat, FileInfo gw2GfxSettings, FileInfo referenceGfxSettingsFile);
-    double MysticCoinsGuess { get; }
-    double LaurelsGuess { get; }
+    int MysticCoinsGuess { get; }
+    int LaurelsGuess { get; }
     event PropertyChangedEventHandler? PropertyChanged;
     int Attempt { get; }
     int LoginCount { get; set; }
@@ -32,7 +32,7 @@ public interface IAccount : IEquatable<IAccount>
     bool CheckApiKeyValid(string pasteText);
     void SetUndo();
     void Undo();
-    Task FetchAccountDetails(CancellationToken cancellationToken);
+    Task FetchAccountDetails(TimeSpan delay, CancellationToken cancellationToken);
 
     Task<Client> NewClient(string folderPath);
     Client? CurrentClient { get; }
@@ -105,9 +105,9 @@ public class Account : ObservableObject, IAccount
 
 
     [JsonIgnore]
-    public double MysticCoinsGuess => GetCurrency("MysticCoin") ?? 0;
+    public int MysticCoinsGuess => GetCurrency("MysticCoin") ?? 0;
     [JsonIgnore]
-    public double LaurelsGuess => GetCurrency("Laurel") ?? 0;
+    public int LaurelsGuess => GetCurrency("Laurel") ?? 0;
 
     public void UpdateVpn(VpnDetails vpn, bool isChecked)
     {
@@ -153,7 +153,7 @@ public class Account : ObservableObject, IAccount
         LastCollection = DateTime.UtcNow;
         AccountCollected?.Invoke(this, EventArgs.Empty);
         apiLookup?.Wait();
-        apiLookup = FetchAccountDetails(new CancellationToken());
+        apiLookup = FetchAccountDetails(new TimeSpan(0, 5, 0),  new CancellationToken());
     }
 
     public void SetFail()
@@ -343,10 +343,11 @@ public class Account : ObservableObject, IAccount
     public const int MysticCoinId = 19976;
     public const int LaurelId = 3;
 
-    public async Task FetchAccountDetails(CancellationToken cancellationToken)
+    public async Task FetchAccountDetails(TimeSpan delay,  CancellationToken cancellationToken)
     {
         try
         {
+            await Task.Delay(delay, cancellationToken);
             var details = await GetAccountDetails(cancellationToken);
             SetFromApiDetails(details);
         }

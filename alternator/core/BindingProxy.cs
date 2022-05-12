@@ -1,4 +1,4 @@
-﻿namespace guildwars2.tools.alternator.core;
+﻿namespace guildwars2.tools.alternator;
 
 public class BindingProxy : Freezable
 {

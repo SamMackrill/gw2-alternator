@@ -4,101 +4,150 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewmodel="clr-namespace:guildwars2.tools.alternator.MVVM.viewmodel"
-             xmlns:core="clr-namespace:guildwars2.tools.alternator.core"
+             xmlns:alternator="clr-namespace:guildwars2.tools.alternator"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance Type=viewmodel:AccountsViewModel}"
-             d:DesignHeight="300"
+             d:DesignHeight="164"
 >
 
 
     <UserControl.Resources>
-        <core:BindingProxy x:Key="proxy" Data="{Binding}" />
+        <alternator:BindingProxy x:Key="proxy" Data="{Binding}" />
     </UserControl.Resources>
 
-    <DataGrid Background="Transparent"
-              Margin="4"
-              AutoGenerateColumns="False"
-              CanUserSortColumns="True"
-              CanUserResizeColumns="True"
-              CanUserReorderColumns="True"
-              CanUserDeleteRows="False"
-              GridLinesVisibility="None"
-              RowHeaderWidth="0"
-              SelectionMode="Extended"
-              IsReadOnly="True"
-              SelectionUnit="FullRow"
-              BorderThickness="0"
-              d:ItemsSource="{d:SampleData}"
-              ItemsSource="{Binding Accounts}"
+    <Grid Margin="4" ShowGridLines="False">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+
+        <DataGrid Grid.Row="0" Margin="0"
+                  BorderThickness="0"
+                  Background="Transparent"
+                  AutoGenerateColumns="False"
+                  CanUserSortColumns="True"
+                  CanUserResizeColumns="True"
+                  CanUserReorderColumns="True"
+                  CanUserDeleteRows="False"
+                  GridLinesVisibility="Horizontal"
+                  HorizontalGridLinesBrush="Transparent"
+                  RowHeaderWidth="0"
+                  SelectionMode="Extended"
+                  IsReadOnly="True"
+                  SelectionUnit="FullRow"
+                  d:ItemsSource="{d:SampleData}"
+                  ItemsSource="{Binding Accounts}"
               >
 
-        <DataGrid.Columns>
-            <DataGridTextColumn Header="Account" Binding="{Binding AccountName}" />
-            <DataGridTextColumn Header="Character" Binding="{Binding Character}"/>
-            <DataGridTextColumn Header="Age" Binding="{Binding Age}" />
+            <DataGrid.Columns>
+                <DataGridTextColumn x:Name="Col_Account"   Header="Account"   Binding="{Binding AccountName}" HeaderStyle="{StaticResource LeftHeader}"/>
+                <DataGridTextColumn x:Name="Col_Character" Header="Character" Binding="{Binding Character}"   HeaderStyle="{StaticResource LeftHeader}"/>
+                <DataGridTextColumn x:Name="Col_Age"       Header="Age"       Binding="{Binding Age}" 
+                                    CellStyle="{StaticResource RightCell}" 
+                                    Visibility="{Binding Data.ApiVisibility, Source={StaticResource proxy}}"/>
 
-            <DataGridTemplateColumn Header="VPNs"
-                                    Visibility="{Binding Data.VpnVisibility, Source={StaticResource proxy}}">
-                <DataGridTemplateColumn.CellTemplate>
-                    <DataTemplate>
-                        <ComboBox ItemsSource="{Binding Vpns}" 
+                <DataGridTemplateColumn x:Name="Col_VPNs" Header="VPNs"
+                                        Visibility="{Binding Data.VpnVisibility, Source={StaticResource proxy}}">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ComboBox ItemsSource="{Binding Vpns}" 
                                   IsEditable="True" 
                                   IsReadOnly="True"
                                   Text="{Binding VpnsDisplay, Mode=OneWay}">
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal">
-                                        <CheckBox IsChecked="{Binding IsChecked}" Width="20" />
-                                        <TextBlock Text="{Binding Display}" />
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                        </ComboBox>
-                    </DataTemplate>
-                </DataGridTemplateColumn.CellTemplate>
-            </DataGridTemplateColumn>
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <CheckBox IsChecked="{Binding IsChecked}" Width="20" />
+                                            <TextBlock Text="{Binding Display}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
 
-            <DataGridTextColumn Header="Last Login" Binding="{Binding Login}"/>
-            <DataGridTextColumn Header="Login?" Binding="{Binding LoginRequired}"/>
-            <DataGridTextColumn Header="Last Collected" Binding="{Binding Collected}"/>
-            <DataGridTextColumn Header="Chests" Binding="{Binding LoginCount}"/>
-            <DataGridTextColumn Header="Collect?" Binding="{Binding CollectionRequired}"/>
-            <DataGridTextColumn Header="Laurels" Binding="{Binding LaurelCount, FallbackValue=?}"
-                                Visibility="{Binding Data.ApiVisibility, Source={StaticResource proxy}}" />
-            <DataGridTextColumn Header="MC" Binding="{Binding MysticCoinCount, FallbackValue=?}"
-                                Visibility="{Binding Data.ApiVisibility, Source={StaticResource proxy}}" />
+                <DataGridTextColumn x:Name="Col_LastLogin" Header="Last Login" Binding="{Binding Login}" CellStyle="{StaticResource RightCell}"/>
+                <DataGridTextColumn x:Name="Col_Login" Header="Login?" Binding="{Binding LoginRequired}" CellStyle="{StaticResource CenterCell}"/>
+                <DataGridTextColumn x:Name="Col_LastCollected" Header="Last Collected" Binding="{Binding Collected}" CellStyle="{StaticResource RightCell}"/>
+                <DataGridTextColumn x:Name="Col_Chests" Header="Chests" 
+                                Binding="{Binding LoginCount}" CellStyle="{StaticResource RightCell}">
+                </DataGridTextColumn>
+                <DataGridTextColumn x:Name="Col_Collect" Header="Collect?" Binding="{Binding CollectionRequired}" CellStyle="{StaticResource CenterCell}"/>
 
-            <DataGridTextColumn Header="Status" Binding="{Binding RunStatus}" >
+                <DataGridTextColumn x:Name="Col_Laurels" Header="Laurels" CellStyle="{StaticResource RightCell}"
+                                    Binding="{Binding LaurelCount, FallbackValue=0}"
+                                    Visibility="{Binding Data.ApiVisibility, Source={StaticResource proxy}}">
+                </DataGridTextColumn>
 
-                <DataGridTextColumn.CellStyle>
-                    <Style TargetType="DataGridCell">
-                        <Setter Property="ToolTip">
-                            <Setter.Value>
-                                <ToolTip Content="{Binding TooltipText}" />
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </DataGridTextColumn.CellStyle>
+                <DataGridTextColumn x:Name="Col_MC" Header="M.C." CellStyle="{StaticResource RightCell}"
+                                    Binding="{Binding MysticCoinCount, FallbackValue=?}"
+                                    Visibility="{Binding Data.ApiVisibility, Source={StaticResource proxy}}">
+                </DataGridTextColumn>
 
-                <DataGridTextColumn.ElementStyle>
-                    <Style TargetType="{x:Type TextBlock}">
-                        <Style.Triggers>
-                            <Trigger Property="Text" Value="Running">
-                                <Setter Property="Background" Value="{StaticResource HighlightBrush}"/>
-                            </Trigger>
-                            <Trigger Property="Text" Value="Error">
-                                <Setter Property="Foreground" Value="{StaticResource BackgroundBrush}"/>
-                                <Setter Property="Background" Value="{StaticResource ForegroundBrush}"/>
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </DataGridTextColumn.ElementStyle>
-            </DataGridTextColumn>
+                <DataGridTextColumn x:Name="Col_Status" Header="Status" Binding="{Binding RunStatus}">
 
-            <DataGridTextColumn Header="Attempt" Binding="{Binding Attempt, FallbackValue=0}"/>
+                    <DataGridTextColumn.CellStyle>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="ToolTip">
+                                <Setter.Value>
+                                    <ToolTip Content="{Binding TooltipText}" />
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </DataGridTextColumn.CellStyle>
 
-        </DataGrid.Columns>
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="{x:Type TextBlock}">
+                            <Setter Property="HorizontalAlignment" Value="Right" />
+                            <Style.Triggers>
+                                <Trigger Property="Text" Value="Running">
+                                    <Setter Property="Background" Value="{StaticResource HighlightBrush}"/>
+                                </Trigger>
+                                <Trigger Property="Text" Value="Error">
+                                    <Setter Property="Foreground" Value="{StaticResource BackgroundBrush}"/>
+                                    <Setter Property="Background" Value="{StaticResource ForegroundBrush}"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
 
-    </DataGrid>
+                <DataGridTextColumn x:Name="Col_Attempt" Header="Attempt" Binding="{Binding Attempt, FallbackValue=0}" CellStyle="{StaticResource RightCell}"/>
+
+            </DataGrid.Columns>
+
+        </DataGrid>
+
+        <StackPanel Grid.Row="1"
+                    Margin="0"
+                    Orientation="Horizontal"
+                    Background="Transparent"
+        >
+            <TextBox Width="{Binding ElementName=Col_Account,Path=ActualWidth}" BorderThickness="0"
+                     Text="{Binding DisplayText, Mode=OneTime, FallbackValue=Total}" FontWeight="Bold"/>
+            <TextBox Width="{Binding ElementName=Col_Character,Path=ActualWidth}" BorderThickness="0"/>
+            <TextBox Width="{Binding ElementName=Col_Age,Path=ActualWidth}" 
+                     BorderThickness="0" 
+                     HorizontalContentAlignment="Right"  
+                     Visibility="{Binding ApiVisibility}"/>
+
+            <TextBox Width="{Binding ElementName=Col_VPNs,Path=ActualWidth}" BorderThickness="0" HorizontalContentAlignment="Right" Visibility="{Binding VpnVisibility}"/>
+            <TextBox Width="{Binding ElementName=Col_LastLogin,Path=ActualWidth}" BorderThickness="0" HorizontalContentAlignment="Right"/>
+            <TextBox Width="{Binding ElementName=Col_Login,Path=ActualWidth}" BorderThickness="0" HorizontalContentAlignment="Right"/>
+            <TextBox Width="{Binding ElementName=Col_LastCollected,Path=ActualWidth}" BorderThickness="0" HorizontalContentAlignment="Right"/>
+            <TextBox Width="{Binding ElementName=Col_Chests,Path=ActualWidth}" BorderThickness="0"
+                     Text="{Binding TotalChests, Mode=OneWay, FallbackValue=10}" FontWeight="Bold" HorizontalContentAlignment="Right"/>
+            <TextBox Width="{Binding ElementName=Col_Collect,Path=ActualWidth}" BorderThickness="0" HorizontalContentAlignment="Right"/>
+            <TextBox Width="{Binding ElementName=Col_Laurels,Path=ActualWidth}" BorderThickness="0" Visibility="{Binding ApiVisibility}"
+                     Text="{Binding TotalLaurels, Mode=OneWay, FallbackValue=20}" FontWeight="Bold" HorizontalContentAlignment="Right"/>
+            <TextBox Width="{Binding ElementName=Col_MC,Path=ActualWidth}" BorderThickness="0" Visibility="{Binding ApiVisibility}"
+                     Text="{Binding TotalMC, Mode=OneWay, FallbackValue=30}" FontWeight="Bold" HorizontalContentAlignment="Right"/>
+            <TextBox Width="{Binding ElementName=Col_Status,Path=ActualWidth}" BorderThickness="0" HorizontalContentAlignment="Right"/>
+            <TextBox Width="{Binding ElementName=Col_Attempt,Path=ActualWidth}" BorderThickness="0" HorizontalContentAlignment="Right"/>
+
+        </StackPanel>
+
+    </Grid>
 
 </UserControl>

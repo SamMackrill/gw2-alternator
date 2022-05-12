@@ -43,7 +43,7 @@ public class AccountsViewModel : ObservableObject
         Add(accountCollection.Accounts);
     }
 
-    public IEnumerable<IAccount> SelectedAccounts => Accounts.Where(i => i.IsSelected).Select(i => i.Account);
+    public IEnumerable<IAccount> SelectedAccounts => Accounts.Where(i => i is {IsSelected: true}).Select(i => i.Account)!;
 
     public void Clear()
     {
@@ -55,9 +55,17 @@ public class AccountsViewModel : ObservableObject
 
     public void SetVpns()
     {
-        foreach (var account in Accounts)
+        foreach (var account in Accounts.Where(a => a.Account != null))
         {
-            account.Vpns = vpnCollection.GetAccountVpns(account.Account).OrderBy(v => v.Id).ToList();
+            account.Vpns = vpnCollection.GetAccountVpns(account.Account!).OrderBy(v => v.Id).ToList();
         }
     }
+
+
+    // Totals
+    public string DisplayText => "TOTAL";
+
+    public string TotalChests => Accounts.Sum(a => a.Account?.LoginCount ?? 0).ToString();
+    public string TotalLaurels => Accounts.Sum(a => a.Account?.LaurelsGuess ?? 0).ToString();
+    public string TotalMC => Accounts.Sum(a => a.Account?.MysticCoinsGuess ?? 0).ToString();
 }
