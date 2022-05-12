@@ -33,6 +33,7 @@
                                  VerticalAlignment="Stretch" VerticalContentAlignment="Center"
                                  HorizontalAlignment="Stretch"
                                  HorizontalContentAlignment="Right"
+                                 Style="{StaticResource SettingsText}"
                                  local:InputLimit.DecimalValueProxy="{Binding RelativeSource={RelativeSource Mode=TemplatedParent}, Path=Value}"
                                  Text="{Binding RelativeSource={RelativeSource Self}, Path=(local:InputLimit.DecimalValueProxy), UpdateSourceTrigger=PropertyChanged}">
                             <TextBox.InputBindings>
