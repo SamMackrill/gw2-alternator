@@ -349,14 +349,14 @@ public class Account : ObservableObject, IAccount
     {
         try
         {
-            if (delay.TotalSeconds>10) Logger.Debug($"FetchAccountDetails : Delay={delay}");
+            if (delay.TotalSeconds>10) Logger.Debug($"{0} FetchAccountDetails : Delay={1}", Name, delay);
             await Task.Delay(delay, cancellationToken);
             var details = await GetAccountDetails(cancellationToken);
             SetFromApiDetails(details);
         }
         catch (Exception e)
         {
-            Logger.Error(e, "FetchAccountDetails");
+            Logger.Error(e, $"{0} FetchAccountDetails");
         }
     }
 
