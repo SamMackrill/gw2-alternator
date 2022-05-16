@@ -278,6 +278,16 @@
 
         </Border>
 
+
     </Grid>
+
+
+    <Window.InputBindings>
+        <KeyBinding 
+            Key="A"
+            Modifiers="Control"
+            Command="{Binding SelectAllCommand}" 
+        />
+    </Window.InputBindings>
 
 </view:WindowBase>

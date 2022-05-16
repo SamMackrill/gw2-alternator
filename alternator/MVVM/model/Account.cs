@@ -143,6 +143,8 @@ public class Account : ObservableObject, IAccount
     {
         LastLogin = DateTime.UtcNow;
         successFailCounter.SetSuccess();
+        apiLookup?.Wait();
+        apiLookup = FetchAccountDetails(new TimeSpan(0, 5, 0), new CancellationToken());
     }
 
     private Task? apiLookup;
@@ -347,6 +349,7 @@ public class Account : ObservableObject, IAccount
     {
         try
         {
+            if (delay.TotalSeconds>10) Logger.Debug($"FetchAccountDetails : Delay={delay}");
             await Task.Delay(delay, cancellationToken);
             var details = await GetAccountDetails(cancellationToken);
             SetFromApiDetails(details);

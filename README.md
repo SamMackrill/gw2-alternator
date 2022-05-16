@@ -63,9 +63,9 @@ Logging in every day can be a chore but a few factors make this much less so:
    * Using a VPN will help
    * Waiting a few minutes (5?) will help
    * GW2-Alternator tries to counter this by slowing down the login attempts after a failure
-     * However the delay required depend on the past login history and is difficult to guess
+     * However the delay required depends on the past login history and is difficult to guess
      * There are tuning parameters in Settings to help adjust this
- * To update the GW2 settings for accounts
+ * To update the GW2 settings for accounts:
    * Check Force Serial
    * Check Ignore VPN
    * Select some accounts
@@ -82,14 +82,16 @@ Logging in every day can be a chore but a few factors make this much less so:
 [Google Doc](https://docs.google.com/spreadsheets/d/1wrKWp_2dLXHZrtC2WtUN2d-j0Z8Fl4EqnV_mO9Up72E/edit?usp=sharing)
 
 ### GW2 API Key
- * Given a GW2 API key then Laurels and Mystic Coins will be counted (includes an estimate from unclaimed reward chests)
+ * Given a GW2 API key then Laurels and Mystic Coins will be counted (excludes any from unclaimed reward chests, max 4)
    * Account/Inventories/Characters/Wallet
 
  ![Create Key](images/api_create.png)
 
 ### VPN
- * If you create manual VPN configurations in Windows then alternator can be configured these automatically
+ * If you create manual VPN configurations in Windows then alternator can be configured to use these automatically
    * Ensure that the connection is a static IP or restricted to 255.255.255.0 subnet (for smooth GW2 authentication)
+     * Windows stores them here: %APPDATA%\Microsoft\Network\Connections\Pbk\rasphone.pbk
+     * They are found using the search pattern in settings
    * [Shark VPN instructions](https://support.surfshark.com/hc/en-us/articles/360003144894-How-to-set-up-an-IKEv2-connection-manually-on-Windows-)
      * [Mighty Teapot Referral](http://surfshark.deals/MightyTeapot)
 

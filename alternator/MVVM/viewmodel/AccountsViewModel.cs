@@ -53,9 +53,9 @@ public class AccountsViewModel : ObservableObject
     }
 
     public Visibility VpnVisibilityHide => (settingsController.Settings?.AlwaysIgnoreVpn ?? true) || !vpnCollection.Any() ? Visibility.Hidden : Visibility.Visible;
-    public Visibility ApiVisibilityHide => Accounts.Any(a => !string.IsNullOrEmpty(a.Account.ApiKey)) ? Visibility.Visible : Visibility.Hidden;
+    public Visibility ApiVisibilityHide => Accounts.Any(a => !string.IsNullOrEmpty(a.Account?.ApiKey)) ? Visibility.Visible : Visibility.Hidden;
     public Visibility VpnVisibilityCollapse => (settingsController.Settings?.AlwaysIgnoreVpn ?? true) || !vpnCollection.Any() ? Visibility.Collapsed : Visibility.Visible;
-    public Visibility ApiVisibilityCollapse => Accounts.Any(a => !string.IsNullOrEmpty(a.Account.ApiKey)) ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility ApiVisibilityCollapse => Accounts.Any(a => !string.IsNullOrEmpty(a.Account?.ApiKey)) ? Visibility.Visible : Visibility.Collapsed;
 
     public void SetVpns()
     {
@@ -72,4 +72,21 @@ public class AccountsViewModel : ObservableObject
     public string TotalChests => Accounts.Sum(a => a.Account?.LoginCount ?? 0).ToString();
     public string TotalLaurels => Accounts.Sum(a => a.Account?.LaurelsGuess ?? 0).ToString();
     public string TotalMC => Accounts.Sum(a => a.Account?.MysticCoinsGuess ?? 0).ToString();
+
+
+    public RelayCommand<object> SelectAllCommand => new(_ =>
+    {
+        SelectAll();
+    });
+
+
+    public void SelectAll()
+    {
+        var toState = Accounts.Any(a => !a.IsSelected);
+        foreach (var account in Accounts)
+        {
+            account.IsSelected = toState;
+        }
+    }
+
 }

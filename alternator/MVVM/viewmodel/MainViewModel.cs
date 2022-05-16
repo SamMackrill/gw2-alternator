@@ -202,6 +202,12 @@ public class MainViewModel : ObservableObject
 
     public DelegateLoadedAction LoadAction { get; }
 
+    public RelayCommand<object> SelectAllCommand => new(_ =>
+    {
+        AccountsVM.SelectAll();
+    });
+
+
     public MainViewModel(IDialogService dialogService)
     {
 
@@ -239,7 +245,7 @@ public class MainViewModel : ObservableObject
             {
                 Logger.Error(ex, "Load Accounts");
                 Application.Current.Dispatcher.Invoke(() => {
-                    Application.Current.MainWindow.Show();
+                    Application.Current.MainWindow?.Show();
                     var showerVM = new MessageShowerViewModel();
                     var showerView = new MessageShowerView { DataContext = showerVM };
                     showerView.Show();

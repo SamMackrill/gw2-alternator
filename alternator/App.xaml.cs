@@ -76,6 +76,7 @@ public partial class App : Application
         if (!applicationFolder.Exists) applicationFolder.Create();
         SetLogging(applicationFolder);
 
+
         serviceCollection.AddSingleton<IDialogService, DialogService>();
         serviceCollection.AddSingleton<ISettingsController, SettingsController>(_ =>
         {
@@ -105,6 +106,7 @@ public partial class App : Application
         LogManager.Shutdown();
         base.OnExit(e);
     }
+
 
     private void SetLogging(DirectoryInfo folder)
     {

@@ -85,6 +85,7 @@ public class AccountViewModel : ObservableObject
     }
 
     private string aggregateLoginCount;
+
     public string LoginCount
     {
         get => Account == null ? aggregateLoginCount : Account.LoginCount.ToString();
@@ -94,6 +95,11 @@ public class AccountViewModel : ObservableObject
     public string RunStatus => Account == null ? "" : Account.RunStatus.ToString();
     public string? TooltipText => Account == null ? "" : Account.StatusMessage;
 
-    public bool IsSelected { get; set; }
+    private bool isSelected;
+    public bool IsSelected
+    {
+        get => isSelected;
+        set => _ = SetProperty(ref isSelected, value);
+    }
 }
 
