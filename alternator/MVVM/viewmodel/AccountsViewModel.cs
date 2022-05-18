@@ -12,7 +12,7 @@ public class AccountsViewModel : ObservableObject
         this.vpnCollection = vpnCollection;
         vpnCollection.Updated += VpnCollection_Updated;
         this.settingsController = settingsController;
-        this.settingsController.PropertyChanged += SettingsController_PropertyChanged; 
+        this.settingsController.PropertyChanged += Dependency_PropertyChanged; 
         Accounts = new ObservableCollectionEx<AccountViewModel>();
     }
 
@@ -25,19 +25,27 @@ public class AccountsViewModel : ObservableObject
     private readonly Dictionary<string, List<string>> propertyConverter = new()
     {
         { "AlwaysIgnoreVpn", new() { nameof(VpnVisibilityHide), nameof(VpnVisibilityCollapse) } },
+        { "LaurelCount", new() { nameof(TotalLaurels) } },
+        { "MysticCoinCount", new() { nameof(TotalMC) } },
+        { "LoginCount", new() { nameof(TotalChests) } },
     };
 
-    private void SettingsController_PropertyChanged(object? sender, PropertyChangedEventArgs args)
-    {
-        args.PassOnChanges(OnPropertyChanged, propertyConverter);
-    }
-
-    public void Add(IEnumerable<IAccount>? accounts)
+    private void Add(IEnumerable<IAccount>? accounts)
     {
         if (accounts == null) return;
         Accounts.AddRange(accounts.Select(a => new AccountViewModel(a, settingsController)));
         OnPropertyChanged(nameof(ApiVisibilityHide));
         OnPropertyChanged(nameof(ApiVisibilityCollapse));
+
+        foreach (var account in Accounts.Where(a => a.Account != null))
+        {
+            account.PropertyChanged += Dependency_PropertyChanged;
+        }
+    }
+
+    private void Dependency_PropertyChanged(object? sender, PropertyChangedEventArgs args)
+    {
+        args.PassOnChanges(OnPropertyChanged, propertyConverter);
     }
 
     public void Add(IAccountCollection accountCollection)
@@ -53,9 +61,9 @@ public class AccountsViewModel : ObservableObject
     }
 
     public Visibility VpnVisibilityHide => (settingsController.Settings?.AlwaysIgnoreVpn ?? true) || !vpnCollection.Any() ? Visibility.Hidden : Visibility.Visible;
-    public Visibility ApiVisibilityHide => Accounts.Any(a => !string.IsNullOrEmpty(a.Account.ApiKey)) ? Visibility.Visible : Visibility.Hidden;
+    public Visibility ApiVisibilityHide => Accounts.Any(a => !string.IsNullOrEmpty(a.Account?.ApiKey)) ? Visibility.Visible : Visibility.Hidden;
     public Visibility VpnVisibilityCollapse => (settingsController.Settings?.AlwaysIgnoreVpn ?? true) || !vpnCollection.Any() ? Visibility.Collapsed : Visibility.Visible;
-    public Visibility ApiVisibilityCollapse => Accounts.Any(a => !string.IsNullOrEmpty(a.Account.ApiKey)) ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility ApiVisibilityCollapse => Accounts.Any(a => !string.IsNullOrEmpty(a.Account?.ApiKey)) ? Visibility.Visible : Visibility.Collapsed;
 
     public void SetVpns()
     {
@@ -65,6 +73,16 @@ public class AccountsViewModel : ObservableObject
         }
     }
 
+    public RelayCommand<object> SelectAllCommand => new(_ => { SelectAll(); });
+
+    public void SelectAll()
+    {
+        var toState = Accounts.Any(a => !a.IsSelected);
+        foreach (var account in Accounts)
+        {
+            account.IsSelected = toState;
+        }
+    }
 
     // Totals
     public string DisplayText => "TOTAL";
@@ -72,4 +90,5 @@ public class AccountsViewModel : ObservableObject
     public string TotalChests => Accounts.Sum(a => a.Account?.LoginCount ?? 0).ToString();
     public string TotalLaurels => Accounts.Sum(a => a.Account?.LaurelsGuess ?? 0).ToString();
     public string TotalMC => Accounts.Sum(a => a.Account?.MysticCoinsGuess ?? 0).ToString();
+
 }

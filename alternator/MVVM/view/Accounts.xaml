@@ -117,6 +117,14 @@
 
             </DataGrid.Columns>
 
+            <DataGrid.InputBindings>
+                <KeyBinding 
+                    Key="A"
+                    Modifiers="Control"
+                    Command="{Binding SelectAllCommand}" 
+                />
+            </DataGrid.InputBindings>
+
         </DataGrid>
 
         <StackPanel Grid.Row="1"

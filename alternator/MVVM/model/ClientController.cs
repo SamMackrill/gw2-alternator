@@ -200,7 +200,7 @@ public class ClientController
 
         foreach (var client in clients.Where(c => c.Account.Name != null && c.StartAt > DateTime.MinValue).OrderBy(c => c.StartAt))
         {
-            Logger.Debug("Client {0} {1} {2}", client.Account.Name, client.AccountIndex, client.StartAt);
+            //Logger.Debug("Client {0} {1} {2}", client.Account.Name, client.AccountIndex, client.StartAt);
             var line = client.Account.Name;
             var reference = startOfRun;
             (line, reference) = AddOffset(reference, client.StartAt, line!);
