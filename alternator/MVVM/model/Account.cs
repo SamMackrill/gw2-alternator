@@ -143,7 +143,6 @@ public class Account : ObservableObject, IAccount
     {
         LastLogin = DateTime.UtcNow;
         successFailCounter.SetSuccess();
-        apiLookup?.Wait();
         apiLookup = FetchAccountDetails(new TimeSpan(0, 5, 0), new CancellationToken());
     }
 
@@ -154,8 +153,6 @@ public class Account : ObservableObject, IAccount
         LoginCount = 0;
         LastCollection = DateTime.UtcNow;
         AccountCollected?.Invoke(this, EventArgs.Empty);
-        apiLookup?.Wait();
-        apiLookup = FetchAccountDetails(new TimeSpan(0, 5, 0),  new CancellationToken());
     }
 
     public void SetFail()
