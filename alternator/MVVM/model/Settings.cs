@@ -132,6 +132,13 @@ public class Settings : ObservableObject
         set => SetProperty(ref displayLocalTime, value);
     }
 
+    private bool logAccounts;
+    public bool LogAccounts
+    {
+        get => logAccounts;
+        set => SetProperty(ref logAccounts, value);
+    }
+
     private string? vpnMatch;
     public string? VpnMatch
     {

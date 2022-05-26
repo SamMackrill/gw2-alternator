@@ -95,6 +95,8 @@ public class AccountCollection : JsonCollection<Account>, IAccountCollection
 
     public int ImportFromLaunchbuddy()
     {
+        Logger.Debug("ImportFromLaunchbuddy");
+
         int accountsLoaded = 0;
         try
         {
@@ -171,10 +173,12 @@ public class AccountCollection : JsonCollection<Account>, IAccountCollection
         return accountsLoaded;
     }
 
-    public bool CanImportFromLauncher => Directory.Exists(launchbuddyFolder);
+    public bool CanImportFromLauncher => Directory.Exists(launcherFolder);
 
     public int ImportFromLauncher()
     {
+        Logger.Debug("ImportFromLauncher");
+
         int accountsLoaded = 0;
 
         bool[] ExpandBooleans(byte[] bytes)
@@ -217,12 +221,13 @@ public class AccountCollection : JsonCollection<Account>, IAccountCollection
             var SortingOptions_ARRAY_SIZE = 2;
 
             var settingsPath = Path.Combine(launcherFolder, "settings.dat");
+            Logger.Debug("Importing form {0}", settingsPath);
 
             using var reader = new BinaryReader(new BufferedStream(File.Open(settingsPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)));
             var header = reader.ReadBytes(expectedHeader.Length);
             if (!header.IsTheSameAs(expectedHeader)) throw new IOException("Invalid GW2-Launcher settings header");
-            var version = reader.ReadUInt16();
 
+            var version = reader.ReadUInt16();
             if (version != 11) throw new IOException("Only GW2-Launcher V11 supported");
 
             var count = reader.ReadByte();

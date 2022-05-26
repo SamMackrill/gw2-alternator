@@ -263,8 +263,9 @@ public class MainViewModel : ObservableObject
 
         async Task LaunchMultipleAccounts(
             LaunchType launchType, 
-            bool all, 
-            bool serial, 
+            bool all,
+            bool serial,
+            bool logAccounts,
             bool ignoreVpn)
         {
             try
@@ -290,7 +291,8 @@ public class MainViewModel : ObservableObject
                     AccountsVM.SelectedAccounts.ToList(), 
                     accountCollection, 
                     all, 
-                    !serial, 
+                    !serial,
+                    logAccounts,
                     ignoreVpn, 
                     maxInstances,
                     vpnAccountCount,
@@ -311,7 +313,8 @@ public class MainViewModel : ObservableObject
                 await LaunchMultipleAccounts(
                     launchType, 
                     ForceAllOverride, 
-                    ForceSerialOverride, 
+                    ForceSerialOverride,
+                    settingsController.Settings!.LogAccounts,
                     IgnoreVpnOverride || settingsController.Settings!.AlwaysIgnoreVpn
                     );
                 tidyUp?.Invoke();

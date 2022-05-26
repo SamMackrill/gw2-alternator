@@ -45,7 +45,8 @@ global using guildwars2.tools.alternator.MVVM.view;
 global using guildwars2.tools.alternator.MVVM.viewmodel;
 
 global using NLog;
-
+using NLog.Config;
+using NLog.Layouts;
 using NLog.Targets;
 using XamlParseException = System.Windows.Markup.XamlParseException;
 
@@ -89,12 +90,18 @@ public partial class App : Application
             return settingsController;
         });
 
-        serviceCollection.AddSingleton<IAccountCollection, AccountCollection>(_ => new AccountCollection(applicationFolder, Path.Combine(appData, @"Gw2 Launchbuddy"), Path.Combine(appData, @"Gw2Launcher")));
+        serviceCollection.AddSingleton<IAccountCollection, AccountCollection>(_ =>
+        {
+            var launchbuddyFolder = Path.Combine(appData, @"Gw2 Launchbuddy");
+            Logger.Info("LaunchBuddy Folder: {0} Exists={1}", launchbuddyFolder, Directory.Exists(launchbuddyFolder));
+            var launcherFolder = Path.Combine(appData, @"Gw2Launcher");
+            Logger.Info("GW2Launcher Folder: {0} Exists={1}", launcherFolder, Directory.Exists(launcherFolder));
+            return new AccountCollection(applicationFolder, launchbuddyFolder, launcherFolder);
+        });
         serviceCollection.AddSingleton<IVpnCollection, VpnCollection>(_ => new VpnCollection(applicationFolder));
         serviceCollection.AddTransient<MainViewModel>();
 
         Ioc.Default.ConfigureServices(serviceCollection.BuildServiceProvider());
-
 
         base.OnStartup(e);
     }
@@ -110,39 +117,54 @@ public partial class App : Application
 
     private void SetLogging(DirectoryInfo folder)
     {
-        var config = new NLog.Config.LoggingConfiguration();
+        LogManager.Configuration = LoggingConfiguration(folder);
+    }
+
+    private static LoggingConfiguration LoggingConfiguration(DirectoryInfo folder)
+    {
+        var layout = new SimpleLayout {Text = "${longdate}|${level:uppercase=true}|${logger:shortName=true}|${message:withexception=true}" };
+
+        var config = new LoggingConfiguration();
 
         var logfile = new FileTarget("logfile")
         {
-            FileName = Path.Combine(folder.FullName, "gw2-alternator-log.txt"), 
-            DeleteOldFileOnStartup = true
+            FileName = Path.Combine(folder.FullName, "gw2-alternator-log.txt"),
+            Layout = layout,
+            ArchiveOldFileOnStartup = true,
+            ArchiveNumbering = ArchiveNumberingMode.DateAndSequence,
+            MaxArchiveDays = 7,
         };
         config.AddRule(LogLevel.Info, LogLevel.Info, logfile);
 
         var debugLogfile = new FileTarget("debuglogfile")
         {
             FileName = Path.Combine(folder.FullName, "gw2-alternator-debug-log.txt"),
-            DeleteOldFileOnStartup = true
+            Layout = layout,
+            ArchiveOldFileOnStartup = true,
+            ArchiveNumbering = ArchiveNumberingMode.DateAndSequence,
+            MaxArchiveDays = 7,
         };
         config.AddRule(LogLevel.Trace, LogLevel.Fatal, debugLogfile);
 
         var errorLogfile = new FileTarget("errorlogfile")
         {
             FileName = Path.Combine(folder.FullName, "gw2-alternator-error-log.txt"),
-            DeleteOldFileOnStartup = false
+            Layout = layout,
+            ArchiveOldFileOnStartup = true,
+            ArchiveNumbering = ArchiveNumberingMode.DateAndSequence,
+            MaxArchiveDays = 30,
         };
         config.AddRule(LogLevel.Error, LogLevel.Fatal, errorLogfile);
 
-        config.AddRule(LogLevel.Trace, LogLevel.Fatal, new ConsoleTarget("logconsole"));
+        config.AddRule(LogLevel.Trace, LogLevel.Fatal, new ConsoleTarget("logconsole") { Layout = layout });
 
-        config.AddRule(LogLevel.Trace, LogLevel.Fatal, new DebuggerTarget("debugconsole"));
-
-        LogManager.Configuration = config;
+        config.AddRule(LogLevel.Trace, LogLevel.Fatal, new DebuggerTarget("debugconsole") { Layout = layout});
+        return config;
     }
+
 
     private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
-
 
         // Process unhandled exception
         var shutdown = e.Exception is not XamlParseException;

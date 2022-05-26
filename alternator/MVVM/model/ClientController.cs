@@ -37,6 +37,7 @@ public class ClientController
         IAccountCollection accountCollection,
         bool all,
         bool shareArchive,
+        bool accountLogs,
         bool ignoreVpn,
         int maxInstances,
         int vpnAccountSize,
@@ -104,7 +105,7 @@ public class ClientController
                 foreach (var account in accountsToLaunch)
                 {
                     Logger.Debug("Launching client for Account {0}", account.Name);
-                    clientsToLaunch.Add(await account.NewClient(applicationFolder.FullName));
+                    clientsToLaunch.Add(await account.NewClient());
                 }
                 clients.AddRange(clientsToLaunch);
 
@@ -130,7 +131,7 @@ public class ClientController
                     }
 
                     Logger.Debug("Launching {0} clients", clientsToLaunch.Count);
-                    var tasks = PrimeLaunchTasks(vpn, clientsToLaunch, shareArchive, exeSemaphore, doubleTrouble.Token);
+                    var tasks = PrimeLaunchTasks(vpn, clientsToLaunch, shareArchive, accountLogs, exeSemaphore, doubleTrouble.Token);
                     if (cancellationTokenSource.IsCancellationRequested) return;
 
                     if (first)
@@ -242,6 +243,7 @@ public class ClientController
         VpnDetails vpnDetails, 
         IEnumerable<Client> clients,
         bool shareArchive,
+        bool accountLogs,
         SemaphoreSlim exeSemaphore,
         CancellationToken cancellationToken)
     {
@@ -254,7 +256,8 @@ public class ClientController
                     settingsController.DatFile!, 
                     applicationFolder, 
                     settingsController.GfxSettingsFile!, 
-                    shareArchive, 
+                    shareArchive,
+                    accountLogs,
                     authenticationThrottle, 
                     loginSemaphore, 
                     exeSemaphore

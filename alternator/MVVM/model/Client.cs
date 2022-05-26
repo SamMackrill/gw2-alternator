@@ -1,4 +1,8 @@
-﻿namespace guildwars2.tools.alternator.MVVM.model;
+﻿using NLog.Config;
+using NLog.Layouts;
+using NLog.Targets;
+
+namespace guildwars2.tools.alternator.MVVM.model;
 
 [DebuggerDisplay("{" + nameof(DebugDisplay) + ",nq}")]
 public class Client : ObservableObject, IEquatable<Client>
@@ -15,6 +19,7 @@ public class Client : ObservableObject, IEquatable<Client>
     private long lastStageMemoryUsage;
     private DateTime lastStageSwitchTime;
     private bool closed;
+    private bool killed;
     private record struct EngineTuning(TimeSpan Pause, long MemoryUsage, long MinDiff, TimeSpan StuckDelay, int StuckTolerance);
 
     private EngineTuning tuning;
@@ -35,7 +40,7 @@ public class Client : ObservableObject, IEquatable<Client>
 
     private string? stuckReason;
 
-    private string DebugDisplay => $"{Account.Name} Status:{RunStatus} Stage:{RunStage} {stuckReason}";
+    private string DebugDisplay => $"{Account?.Name ?? "Unset"} Status:{RunStatus} Stage:{RunStage} {stuckReason ?? ""}";
 
     private DateTime startAt;
     public DateTime StartAt
@@ -99,26 +104,16 @@ public class Client : ObservableObject, IEquatable<Client>
         get => statusMessage;
         set => SetProperty(ref statusMessage, value);
     }
-    private ILogger? accountLogger;
-    private readonly LogFactory? logFactory;
+
+    public ILogger? AccountLogger { get; private set; }
+    private LogFactory? logFactory;
     public void ClearLogging()
     {
         logFactory?.Shutdown();
     }
 
-    public Client(IAccount account, int accountIndex, string folderPath)
+    public Client(IAccount account, int accountIndex)
     {
-        //logFactory = new LogFactory();
-        //logFactory.Configuration = new NLog.Config.LoggingConfiguration(logFactory);
-        //var fileTarget = new NLog.Targets.FileTarget("AccountLogger")
-        //{
-        //    FileName = Path.Combine(folderPath, $"{account.Name!.GetSafeFileName() }-log.txt"),
-        //    DeleteOldFileOnStartup = true
-        //};
-        //logFactory.Configuration.AddTarget(fileTarget);
-        //logFactory.Configuration.AddRuleForAllLevels(fileTarget);
-        //accountLogger = logFactory.GetCurrentClassLogger();
-
         Account = account;
         AccountIndex = accountIndex;
         RunStatus = RunState.Ready;
@@ -130,9 +125,29 @@ public class Client : ObservableObject, IEquatable<Client>
         LaunchType launchType,
         Settings settings,
         bool shareArchive,
+        bool accountLogs,
         DirectoryInfo applicationFolder, 
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+        )
     {
+        if (accountLogs)
+        {
+            logFactory = new LogFactory();
+            var fileTarget = new FileTarget("AccountLogger")
+            {
+                FileName = Path.Combine(applicationFolder.FullName, "AccountLogs", $"{Account.Name!.GetSafeFileName()}-{launchType}-log.txt"),
+                Layout = new SimpleLayout { Text = "${longdate}|${message:withexception=true}" },
+                ArchiveOldFileOnStartup = true,
+                ArchiveNumbering = ArchiveNumberingMode.Sequence,
+                MaxArchiveDays = 1,
+            };
+            var config = new LoggingConfiguration();
+            config.AddTarget(fileTarget);
+            config.AddRuleForAllLevels(fileTarget);
+            logFactory.Configuration = config;
+
+            AccountLogger = logFactory.GetCurrentClassLogger();
+        }
 
         async Task CheckIfMovedOn(long memoryUsage)
         {
@@ -173,7 +188,7 @@ public class Client : ObservableObject, IEquatable<Client>
             stuckReason = $"Stuck, took too long ({switchTime.TotalSeconds:F1}s>{tuning.StuckDelay.TotalSeconds}s)";
 
             Logger.Debug("{0} Stuck awaiting login, mem={1} diff={2} (because: {3})", Account.Name, memoryUsage, diff, stuckReason);
-            accountLogger?.Debug("Stuck awaiting login, mem={1} diff={2} (because: {3})", Account.Name, memoryUsage, diff, stuckReason);
+            AccountLogger?.Debug("Stuck awaiting login, mem={1} diff={2} (because: {3})", Account.Name, memoryUsage, diff, stuckReason);
 
             //CaptureWindow(RunStage.EntryFailed, applicationFolder);
             await ChangeRunStage(RunStage.LoginFailed, 20, stuckReason, cancellationToken);
@@ -252,7 +267,7 @@ public class Client : ObservableObject, IEquatable<Client>
             if (DateTime.UtcNow.Subtract(StartAt) > timeout)
             {
                 Logger.Debug("{0} Timed-out after {1}s, giving up)", Account.Name, timeout.TotalSeconds);
-                accountLogger?.Debug("Timed-out after {1}s, giving up)", Account.Name, timeout.TotalSeconds);
+                AccountLogger?.Debug("Timed-out after {1}s, giving up)", Account.Name, timeout.TotalSeconds);
                 await Shutdown(0);
                 throw new Gw2TimeoutException("GW2 process timed-out");
             }
@@ -287,7 +302,7 @@ public class Client : ObservableObject, IEquatable<Client>
     private void ChangeRunStage(RunStage newRunStage, string? reason)
     {
         Logger.Debug("{0} Change State to {1} because {2}", Account.Name, newRunStage, reason);
-        accountLogger?.Debug("Change State to {1} because {2}", Account.Name, newRunStage, reason);
+        AccountLogger?.Debug("Change State to {1} because {2}", Account.Name, newRunStage, reason);
         switch (newRunStage)
         {
             case RunStage.Authenticated:
@@ -316,7 +331,7 @@ public class Client : ObservableObject, IEquatable<Client>
         RunStatus = RunState.Running;
         StartAt = p.StartTime.ToUniversalTime();
         Logger.Debug("{0} Started {1}", Account.Name, launchType);
-        accountLogger?.Debug("Started {1}", Account.Name, launchType);
+        AccountLogger?.Debug("Started {1}", Account.Name, launchType);
         await ChangeRunStage(RunStage.Started, 200, "Normal start", cancellationToken);
     }
 
@@ -336,7 +351,7 @@ public class Client : ObservableObject, IEquatable<Client>
         {
             if (p.MainWindowHandle != IntPtr.Zero) return;
             Logger.Error("{0} Mutex will not die, give up", Account.Name);
-            accountLogger?.Error("Mutex will not die, give up", Account.Name);
+            AccountLogger?.Error("Mutex will not die, give up", Account.Name);
             p.Kill(true);
             throw new Gw2Exception($"{Account.Name} Mutex will not die, give up");
         }
@@ -344,7 +359,7 @@ public class Client : ObservableObject, IEquatable<Client>
         //Logger.Debug("{0} Got handle to Mutex", account.Name);
         handle.Kill();
         Logger.Debug("{0} Killed Mutex", Account.Name);
-        accountLogger?.Debug("Killed Mutex", Account.Name);
+        AccountLogger?.Debug("Killed Mutex", Account.Name);
     }
 
     private List<string> UpdateProcessModules()
@@ -356,8 +371,7 @@ public class Client : ObservableObject, IEquatable<Client>
         {
             var moduleName = module?.ModuleName?.ToLowerInvariant();
             if (moduleName == null || loadedModules.Contains(moduleName)) continue;
-            Logger.Debug("{0} Module: {1}", Account.Name, moduleName);
-            accountLogger?.Debug("Module: {1}", Account.Name, moduleName);
+            AccountLogger?.Debug("Module: {1}", Account.Name, moduleName);
             loadedModules.Add(moduleName);
             newModules.Add(moduleName);
         }
@@ -380,7 +394,7 @@ public class Client : ObservableObject, IEquatable<Client>
         if (!Alive) return;
 
         Logger.Debug("{0} Send ENTER", Account.Name);
-        accountLogger?.Debug("Send ENTER", Account.Name);
+        AccountLogger?.Debug("Send ENTER", Account.Name);
         var currentFocus = Native.GetForegroundWindow();
         try
         {
@@ -395,20 +409,20 @@ public class Client : ObservableObject, IEquatable<Client>
 
     public void MinimiseWindow()
     {
-        Logger.Debug("{0} GW2 Hide", Account.Name);
-        accountLogger?.Debug("GW2 Hide", Account.Name);
+        AccountLogger?.Debug("GW2 Hide", Account.Name);
         _ = Native.ShowWindowAsync(p!.MainWindowHandle, ShowWindowCommands.ForceMinimize);
     }
 
     public void RestoreWindow()
     {
-        Logger.Debug("{0} GW2 Show", Account.Name);
-        accountLogger?.Debug("GW2 Show", Account.Name);
+        AccountLogger?.Debug("GW2 Show", Account.Name);
         _ = Native.ShowWindowAsync(p!.MainWindowHandle, ShowWindowCommands.Restore);
     }
 
     public async Task<bool> Shutdown(int delay)
     {
+        Logger.Debug("{0} Shutdown requested", Account.Name);
+        AccountLogger?.Debug("Shutdown requested", Account.Name);
         closed = true;
         await Task.Delay(delay);
         return await Kill();
@@ -418,7 +432,9 @@ public class Client : ObservableObject, IEquatable<Client>
     {
         if (!Alive) return false;
 
+        AccountLogger?.Debug("Kill GW2 process", Account.Name);
         p!.Kill(true);
+        killed = true;
         await Task.Delay(200);
         return true;
     }
@@ -427,7 +443,11 @@ public class Client : ObservableObject, IEquatable<Client>
     {
         ChangeRunStage(RunStage.Exited, "Process.Exit event");
         Logger.Debug("{0} GW2 process exited", Account.Name);
-        accountLogger?.Debug("GW2 process exited", Account.Name);
+        AccountLogger?.Debug("GW2 process exited", Account.Name);
+        if (!killed)
+        {
+            AccountLogger?.Debug("This exit was unexpected", Account.Name);
+        }
         ExitAt = DateTime.UtcNow;
     }
 

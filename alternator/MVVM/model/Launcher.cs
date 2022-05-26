@@ -40,6 +40,7 @@ public class Launcher
         DirectoryInfo applicationFolder,
         FileInfo gfxSettingsFile,
         bool shareArchive,
+        bool logAccount,
         AuthenticationThrottle authenticationThrottle,
         SemaphoreSlim loginSemaphore,
         SemaphoreSlim exeSemaphore)
@@ -52,6 +53,7 @@ public class Launcher
         async Task? ReleaseLogin(CancellationToken cancellationToken)
         {
             Logger.Debug("{0} login semaphore release", account.Name);
+            client.AccountLogger?.Debug("login semaphore release", account.Name);
             try
             {
                 await authenticationThrottle.LoginDone(vpnDetails, client, launchType, cancellationToken);
@@ -60,6 +62,7 @@ public class Launcher
             {
                 loginSemaphore.Release();
                 Logger.Debug("{0} login semaphore released, count={1}", account.Name, loginSemaphore.CurrentCount);
+                client.AccountLogger?.Debug("login semaphore released, count={1}", account.Name, loginSemaphore.CurrentCount);
             }
         }
 
@@ -67,6 +70,7 @@ public class Launcher
         void Client_RunStatusChanged(object? sender, Client.ClientStateChangedEventArgs e)
         {
             Logger.Debug("{0} Status changed from {1} to {2}", account.Name, e.OldState, e.State);
+            client.AccountLogger?.Debug("Status changed from {1} to {2}", account.Name, e.OldState, e.State);
             switch (e.State)
             {
                 case RunStage.NotRun:
@@ -78,6 +82,7 @@ public class Launcher
                     break;
                 case RunStage.LoginFailed:
                     Logger.Info("{0} login failed, giving up to try again", account.Name);
+                    client.AccountLogger?.Debug("login failed, giving up to try again", account.Name);
                     authenticationThrottle.LoginFailed(vpnDetails, client);
                     ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
                     account.SetFail();
@@ -99,6 +104,7 @@ public class Launcher
                     break;
                 case RunStage.EntryFailed:
                     Logger.Info("{0} entry failed, giving up to try again", account.Name);
+                    client.AccountLogger?.Debug("entry failed, giving up to try again", account.Name);
                     ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
                     account.SetFail();
                     client.Kill().Wait();
@@ -150,15 +156,18 @@ public class Launcher
         try
         {
             Logger.Info("{0} login attempt={1}", account.Name, account.Attempt);
+            client.AccountLogger?.Debug("login attempt={1}", account.Name, account.Attempt);
 
             client.RunStatus = RunState.WaitingForLoginSlot;
             if (releaseLoginTask != null)
             {
                 Logger.Debug("{0} login semaphore release, count={1}", account.Name, loginSemaphore.CurrentCount);
+                client.AccountLogger?.Debug("login semaphore release, count={1}", account.Name, loginSemaphore.CurrentCount);
                 await releaseLoginTask.WaitAsync(launchCancelled);
                 releaseLoginTask = null;
             }
             Logger.Debug("{0} login semaphore entry, count={1}", account.Name, loginSemaphore.CurrentCount);
+            client.AccountLogger?.Debug("login semaphore entry, count={1}", account.Name, loginSemaphore.CurrentCount);
             if (launchType == LaunchType.Login)
             {
                 if (!await loginSemaphore.WaitAsync(new TimeSpan(0, 10, 0), launchCancelled)) throw new Gw2TimeoutException("Time-out waiting for Login Semaphore");
@@ -170,10 +179,12 @@ public class Launcher
 
             loginInProcess = true;
             Logger.Debug("{0} Login slot Free", account.Name);
+            client.AccountLogger?.Debug("Login slot Free", account.Name);
 
             await account.SwapFilesAsync(loginFile, gfxSettingsFile, referenceGfxSettings);
 
             Logger.Debug("{0} exe semaphore entry, count={1}", account.Name, exeSemaphore.CurrentCount);
+            client.AccountLogger?.Debug("exe semaphore entry, count={1}", account.Name, exeSemaphore.CurrentCount);
             client.RunStatus = RunState.WaitingForExeSlot;
             if (launchType == LaunchType.Login)
             {
@@ -185,12 +196,13 @@ public class Launcher
             }
             exeInProcess = true;
             Logger.Debug("{0} Exe slot Free", account.Name);
+            client.AccountLogger?.Debug("Exe slot Free", account.Name);
 
             // Ready to roll, have login and exe slot
             client.RunStatus = RunState.WaitingForAuthenticationThrottle;
             await authenticationThrottle.WaitAsync(client, vpnDetails, launchCancelled);
 
-            await client.Launch(launchType, settings, shareArchive, applicationFolder, launchCancelled);
+            await client.Launch(launchType, settings, shareArchive, logAccount, applicationFolder, launchCancelled);
 
             client.RunStatus = RunState.Completed;
             vpnDetails.SetSuccess();
@@ -201,6 +213,7 @@ public class Launcher
         {
             client.RunStatus = RunState.Cancelled;
             Logger.Info("{0} cancelled", account.Name);
+            client.AccountLogger?.Debug("cancelled", account.Name);
             alsoFailVpn = false;
         }
         catch (Gw2Exception e)
@@ -208,6 +221,7 @@ public class Launcher
             client.RunStatus = RunState.Error;
             client.StatusMessage = $"Launch failed: {e.Message}";
             Logger.Error(e, "{0} launch failed", account.Name);
+            client.AccountLogger?.Debug(e, "launch failed", account.Name);
             alsoFailVpn = e is Gw2TimeoutException;
         }
         catch (Exception e)
@@ -215,6 +229,7 @@ public class Launcher
             client.RunStatus = RunState.Error;
             client.StatusMessage = "Launch crashed";
             Logger.Error(e, "{0} launch crash", account.Name);
+            client.AccountLogger?.Debug(e, "launch crash", account.Name);
         }
         finally
         {
@@ -223,6 +238,7 @@ public class Launcher
             {
                 exeSemaphore.Release();
                 Logger.Debug("{0} exe semaphore released, count={1}", account.Name, exeSemaphore.CurrentCount);
+                client.AccountLogger?.Debug("exe semaphore released, count={1}", account.Name, exeSemaphore.CurrentCount);
             }
             client.RunStatusChanged -= Client_RunStatusChanged;
             client.ClearLogging();
@@ -231,6 +247,7 @@ public class Launcher
         if (await client.Kill())
         {
             Logger.Debug("{0} GW2 process killed", account.Name);
+            client.AccountLogger?.Debug("GW2 process killed", account.Name);
         }
 
         if (alsoFailVpn) vpnDetails.SetFail(client.Account);

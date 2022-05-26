@@ -132,6 +132,12 @@ public class SettingsViewModel : ObservableObject
         set => Settings.DisplayLocalTime = value;
     }
 
+    public bool LogAccounts
+    {
+        get => Settings.LogAccounts;
+        set => Settings.LogAccounts = value;
+    }
+
     public string? VpnMatch
     {
         get => Settings.VpnMatch;
@@ -221,6 +227,11 @@ public class SettingsViewModel : ObservableObject
     {
         var defaultSettings = SettingsController.DefaultSettings;
         Settings.DisplayLocalTime = defaultSettings.DisplayLocalTime;
+    });
+    public RelayCommand<object> ResetLogAccountsCommand => new(_ =>
+    {
+        var defaultSettings = SettingsController.DefaultSettings;
+        Settings.LogAccounts = defaultSettings.LogAccounts;
     });
     public RelayCommand<object> ResetVpnMatchCommand => new(_ =>
     {
