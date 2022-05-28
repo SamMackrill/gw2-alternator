@@ -452,11 +452,14 @@ public class AccountCollection : JsonCollection<Account>, IAccountCollection
 
             // Accounts
             var accountCount = reader.ReadUInt16();
+            Logger.Debug("Gw2Launcher found {0} accounts", accountCount);
+
             for (var i = 0; i < accountCount; i++)
             {
                 var type = reader.ReadByte();
                 var uid = reader.ReadUInt16();
                 var accountName = reader.ReadString();
+                Logger.Debug("Gw2Launcher account {0} : {1}", i, accountName);
                 var windowsAccount = reader.ReadString();
                 var createdUtc = DateTime.FromBinary(reader.ReadInt64());
                 var lastUsedUtc = DateTime.FromBinary(reader.ReadInt64());
@@ -467,6 +470,7 @@ public class AccountCollection : JsonCollection<Account>, IAccountCollection
                 IAccount? account = null;
                 if (File.Exists(pathToLoginDat))
                 {
+                    Logger.Debug("Gw2Launcher found GW2 dat file {0}", pathToLoginDat);
                     account = Accounts!.FirstOrDefault(a => string.Equals(a.Name, accountName, StringComparison.OrdinalIgnoreCase));
                     if (account != null)
                     {
@@ -481,6 +485,10 @@ public class AccountCollection : JsonCollection<Account>, IAccountCollection
                     }
 
                     if (lastUsedUtc > account.LastLogin) account.LastLogin = lastUsedUtc;
+                }
+                else
+                {
+                    Logger.Debug("Gw2Launcher can't find GW2 dat file {0}, skipping", pathToLoginDat);
                 }
 
                 var accountFlags = ExpandBooleans(reader.ReadBytes(reader.ReadByte()));
@@ -503,7 +511,11 @@ public class AccountCollection : JsonCollection<Account>, IAccountCollection
                 }
 
 
-                if (accountFlags[7]) _ = reader.ReadString();
+                if (accountFlags[7])
+                {
+                    var email = reader.ReadString();
+                    Logger.Debug("Gw2Launcher email {0}", email);
+                }
 
                 if (accountFlags[8])
                 {
@@ -558,9 +570,12 @@ public class AccountCollection : JsonCollection<Account>, IAccountCollection
                     var length = ReadVariableLength(reader);
                     if (length > 0)
                     {
-                        _ = reader.ReadUInt16();
-                        _ = reader.ReadInt64();
-                        _ = reader.ReadBoolean();
+                        for (var j = 0; j < length; j++)
+                        {
+                            _ = reader.ReadUInt16();
+                            _ = reader.ReadInt64();
+                            _ = reader.ReadBoolean();
+                        }
                     }
                 }
 
@@ -592,10 +607,11 @@ public class AccountCollection : JsonCollection<Account>, IAccountCollection
                     if (gwAccountFlags[3])
                     {
                         var apiKey = reader.ReadString();
+                        Logger.Debug("Gw2Launcher API key {0}", apiKey);
                         if (account != null) account.ApiKey = apiKey;
                     }
 
-                    if (accountFlags[4])
+                    if (gwAccountFlags[4])
                     {
                         var booleansApi = ExpandBooleans(reader.ReadBytes(reader.ReadByte()));
                         if (booleansApi[0])
@@ -613,9 +629,9 @@ public class AccountCollection : JsonCollection<Account>, IAccountCollection
                         }
                     }
 
-                    if (accountFlags[5]) _ = reader.ReadUInt16();
-                    if (accountFlags[6]) _ = reader.ReadInt64();
-                    if (accountFlags[7]) _ = reader.ReadString();
+                    if (gwAccountFlags[5]) _ = reader.ReadUInt16();
+                    if (gwAccountFlags[6]) _ = reader.ReadInt64();
+                    if (gwAccountFlags[7]) _ = reader.ReadString();
                 }
 
             }
