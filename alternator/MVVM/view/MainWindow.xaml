@@ -126,16 +126,30 @@
                             <Image Source="/images/clipboard.png"  Width="24" />
                         </Button>
 
+                        <Button Padding="0"
+                                Margin="0,0,8,0"
+                                Opacity="0.6"
+                                VerticalAlignment="Center" 
+                                BorderThickness="0" 
+                                Height="24" Width="24"
+                                Background="Transparent"
+                                Style="{StaticResource FadeOutButton}"
+                                ToolTip="Show logfile"
+                                Command="{Binding Path=ShowLogFileCommand, Mode=OneWay}">
+
+                            <Image Source="/images/text-file.png"  Width="24" />
+                        </Button>
+
                         <Button Padding="0" 
-                            Margin="0,0,8,0"
-                            Opacity="0.6"
-                            VerticalAlignment="Center" 
-                            BorderThickness="0" 
-                            Height="24" Width="24"
-                            Background="Transparent"
-                            Style="{StaticResource FadeOutButton}"
-                            Click="MinimizeButton_Click"
-                    >
+                                Margin="0,0,8,0"
+                                Opacity="0.6"
+                                VerticalAlignment="Center" 
+                                BorderThickness="0" 
+                                Height="24" Width="24"
+                                Background="Transparent"
+                                Style="{StaticResource FadeOutButton}"
+                                Click="MinimizeButton_Click"
+                        >
 
                             <Image Source="/images/minimize-window.png"  Width="24" />
                         </Button>

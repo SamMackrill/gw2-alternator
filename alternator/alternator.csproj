@@ -28,6 +28,7 @@
     <None Remove="images\folder.png" />
     <None Remove="images\minimize-window.png" />
     <None Remove="images\settings3.png" />
+    <None Remove="images\text-file.png" />
     <None Remove="images\undo.png" />
     <None Remove="images\vpn.png" />
   </ItemGroup>
@@ -63,6 +64,7 @@
     <Resource Include="images\folder.png" />
     <Resource Include="images\minimize-window.png" />
     <Resource Include="images\settings3.png" />
+    <Resource Include="images\text-file.png" />
     <Resource Include="images\undo.png" />
     <Resource Include="images\vpn.png" />
   </ItemGroup>

@@ -14,7 +14,8 @@ public class MainViewModel : ObservableObject
     public IRelayCommand? ShowApisCommand { get; }
     public IRelayCommand? ShowVpnsCommand { get; }
     public IRelayCommand? CopyMetricsCommand { get; }
-
+    public IRelayCommand? ShowLogFileCommand { get; }
+    
     private CancellationTokenSource? launchCancellation;
     private CancellationTokenSource? apiFetchCancellation;
 
@@ -367,6 +368,27 @@ public class MainViewModel : ObservableObject
 
         }, _ => MetricsAvailable(settingsController));
 
+        ShowLogFileCommand = new RelayCommand<object>(_ =>
+        {
+            var logfile = Path.Combine(App.ApplicationFolder, "gw2-alternator-debug-log.txt");
+            try
+            {
+                var process = new Process()
+                {
+                    StartInfo = new ProcessStartInfo()
+                    {
+                        UseShellExecute = true,
+                        FileName = logfile
+                    }
+                };
+                process.Start();
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e, "Error showing logfile {0}", logfile);
+            }
+        });
+
         var dt = new DispatcherTimer(DispatcherPriority.Background)
         {
             Interval = TimeSpan.FromSeconds(1)
@@ -419,7 +441,7 @@ public class MainViewModel : ObservableObject
 
     private void ShowSettings()
     {
-        Application.Current.MainWindow.Show();
+        Application.Current.MainWindow?.Show();
         var settingsWindow = new SettingsWindow
         {
             DataContext = SettingsVM,

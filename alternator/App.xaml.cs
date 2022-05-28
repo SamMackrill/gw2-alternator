@@ -141,6 +141,7 @@ public partial class App : Application
             FileName = Path.Combine(folder.FullName, "gw2-alternator-debug-log.txt"),
             Layout = layout,
             ArchiveOldFileOnStartup = true,
+            KeepFileOpen = false,
             ArchiveNumbering = ArchiveNumberingMode.DateAndSequence,
             MaxArchiveDays = 7,
         };

@@ -106,18 +106,25 @@ public class AccountCollection : JsonCollection<Account>, IAccountCollection
             if (doc.Root == null) return accountsLoaded;
             var lbAccounts = doc.Root.Elements().ToArray();
             Logger.Debug("{0} Accounts loaded from {1}", lbAccounts.Length, accountsXmlPath);
-            if (!lbAccounts.Any()) return accountsLoaded;
+            if (!lbAccounts.Any()) return 0;
 
             Items ??= new List<Account>();
             foreach (var lbAccount in lbAccounts)
             {
                 var nickname = lbAccount.Element("Nickname")?.Value;
-                if (nickname == null) continue;
+                if (nickname == null)
+                {
+                    Logger.Debug("Launchbuddy import missing Nickname, skipping");
+                    continue;
+                }
                 var nameParts = nickname.Split(':', 3, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
                 string? accountName = null;
                 string? characterName = null;
                 switch (nameParts.Length)
                 {
+                    case 0:
+                        accountName = nickname;
+                        break;
                     case 1:
                         accountName = nameParts[0];
                         break;
@@ -130,11 +137,20 @@ public class AccountCollection : JsonCollection<Account>, IAccountCollection
                         characterName = nameParts[2];
                         break;
                 }
-                if (accountName == null) continue;
+
+                if (string.IsNullOrWhiteSpace(accountName))
+                {
+                    Logger.Debug("Launchbuddy import unexpected Nickname \"{0}\", skipping", nickname);
+                    continue;
+                }
 
                 var settings = lbAccount.Element("Settings");
                 var pathToLoginDat = settings?.Element("Loginfile")?.Element("Path")?.Value;
-                if (pathToLoginDat == null || !File.Exists(pathToLoginDat)) continue;
+                if (pathToLoginDat == null || !File.Exists(pathToLoginDat))
+                {
+                    Logger.Debug("Launchbuddy import can't find GW2 dat file {0}, skipping", pathToLoginDat);
+                    continue;
+                }
                 var lastLoginText = settings?.Element("AccountInformation")?.Element("LastLogin")?.Value;
                 var account = Accounts!.FirstOrDefault(a => string.Equals(a.Name, accountName, StringComparison.OrdinalIgnoreCase));
                 if (account != null)
@@ -452,7 +468,7 @@ public class AccountCollection : JsonCollection<Account>, IAccountCollection
 
             // Accounts
             var accountCount = reader.ReadUInt16();
-            Logger.Debug("Gw2Launcher found {0} accounts", accountCount);
+            Logger.Debug("Gw2Launcher import found {0} accounts", accountCount);
 
             for (var i = 0; i < accountCount; i++)
             {
@@ -470,7 +486,7 @@ public class AccountCollection : JsonCollection<Account>, IAccountCollection
                 IAccount? account = null;
                 if (File.Exists(pathToLoginDat))
                 {
-                    Logger.Debug("Gw2Launcher found GW2 dat file {0}", pathToLoginDat);
+                    Logger.Debug("Gw2Launcher import found GW2 dat file {0}", pathToLoginDat);
                     account = Accounts!.FirstOrDefault(a => string.Equals(a.Name, accountName, StringComparison.OrdinalIgnoreCase));
                     if (account != null)
                     {
@@ -488,7 +504,7 @@ public class AccountCollection : JsonCollection<Account>, IAccountCollection
                 }
                 else
                 {
-                    Logger.Debug("Gw2Launcher can't find GW2 dat file {0}, skipping", pathToLoginDat);
+                    Logger.Debug("Gw2Launcher import can't find GW2 dat file {0}, skipping", pathToLoginDat);
                 }
 
                 var accountFlags = ExpandBooleans(reader.ReadBytes(reader.ReadByte()));
