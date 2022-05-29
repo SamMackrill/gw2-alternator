@@ -220,7 +220,7 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
         accountSuccessFailCounter.SetFail();
         LastLoginFail = DateTime.UtcNow;
         LastLoginFailAccount = account.Name;
-        Cancellation?.Cancel();
+        Cancellation?.Cancel($"{DisplayId} VPN SetFail by account {account.Name}");
     }
 
     public int LaunchDelay(bool ignoreCalls)

@@ -328,7 +328,7 @@ public class MainViewModel : ObservableObject
         StopCommand = new RelayCommand<object>(_ =>
         {
             Stopping = true;
-            launchCancellation?.Cancel();
+            launchCancellation?.Cancel("Stop Requested");
         }, _ => Running);
 
         CloseCommand = new AsyncRelayCommand<Window>(async w =>

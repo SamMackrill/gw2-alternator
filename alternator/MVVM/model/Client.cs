@@ -20,6 +20,7 @@ public class Client : ObservableObject, IEquatable<Client>
     private DateTime lastStageSwitchTime;
     private bool closed;
     private bool killed;
+    private LaunchType launchType;
     private record struct EngineTuning(TimeSpan Pause, long MemoryUsage, long MinDiff, TimeSpan StuckDelay, int StuckTolerance);
 
     private EngineTuning tuning;
@@ -130,6 +131,7 @@ public class Client : ObservableObject, IEquatable<Client>
         CancellationToken cancellationToken
         )
     {
+        this.launchType = launchType;
         if (accountLogs)
         {
             logFactory = new LogFactory();
@@ -147,6 +149,7 @@ public class Client : ObservableObject, IEquatable<Client>
             logFactory.Configuration = config;
 
             AccountLogger = logFactory.GetCurrentClassLogger();
+            Logger.Debug("{0} Logging to {1}", Account.Name, fileTarget.FileName);
         }
 
         async Task CheckIfMovedOn(long memoryUsage)
@@ -178,9 +181,9 @@ public class Client : ObservableObject, IEquatable<Client>
 
         async Task CheckIfStuck(long memoryUsage, long diff)
         {
-            if (RunStage is not (RunStage.Authenticated or RunStage.ReadyToPlay)) return;
+            if (RunStage is not (RunStage.Authenticated or RunStage.ReadyToPlay or RunStage.Playing)) return;
 
-            if (diff >= tuning.StuckTolerance) return;
+            if (diff >= tuning.StuckTolerance) return; // still doing something
 
             var switchTime = DateTime.UtcNow.Subtract(lastStageSwitchTime);
             if (switchTime < tuning.StuckDelay) return;
@@ -260,7 +263,7 @@ public class Client : ObservableObject, IEquatable<Client>
 
         if (launchType is not LaunchType.Update) KillMutex();
 
-        var timeout = launchType == LaunchType.Collect ? TimeSpan.MaxValue : new TimeSpan(0, 5, 0);
+        var timeout = launchType == LaunchType.Collect ? TimeSpan.MaxValue : new TimeSpan(0, 0, settings.LaunchTimeout);
         // State Engine
         while (Alive)
         {
@@ -444,7 +447,7 @@ public class Client : ObservableObject, IEquatable<Client>
         ChangeRunStage(RunStage.Exited, "Process.Exit event");
         Logger.Debug("{0} GW2 process exited", Account.Name);
         AccountLogger?.Debug("GW2 process exited", Account.Name);
-        if (!killed)
+        if (!killed && launchType != LaunchType.Update)
         {
             AccountLogger?.Debug("This exit was unexpected", Account.Name);
         }
