@@ -49,33 +49,31 @@ public static class Extensions
         return new string(name.Select(c => invalids.Contains(c) ? replace : c).ToArray());
     }
 
-    private static readonly Dictionary<int, string> CancellationReasons = new ();
+    private static string? cancellationReason;
+
     public static void Cancel(
-        this CancellationTokenSource cts,
+        this CancellationTokenSource cancellationTokenSource,
         string reason
     )
     {
-        var hash = cts.GetHashCode();
-        CancellationReasons.Add(hash, reason);
-        cts.Cancel();
+        cancellationReason = reason;
+        cancellationTokenSource.Cancel();
     }
 
     public static void Cancel(
-        this CancellationTokenSource cts,
+        this CancellationTokenSource cancellationTokenSource,
         bool throwOnFirstException,
         string reason
     )
     {
-        var hash = cts.GetHashCode();
-        CancellationReasons.Add(hash, reason);
-        cts.Cancel(throwOnFirstException);
+        cancellationReason = reason;
+        cancellationTokenSource.Cancel(throwOnFirstException);
     }
 
     public static string CancellationReason(
-        this CancellationTokenSource cts)
+        this CancellationToken ct)
     {
-        var hash = cts.GetHashCode();
-        return CancellationReasons.ContainsKey(hash) ? CancellationReasons[hash] : "unknown";
+        return cancellationReason ?? "unknown";
     }
 
 }

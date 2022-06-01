@@ -655,7 +655,7 @@
                 </Button>
 
                 <Label Padding="0" Grid.Row="30" Grid.Column="1" Margin="0,4,0,0"
-                       ToolTip="Maximum accounts to launch under a single VPN"
+                       ToolTip="Maximum accounts to launch simultaneously under a single VPN"
                        Visibility="{Binding VpnVisibility}"
                    Content="VPN Max Count" />
                 <StackPanel 

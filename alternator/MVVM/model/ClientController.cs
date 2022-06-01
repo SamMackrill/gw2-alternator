@@ -150,7 +150,7 @@ public class ClientController
                 catch (OperationCanceledException ce)
                 {
                     authenticationThrottle.Reset();
-                    Logger.Debug("Cancelled {0} clients", clientsToLaunch.Count);
+                    Logger.Debug("Cancelled {0} clients because {1}", clientsToLaunch.Count, ce.CancellationToken.CancellationReason());
                     return;
                 }
                 catch (Exception e)
