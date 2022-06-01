@@ -108,6 +108,13 @@ public class Settings : ObservableObject
         set => SetProperty(ref launchTimeout, value);
     }
 
+    private int crashWaitDelay;
+    public int CrashWaitDelay
+    {
+        get => crashWaitDelay;
+        set => SetProperty(ref crashWaitDelay, value);
+    }
+
     private int fontSize;
     public int FontSize
     {

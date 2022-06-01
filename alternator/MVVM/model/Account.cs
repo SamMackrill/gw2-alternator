@@ -515,7 +515,9 @@ public class Account : ObservableObject, IAccount
 
     public bool Equals(IAccount? other)
     {
-        return Name != null && other != null && Name.Equals(other.Name);
+        return Name != null && other != null 
+            && Name.Equals(other.Name, StringComparison.OrdinalIgnoreCase) 
+            && (LoginFilePath?.Equals(other.LoginFilePath, StringComparison.OrdinalIgnoreCase) ?? true);
     }
 
     public void SetUndo()

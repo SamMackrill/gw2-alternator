@@ -152,7 +152,8 @@ public class AccountCollection : JsonCollection<Account>, IAccountCollection
                     continue;
                 }
                 var lastLoginText = settings?.Element("AccountInformation")?.Element("LastLogin")?.Value;
-                var account = Accounts!.FirstOrDefault(a => string.Equals(a.Name, accountName, StringComparison.OrdinalIgnoreCase));
+                var account = Accounts!.FirstOrDefault(a => string.Equals(a.Name, accountName, StringComparison.OrdinalIgnoreCase) &&
+                                                            string.Equals(a.LoginFilePath, pathToLoginDat, StringComparison.OrdinalIgnoreCase));
                 if (account != null)
                 {
                     account.LoginFilePath = pathToLoginDat;
