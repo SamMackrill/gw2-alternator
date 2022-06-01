@@ -7,7 +7,7 @@ public interface IAccount : IEquatable<IAccount>
     string? Name { get; }
     string? DisplayName { get; set; }
     string? Character { get; set; }
-    string? LoginFilePath { get; set; }
+    string? PathToLoginDat { get; set; }
     string? ApiKey { get; set; }
     ObservableCollectionEx<string>? Vpns { get; set; }
     bool HasVpn { get; }
@@ -75,7 +75,7 @@ public class Account : ObservableObject, IAccount
     }
 
     private string? loginFilePath;
-    public string? LoginFilePath
+    public string? PathToLoginDat
     {
         get => loginFilePath;
         set => SetProperty(ref loginFilePath, value);
@@ -253,7 +253,7 @@ public class Account : ObservableObject, IAccount
     public Account(string? name, string? character, string? loginFilePath) : this(name)
     {
         Character = character;
-        LoginFilePath = loginFilePath;
+        PathToLoginDat = loginFilePath;
     }
 
     private string DebugDisplay => $"{Name} ({Character}) {LastLogin} {LastCollection}";
@@ -515,7 +515,9 @@ public class Account : ObservableObject, IAccount
 
     public bool Equals(IAccount? other)
     {
-        return Name != null && other != null && Name.Equals(other.Name);
+        return Name != null && other != null 
+            && Name.Equals(other.Name, StringComparison.OrdinalIgnoreCase) 
+            && (PathToLoginDat?.Equals(other.PathToLoginDat, StringComparison.OrdinalIgnoreCase) ?? true);
     }
 
     public void SetUndo()

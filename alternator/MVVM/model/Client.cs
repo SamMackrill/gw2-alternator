@@ -198,17 +198,16 @@ public class Client : ObservableObject, IEquatable<Client>
         }
 
         const string playingSuccessModule = @"lglcdapi.dll";
-        const int playingSuccessDelay = 6;
         async Task CheckIfCrashed()
         {
             if (RunStage is not (RunStage.Playing)) return;
 
             var switchTime = DateTime.UtcNow.Subtract(lastStageSwitchTime);
-            if (switchTime.TotalSeconds < playingSuccessDelay) return;
+            if (switchTime.TotalSeconds < settings.CrashWaitDelay) return;
 
             if (loadedModules.Contains(playingSuccessModule)) return;
 
-            failedReason = $"Crashed state detected ({playingSuccessModule} not loaded within {playingSuccessDelay}s)";
+            failedReason = $"Crashed state detected ({playingSuccessModule} not loaded within {settings.CrashWaitDelay}s)";
 
             Logger.Debug("{0} failed awaiting login (because: {1})", Account.Name, failedReason);
             AccountLogger?.Debug("Failed awaiting login (because: {1})", Account.Name, failedReason);
