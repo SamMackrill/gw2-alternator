@@ -39,9 +39,9 @@ public class Client : ObservableObject, IEquatable<Client>
 
     public event EventHandler<ClientStateChangedEventArgs>? RunStatusChanged;
 
-    private string? stuckReason;
+    private string? failedReason;
 
-    private string DebugDisplay => $"{Account?.Name ?? "Unset"} Status:{RunStatus} Stage:{RunStage} {stuckReason ?? ""}";
+    private string DebugDisplay => $"{Account?.Name ?? "Unset"} Status:{RunStatus} Stage:{RunStage} {failedReason ?? ""}";
 
     private DateTime startAt;
     public DateTime StartAt
@@ -188,16 +188,33 @@ public class Client : ObservableObject, IEquatable<Client>
             var switchTime = DateTime.UtcNow.Subtract(lastStageSwitchTime);
             if (switchTime < tuning.StuckDelay) return;
 
-            stuckReason = $"Stuck, took too long ({switchTime.TotalSeconds:F1}s>{tuning.StuckDelay.TotalSeconds}s)";
+            failedReason = $"Stuck, took too long ({switchTime.TotalSeconds:F1}s>{tuning.StuckDelay.TotalSeconds}s)";
 
-            Logger.Debug("{0} Stuck awaiting login, mem={1} diff={2} (because: {3})", Account.Name, memoryUsage, diff, stuckReason);
-            AccountLogger?.Debug("Stuck awaiting login, mem={1} diff={2} (because: {3})", Account.Name, memoryUsage, diff, stuckReason);
+            Logger.Debug("{0} failed awaiting login, mem={1} diff={2} (because: {3})", Account.Name, memoryUsage, diff, failedReason);
+            AccountLogger?.Debug("Failed awaiting login, mem={1} diff={2} (because: {3})", Account.Name, memoryUsage, diff, failedReason);
 
             //CaptureWindow(RunStage.EntryFailed, applicationFolder);
-            await ChangeRunStage(RunStage.LoginFailed, 20, stuckReason, cancellationToken);
+            await ChangeRunStage(RunStage.LoginFailed, 20, failedReason, cancellationToken);
         }
 
-        bool DetectCrash() => !closed && launchType == LaunchType.Login;
+        const string playingSuccessModule = @"lglcdapi.dll";
+        const int playingSuccessDelay = 6;
+        async Task CheckIfCrashed()
+        {
+            if (RunStage is not (RunStage.Playing)) return;
+
+            var switchTime = DateTime.UtcNow.Subtract(lastStageSwitchTime);
+            if (switchTime.TotalSeconds < playingSuccessDelay) return;
+
+            if (loadedModules.Contains(playingSuccessModule)) return;
+
+            failedReason = $"Crashed state detected ({playingSuccessModule} not loaded within {playingSuccessDelay}s)";
+
+            Logger.Debug("{0} failed awaiting login (because: {1})", Account.Name, failedReason);
+            AccountLogger?.Debug("Failed awaiting login (because: {1})", Account.Name, failedReason);
+
+            await ChangeRunStage(RunStage.LoginFailed, 20, failedReason, cancellationToken);
+        }
 
         Dictionary<RunStage, List<string>> runStageFromModules = new()
         {
@@ -209,6 +226,8 @@ public class Client : ObservableObject, IEquatable<Client>
 
         async Task CheckIfStageUpdated()
         {
+            await CheckIfCrashed();
+
             if (launchType == LaunchType.Update) return;
 
             var memoryUsage = p.WorkingSet64 / 1024;
@@ -281,8 +300,8 @@ public class Client : ObservableObject, IEquatable<Client>
         }
 
         if (closed) return;
-        if (!string.IsNullOrEmpty(stuckReason)) throw new Gw2TimeoutException($"GW2 process stuck: {stuckReason}");
-        if (DetectCrash()) throw new Gw2CrashedException("GW2 process crashed");
+        if (!string.IsNullOrEmpty(failedReason)) throw new Gw2TimeoutException($"GW2 process stuck: {failedReason}");
+        if (!closed && launchType == LaunchType.Login) throw new Gw2CrashedException("GW2 process crashed");
     }
 
     private void UpdateEngineSpeed()

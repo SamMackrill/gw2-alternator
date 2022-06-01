@@ -209,11 +209,11 @@ public class Launcher
             account.Done = true;
             return true;
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException ce)
         {
             client.RunStatus = RunState.Cancelled;
-            Logger.Info("{0} Launch cancelled because {1}", account.Name, "add reason");
-            client.AccountLogger?.Debug("Launch cancelled because {1}", account.Name, "add reason");
+            Logger.Info("{0} Launch cancelled because {1}", account.Name, ce.CancellationToken.CancellationReason());
+            client.AccountLogger?.Debug("Launch cancelled because {1}", account.Name, ce.CancellationToken.CancellationReason());
             alsoFailVpn = false;
         }
         catch (Gw2Exception e)
