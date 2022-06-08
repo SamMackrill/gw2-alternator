@@ -153,10 +153,10 @@ public class AccountCollection : JsonCollection<Account>, IAccountCollection
                 }
                 var lastLoginText = settings?.Element("AccountInformation")?.Element("LastLogin")?.Value;
                 var account = Accounts!.FirstOrDefault(a => string.Equals(a.Name, accountName, StringComparison.OrdinalIgnoreCase) &&
-                                                            string.Equals(a.PathToLoginDat, pathToLoginDat, StringComparison.OrdinalIgnoreCase));
+                                                            string.Equals(a.LoginFilePath, pathToLoginDat, StringComparison.OrdinalIgnoreCase));
                 if (account != null)
                 {
-                    account.PathToLoginDat = pathToLoginDat;
+                    account.LoginFilePath = pathToLoginDat;
                     account.Character ??= characterName;
                 }
                 else
@@ -493,7 +493,7 @@ public class AccountCollection : JsonCollection<Account>, IAccountCollection
                     account = Accounts!.FirstOrDefault(a => string.Equals(a.Name, accountName, StringComparison.OrdinalIgnoreCase));
                     if (account != null)
                     {
-                        account.PathToLoginDat = pathToLoginDat;
+                        account.LoginFilePath = pathToLoginDat;
                     }
                     else
                     {

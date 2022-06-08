@@ -26,7 +26,7 @@ public class ClientController
         this.authenticationThrottle = authenticationThrottle;
         this.vpnCollection = vpnCollection;
 
-        readyClients = new List<Client>();
+        ReadyClients = new List<Client>();
         loginSemaphore = new SemaphoreSlim(0, 1);
     }
 
@@ -44,7 +44,7 @@ public class ClientController
         CancellationTokenSource cancellationTokenSource
         )
     {
-        readyClients.Clear();
+        ReadyClients.Clear();
         vpnCollection.ResetConnections();
 
         var accounts = selectedAccounts.Any() ? selectedAccounts : accountCollection.AccountsToRun(launchType, all);
@@ -193,12 +193,8 @@ public class ClientController
     {
         try
         {
-            var addonsFolderPath = new DirectoryInfo(Path.Combine(settingsController.Settings!.Gw2Folder, AddonsFolderName));
-            if (!addonsFolderPath.Exists) return;
-            var addonsBackupFolderPath = Path.Combine(settingsController.Settings!.Gw2Folder, $"{AddonsFolderName}-temp");
-            if (Directory.Exists(addonsBackupFolderPath)) Directory.Delete(addonsBackupFolderPath, true);
+            RenameSubFolder(settingsController.Settings!.Gw2Folder, AddonsFolderName, $"{AddonsFolderName}-temp");
             Logger.Info("Moving addons folder temporarily, for efficiency");
-            addonsFolderPath.MoveTo(addonsBackupFolderPath);
         }
         catch (Exception e)
         {
@@ -211,17 +207,26 @@ public class ClientController
     {
         try
         {
-            var addonsBackupFolderPath = new DirectoryInfo(Path.Combine(settingsController.Settings!.Gw2Folder, $"{AddonsFolderName}-temp"));
-            if (!addonsBackupFolderPath.Exists) return;
-            var addonsFolderPath = Path.Combine(settingsController.Settings!.Gw2Folder, AddonsFolderName);
-            if (Directory.Exists(addonsFolderPath)) return;
-            Logger.Info("Restoring addons folder");
-            addonsBackupFolderPath.MoveTo(addonsFolderPath);
+            RenameSubFolder(settingsController.Settings!.Gw2Folder, $"{AddonsFolderName}-temp", AddonsFolderName);
+            Logger.Info("Restored addons folder");
         }
         catch (Exception e)
         {
             Logger.Error(e, "LaunchMultiple: unexpected error restoring addons folder");
         }
+    }
+
+    private void RenameSubFolder(string? parent, string from, string to)
+    {
+        if (!Directory.Exists(parent)) return;
+
+        var addonsBackupFolderPath = new DirectoryInfo(Path.Combine(parent, from));
+        if (!addonsBackupFolderPath.Exists) return;
+
+        var addonsFolderPath = Path.Combine(parent, to);
+        if (Directory.Exists(addonsFolderPath)) return;
+
+        addonsBackupFolderPath.MoveTo(addonsFolderPath);
     }
 
     private async Task SaveMetrics(DateTime startOfRun, List<Client> clients, List<VpnDetails> vpnDetailsList)
@@ -312,13 +317,13 @@ public class ClientController
         return tasks;
     }
 
-    private List<Client> readyClients { get; }
+    private List<Client> ReadyClients { get; }
     private Client? activeClient;
 
     private void LauncherClientReady(object? sender, EventArgs e)
     {
         if (sender is not Client client) return;
-        if (!readyClients.Contains(client)) readyClients.Add(client);
+        if (!ReadyClients.Contains(client)) ReadyClients.Add(client);
         if (activeClient != null) return;
         activeClient = client;
         activeClient.RestoreWindow();
@@ -327,9 +332,9 @@ public class ClientController
     private void LauncherClientClosed(object? sender, EventArgs e)
     {
         if (sender is not Client client) return;
-        if (readyClients.Contains(client)) readyClients.Remove(client);
+        if (ReadyClients.Contains(client)) ReadyClients.Remove(client);
         if (activeClient != client) return;
-        var next = readyClients.FirstOrDefault();
+        var next = ReadyClients.FirstOrDefault();
         if (next == null)
         {
             activeClient = null;

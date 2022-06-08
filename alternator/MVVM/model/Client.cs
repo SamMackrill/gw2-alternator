@@ -1,8 +1,4 @@
-﻿using NLog.Config;
-using NLog.Layouts;
-using NLog.Targets;
-
-namespace guildwars2.tools.alternator.MVVM.model;
+﻿namespace guildwars2.tools.alternator.MVVM.model;
 
 [DebuggerDisplay("{" + nameof(DebugDisplay) + ",nq}")]
 public class Client : ObservableObject, IEquatable<Client>
@@ -96,6 +92,13 @@ public class Client : ObservableObject, IEquatable<Client>
         {
             if (SetProperty(ref runStage, value) && runStatus != RunState.Error) StatusMessage = $"Stage: {runStage}";
         }
+    }
+
+    private ExitReason exitReason;
+    public ExitReason ExitReason
+    {
+        get => exitReason;
+        private set => SetProperty(ref exitReason, value);
     }
 
     private string? statusMessage;
@@ -404,9 +407,19 @@ public class Client : ObservableObject, IEquatable<Client>
     {
         get
         {
-            if (p == null) return false;
-            p.Refresh();
-            return !p.HasExited;
+            if (p == null || RunStage == RunStage.NotRun) return false;
+            try
+            {
+                p.Refresh();
+                return !p.HasExited;
+
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e, "{0} Error checking if process alive)", Account.Name);
+                AccountLogger?.Debug(e, "Error checking if process alive)", Account.Name);
+            }
+            return false;
         }
     }
 
@@ -462,9 +475,26 @@ public class Client : ObservableObject, IEquatable<Client>
 
     private void Gw2Exited(object? sender, EventArgs e)
     {
+        switch (runStatus)
+        {
+            case RunState.Completed:
+                ExitReason = ExitReason.Success;
+                break;
+            default:
+                break;
+        }
+
+        switch (runStage)
+        {
+            case RunStage.LoginFailed:
+                ExitReason = ExitReason.LoginFailed;
+                break;
+        }
+
+        ExitReason = closed ? ExitReason.Success : ExitReason.Crashed;
         ChangeRunStage(RunStage.Exited, "Process.Exit event");
-        Logger.Debug("{0} GW2 process exited", Account.Name);
-        AccountLogger?.Debug("GW2 process exited", Account.Name);
+        Logger.Debug("{0} GW2 process exited because {1}", Account.Name, ExitReason);
+        AccountLogger?.Debug("GW2 process exited because {1}", Account.Name, ExitReason);
         if (!killed && launchType != LaunchType.Update)
         {
             AccountLogger?.Debug("This exit was unexpected", Account.Name);

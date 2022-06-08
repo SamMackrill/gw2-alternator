@@ -35,3 +35,12 @@ public enum RunStage
     WorldEntered,
     Exited,
 }
+
+public enum ExitReason
+{
+    Unset,
+    Success,
+    LoginFailed,
+    Crashed,
+    Cancelled,
+}

@@ -45,9 +45,10 @@ global using guildwars2.tools.alternator.MVVM.view;
 global using guildwars2.tools.alternator.MVVM.viewmodel;
 
 global using NLog;
-using NLog.Config;
-using NLog.Layouts;
-using NLog.Targets;
+global using NLog.Config;
+global using NLog.Layouts;
+global using NLog.Targets;
+
 using XamlParseException = System.Windows.Markup.XamlParseException;
 
 

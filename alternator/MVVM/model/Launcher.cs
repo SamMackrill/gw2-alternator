@@ -45,6 +45,8 @@ public class Launcher
         SemaphoreSlim loginSemaphore,
         SemaphoreSlim exeSemaphore)
     {
+        if (!File.Exists(account.LoginFilePath)) return false;
+
         Task? releaseLoginTask = null;
         var loginInProcess = false;
 
