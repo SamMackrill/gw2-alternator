@@ -88,6 +88,7 @@ Logging in every day can be a chore but a few factors make this much less so:
  ![Create Key](images/api_create.png)
 
 ### VPN
+ * Alternator assumes that all accounts also authenticated for your non-VPN configuration
  * If you create manual VPN configurations in Windows then alternator can be configured to use these automatically
    * Ensure that the connection is a static IP or restricted to 255.255.255.0 subnet (for smooth GW2 authentication)
      * Windows stores them here: %APPDATA%\Microsoft\Network\Connections\Pbk\rasphone.pbk
