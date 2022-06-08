@@ -5,7 +5,7 @@ Tool to help logging-in to multiple Guild Wars 2 alt accounts so as to harvest t
 Logging in every day can be a chore but a few factors make this much less so:
  * You do not need to click the chest, just logging into the world claims the reward
    * In fact you can force close the GW2 client as soon as the world loading starts
-   * Chests will wait until you collect them (or auto loot if too many stacked)
+   * Chests will wait until you collect them (or auto loot if > 4 stacked)
  * Harvesting the rewards is even slower and is best done periodically, say once a month
 
 ## Requires at least [.Net 6.0.2](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
@@ -83,7 +83,8 @@ Logging in every day can be a chore but a few factors make this much less so:
 
 ### GW2 API Key
  * Given a GW2 API key then Laurels and Mystic Coins will be counted (excludes any from unclaimed reward chests, max 4)
-   * Account/Inventories/Characters/Wallet
+   * API access: Account/Inventories/Characters/Wallet
+   * Assumes that the final reward chest is converted to laurels
 
  ![Create Key](images/api_create.png)
 
