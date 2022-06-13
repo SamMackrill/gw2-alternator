@@ -39,7 +39,7 @@
 
   <ItemGroup>
     <PackageReference Include="AsyncAwaitBestPractices" Version="6.0.4" />
-    <PackageReference Include="Autoupdater.NET.Official" Version="1.7.0" />
+    <PackageReference Include="Autoupdater.NET.Official" Version="1.7.3" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.0.0-preview3" />
     <PackageReference Include="Gw2Sharp" Version="1.7.2" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
