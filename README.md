@@ -106,6 +106,7 @@ Logging in every day can be a chore but a few factors make this much less so:
 ![Error](images/Login_Error.png)
 ![Undefined Error](images/Login_Error_Undefined.png)
 ![Crash](images/GW2-crash.png)
+![Download failed](images/GW2-download-failed.png)
 
 ## Credits:
 * GW2 Launchbuddy https://github.com/TheCheatsrichter/Gw2_Launchbuddy
