@@ -66,6 +66,7 @@ public class ClientController
         var start = DateTime.UtcNow;
         try
         {
+            RenameAddonsFolder();
             var exeSemaphore = new SemaphoreSlim(0, maxInstances);
             Logger.Debug("Max GW2 Instances={0}", maxInstances);
 
@@ -146,11 +147,16 @@ public class ClientController
 
                     await Task.WhenAll(tasks.ToArray());
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException ce)
                 {
                     authenticationThrottle.Reset();
-                    if (cancellationTokenSource.IsCancellationRequested) return;
-                    Logger.Debug("VPN {0} failure detected, skipping", vpn.Id);
+                    Logger.Debug("Cancelled {0} clients", clientsToLaunch.Count, ce.CancellationToken.);
+                    return;
+                }
+                catch (Exception e)
+                {
+                    authenticationThrottle.Reset();
+                    Logger.Error(e, "VPN {0} failure detected, skipping", vpn.Id);
                 }
                 finally
                 {
@@ -174,10 +180,47 @@ public class ClientController
         }
         finally
         {
-            cancellationTokenSource.Cancel(true);
+            cancellationTokenSource.Cancel(true, "Finalisation");
             await Restore(first);
             Logger.Info("GW2 account files restored.");
             await SaveMetrics(start, clients, vpnsUsed);
+        }
+    }
+
+    private const string AddonsFolderName = "addons";
+
+    private void RenameAddonsFolder()
+    {
+        try
+        {
+            var addonsFolderPath = new DirectoryInfo(Path.Combine(settingsController.Settings!.Gw2Folder, AddonsFolderName));
+            if (!addonsFolderPath.Exists) return;
+            var addonsBackupFolderPath = Path.Combine(settingsController.Settings!.Gw2Folder, $"{AddonsFolderName}-temp");
+            if (Directory.Exists(addonsBackupFolderPath)) Directory.Delete(addonsBackupFolderPath, true);
+            Logger.Info("Moving addons folder temporarily, for efficiency");
+            addonsFolderPath.MoveTo(addonsBackupFolderPath);
+        }
+        catch (Exception e)
+        {
+            Logger.Error(e, "LaunchMultiple: unexpected error renaming addons folder");
+            RestoreAddonsFolder();
+        }
+    }
+
+    private void RestoreAddonsFolder()
+    {
+        try
+        {
+            var addonsBackupFolderPath = new DirectoryInfo(Path.Combine(settingsController.Settings!.Gw2Folder, $"{AddonsFolderName}-temp"));
+            if (!addonsBackupFolderPath.Exists) return;
+            var addonsFolderPath = Path.Combine(settingsController.Settings!.Gw2Folder, AddonsFolderName);
+            if (Directory.Exists(addonsFolderPath)) return;
+            Logger.Info("Restoring addons folder");
+            addonsBackupFolderPath.MoveTo(addonsFolderPath);
+        }
+        catch (Exception e)
+        {
+            Logger.Error(e, "LaunchMultiple: unexpected error restoring addons folder");
         }
     }
 
@@ -271,6 +314,7 @@ public class ClientController
 
     private List<Client> readyClients { get; }
     private Client? activeClient;
+
     private void LauncherClientReady(object? sender, EventArgs e)
     {
         if (sender is not Client client) return;
@@ -315,6 +359,7 @@ public class ClientController
         }
         finally
         {
+            RestoreAddonsFolder();
             if (obtainedLoginLock) loginSemaphore.Release();
         }
     }

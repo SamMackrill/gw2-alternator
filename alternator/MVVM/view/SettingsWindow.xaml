@@ -482,7 +482,7 @@
 
 
                 <Label Padding="0" Grid.Row="24" Grid.Column="1" Margin="0,4,0,0"
-                       ToolTip="Kill GW2 if it does respond within this time"
+                       ToolTip="Kill stage if it does respond within this time"
                    Content="Stuck Timeout" />
                 <StackPanel Grid.Row="24" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,0">
                     <Slider Margin="4,0,0,0"
@@ -511,9 +511,38 @@
 
 
                 <Label Padding="0" Grid.Row="25" Grid.Column="1" Margin="0,4,0,0"
+                       ToolTip="Kill GW2 if it does respond within this time"
+                       Content="Launch Timeout" />
+                <StackPanel Grid.Row="25" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,0">
+                    <Slider Margin="4,0,0,0"
+                            MinWidth="35"
+                            Width="50"
+                            Minimum="20"
+                            Maximum="120"
+                            HorizontalAlignment="Left"
+                            Style="{StaticResource IntegerSlider}"
+                            Value="{Binding Path=LaunchTimeout, Mode=TwoWay, FallbackValue=90}"
+                    />
+                    <Label Padding="1,0,0,0" Content="s" />
+                </StackPanel>
+                <Button Grid.Row="25" Grid.Column="3"  
+                        Margin="4,0,0,0" 
+                        Opacity="0.6"
+                        VerticalAlignment="Center" 
+                        BorderThickness="0" 
+                        Height="16" Width="16"
+                        Background="Transparent"
+                        Style="{StaticResource FadeOutButton}"
+                        Command="{Binding Path=ResetLaunchTimeoutCommand, Mode=OneWay}" >
+
+                    <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
+                </Button>
+
+
+                <Label Padding="0" Grid.Row="26" Grid.Column="1" Margin="0,4,0,0"
                        ToolTip="Memory threshold to detect Authorisation phase"
                        Content="Auth.Threshold" />
-                <StackPanel Grid.Row="25" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,0">
+                <StackPanel Grid.Row="26" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,0">
                     <Slider Margin="4,0,0,0"
                             MinWidth="35"
                             Width="50"
@@ -525,7 +554,7 @@
                     />
                     <Label Padding="1,0,0,0" Content="kB" />
                 </StackPanel>
-                <Button Grid.Row="25" Grid.Column="3"  
+                <Button Grid.Row="26" Grid.Column="3"  
                         Margin="4,0,0,0" 
                         Opacity="0.6"
                         VerticalAlignment="Center" 
@@ -539,10 +568,10 @@
                 </Button>
 
 
-                <Label Padding="0" Grid.Row="26" Grid.Column="1" Margin="0,4,0,0"
+                <Label Padding="0" Grid.Row="27" Grid.Column="1" Margin="0,4,0,0"
                        ToolTip="Memory threshold to detect Character Selection phase"
                        Content="Char.Threshold" />
-                <StackPanel Grid.Row="26" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,0">
+                <StackPanel Grid.Row="27" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,0">
                     <Slider Margin="4,0,0,0"
                             MinWidth="35"
                             Width="50"
@@ -554,7 +583,7 @@
                     />
                     <Label Padding="1,0,0,0" Content="kB" />
                 </StackPanel>
-                <Button Grid.Row="26" Grid.Column="3"  
+                <Button Grid.Row="27" Grid.Column="3"  
                         Margin="4,0,0,0" 
                         Opacity="0.6"
                         VerticalAlignment="Center" 
@@ -568,10 +597,10 @@
                 </Button>
 
 
-                <Label Padding="0" Grid.Row="27" Grid.Column="1" Margin="0,4,0,0"
+                <Label Padding="0" Grid.Row="28" Grid.Column="1" Margin="0,4,0,0"
                        ToolTip="Memory delta to detect stage change"
                        Content="Delta Threshold" />
-                <StackPanel Grid.Row="27" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,0">
+                <StackPanel Grid.Row="28" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,0">
                     <Slider Margin="4,0,0,0"
                             MinWidth="35"
                             Width="50"
@@ -583,7 +612,7 @@
                     />
                     <Label Padding="1,0,0,0" Content="B" />
                 </StackPanel>
-                <Button Grid.Row="27" Grid.Column="3"  
+                <Button Grid.Row="28" Grid.Column="3"  
                         Margin="4,0,0,0" 
                         Opacity="0.6"
                         VerticalAlignment="Center" 
@@ -597,10 +626,10 @@
                 </Button>
 
 
-                <Label Padding="0" Grid.Row="28" Grid.Column="1" Margin="0,4,0,0"
+                <Label Padding="0" Grid.Row="29" Grid.Column="1" Margin="0,4,0,0"
                        ToolTip="Client shutdown delay"
                        Content="Shutdown Delay" />
-                <StackPanel Grid.Row="28" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,0">
+                <StackPanel Grid.Row="29" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,0">
                     <Slider Margin="4,0,0,0"
                             MinWidth="35"
                             Width="50"
@@ -612,7 +641,7 @@
                     />
                     <Label Padding="1,0,0,0" Content="ms" />
                 </StackPanel>
-                <Button Grid.Row="28" Grid.Column="3"  
+                <Button Grid.Row="29" Grid.Column="3"  
                         Margin="4,0,0,0" 
                         Opacity="0.6"
                         VerticalAlignment="Center" 
@@ -625,12 +654,12 @@
                     <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
                 </Button>
 
-                <Label Padding="0" Grid.Row="29" Grid.Column="1" Margin="0,4,0,0"
+                <Label Padding="0" Grid.Row="30" Grid.Column="1" Margin="0,4,0,0"
                        ToolTip="Maximum accounts to launch under a single VPN"
                        Visibility="{Binding VpnVisibility}"
                    Content="VPN Max Count" />
                 <StackPanel 
-                    Grid.Row="29" Grid.Column="2" 
+                    Grid.Row="30" Grid.Column="2" 
                     Orientation="Horizontal" 
                     Visibility="{Binding VpnVisibility}"
                     Margin="0,4,0,0">
@@ -644,7 +673,7 @@
                             Value="{Binding Path=VpnAccountCount, Mode=TwoWay, FallbackValue=10}"
                     />
                 </StackPanel>
-                <Button Grid.Row="29" Grid.Column="3"  
+                <Button Grid.Row="30" Grid.Column="3"  
                     Margin="4,0,0,0" 
                     Opacity="0.6"
                     VerticalAlignment="Center" 
@@ -659,7 +688,7 @@
                 </Button>
 
 
-                <Grid Grid.Row="30" Grid.Column="1" Grid.ColumnSpan="4" Margin="0,4,0,0" >
+                <Grid Grid.Row="40" Grid.Column="1" Grid.ColumnSpan="4" Margin="0,4,0,0" >
 
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -688,7 +717,7 @@
                 </Grid>
 
 
-                <StackPanel Grid.Row="31" Grid.Column="1" Grid.ColumnSpan="4"
+                <StackPanel Grid.Row="41" Grid.Column="1" Grid.ColumnSpan="4"
                             HorizontalAlignment="Center"
                             Orientation="Horizontal" Margin="4,4,0,4">
                     <Border

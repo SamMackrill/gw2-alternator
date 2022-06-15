@@ -212,8 +212,8 @@ public class Launcher
         catch (OperationCanceledException)
         {
             client.RunStatus = RunState.Cancelled;
-            Logger.Info("{0} cancelled", account.Name);
-            client.AccountLogger?.Debug("cancelled", account.Name);
+            Logger.Info("{0} Launch cancelled because {1}", account.Name, "add reason");
+            client.AccountLogger?.Debug("Launch cancelled because {1}", account.Name, "add reason");
             alsoFailVpn = false;
         }
         catch (Gw2Exception e)

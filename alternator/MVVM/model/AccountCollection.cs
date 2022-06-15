@@ -459,11 +459,13 @@ public class AccountCollection : JsonCollection<Account>, IAccountCollection
 
             // Dat2
             var dat2Count = reader.ReadUInt16();
+            var dat2Paths = new Dictionary<uint, string>();
             for (var i = 0; i < dat2Count; i++)
             {
-                _ = reader.ReadUInt16();
-                _ = reader.ReadString();
+                var id = reader.ReadUInt16();
+                var path = reader.ReadString();
                 _ = reader.ReadByte();
+                dat2Paths.Add(id, path);
             }
 
             // Accounts

@@ -82,7 +82,7 @@ public class VpnConnectionsViewModel : ObservableObject
     {
         if (lookupTask is {IsCompleted: false})
         {
-            cancellationTokenSource?.Cancel();
+            cancellationTokenSource?.Cancel("Connection lookup failed");
             lookupTask.Wait();
         }
         cancellationTokenSource = new CancellationTokenSource();

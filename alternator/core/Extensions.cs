@@ -48,4 +48,34 @@ public static class Extensions
         var invalids = Path.GetInvalidFileNameChars();
         return new string(name.Select(c => invalids.Contains(c) ? replace : c).ToArray());
     }
+
+    private static readonly Dictionary<int, string> CancellationReasons = new ();
+    public static void Cancel(
+        this CancellationTokenSource cts,
+        string reason
+    )
+    {
+        var hash = cts.GetHashCode();
+        CancellationReasons.Add(hash, reason);
+        cts.Cancel();
+    }
+
+    public static void Cancel(
+        this CancellationTokenSource cts,
+        bool throwOnFirstException,
+        string reason
+    )
+    {
+        var hash = cts.GetHashCode();
+        CancellationReasons.Add(hash, reason);
+        cts.Cancel(throwOnFirstException);
+    }
+
+    public static string CancellationReason(
+        this CancellationTokenSource cts)
+    {
+        var hash = cts.GetHashCode();
+        return CancellationReasons.ContainsKey(hash) ? CancellationReasons[hash] : "unknown";
+    }
+
 }
