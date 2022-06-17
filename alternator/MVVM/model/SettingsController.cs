@@ -168,7 +168,7 @@ public class SettingsController : ObservableObject, ISettingsController
         settings.AccountBand3 = 40;
         settings.AccountBand3Delay = 45;
         settings.StuckTimeout = 30;
-        settings.LaunchTimeout = 90;
+        settings.LaunchTimeout = 120;
         settings.VpnAccountCount = 10;
         settings.AuthenticationMemoryThreshold = 120;
         settings.CharacterSelectedMemoryThreshold = 1400;

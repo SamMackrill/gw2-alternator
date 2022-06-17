@@ -264,8 +264,7 @@ public class Client : ObservableObject, IEquatable<Client>
 
         if (launchType is not LaunchType.Update) KillMutex();
 
-        var timeout = launchType == LaunchType.Collect ? TimeSpan.MaxValue : new TimeSpan(0, 5, 0);
-        //var timeout = launchType == LaunchType.Collect ? TimeSpan.MaxValue : new TimeSpan(0, 0, settings.LaunchTimeout);
+        var timeout = launchType == LaunchType.Collect ? TimeSpan.MaxValue : new TimeSpan(0, 0, settings.LaunchTimeout);
         // State Engine
         while (Alive)
         {
