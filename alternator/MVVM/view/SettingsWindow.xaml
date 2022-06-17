@@ -518,7 +518,7 @@
                             MinWidth="35"
                             Width="50"
                             Minimum="20"
-                            Maximum="120"
+                            Maximum="900"
                             HorizontalAlignment="Left"
                             Style="{StaticResource IntegerSlider}"
                             Value="{Binding Path=LaunchTimeout, Mode=TwoWay, FallbackValue=90}"
