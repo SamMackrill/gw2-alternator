@@ -47,6 +47,7 @@ public class Launcher
     {
         Task? releaseLoginTask = null;
         var loginInProcess = false;
+        bool alsoFailVpn = true;
 
         client.RunStatusChanged += Client_RunStatusChanged;
 
@@ -85,6 +86,14 @@ public class Launcher
                     client.AccountLogger?.Debug("login failed, giving up to try again", account.Name);
                     authenticationThrottle.LoginFailed(vpnDetails, client);
                     ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
+                    account.SetFail();
+                    client.Kill().Wait();
+                    break;
+                case RunStage.LoginCrashed:
+                    Logger.Info("{0} login crashed, giving up to try again", account.Name);
+                    client.AccountLogger?.Debug("login crashed, giving up to try again", account.Name);
+                    ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
+                    alsoFailVpn = false;
                     account.SetFail();
                     client.Kill().Wait();
                     break;
@@ -151,7 +160,6 @@ public class Launcher
         loginInProcess = false;
         var exeInProcess = false;
 
-        bool alsoFailVpn = true;
 
         try
         {

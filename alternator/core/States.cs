@@ -27,6 +27,7 @@ public enum RunStage
     Started,
     Authenticated,
     LoginFailed,
+    LoginCrashed,
     ReadyToPlay,
     Playing,
     CharacterSelectReached,
