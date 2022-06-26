@@ -215,7 +215,7 @@ public class Client : ObservableObject, IEquatable<Client>
             Logger.Debug("{0} failed awaiting login (because: {1})", Account.Name, failedReason);
             AccountLogger?.Debug("Failed awaiting login (because: {1})", Account.Name, failedReason);
 
-            await ChangeRunStage(RunStage.LoginFailed, 20, failedReason, cancellationToken);
+            await ChangeRunStage(RunStage.LoginCrashed, 20, failedReason, cancellationToken);
         }
 
         Dictionary<RunStage, List<string>> runStageFromModules = new()
