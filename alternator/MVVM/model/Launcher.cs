@@ -86,6 +86,7 @@ public class Launcher
                     client.AccountLogger?.Debug("login failed, giving up to try again", account.Name);
                     authenticationThrottle.LoginFailed(vpnDetails, client);
                     ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
+                    alsoFailVpn = true;
                     account.SetFail();
                     client.Kill().Wait();
                     break;
@@ -115,6 +116,7 @@ public class Launcher
                     Logger.Info("{0} entry failed, giving up to try again", account.Name);
                     client.AccountLogger?.Debug("entry failed, giving up to try again", account.Name);
                     ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
+                    alsoFailVpn = false;
                     account.SetFail();
                     client.Kill().Wait();
                     break;
