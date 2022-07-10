@@ -49,7 +49,7 @@ public class Launcher
 
         Task? releaseLoginTask = null;
         var loginInProcess = false;
-        bool alsoFailVpn = true;
+        bool alsoFailVpn = false;
 
         client.RunStatusChanged += Client_RunStatusChanged;
 
@@ -88,7 +88,7 @@ public class Launcher
                     client.AccountLogger?.Debug("login failed, giving up to try again", account.Name);
                     authenticationThrottle.LoginFailed(vpnDetails, client);
                     ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
-                    alsoFailVpn = true;
+                    alsoFailVpn = false;
                     account.SetFail();
                     client.Kill().Wait();
                     break;
@@ -234,7 +234,7 @@ public class Launcher
             client.StatusMessage = $"Launch failed: {e.Message}";
             Logger.Error(e, "{0} launch failed", account.Name);
             client.AccountLogger?.Debug(e, "launch failed", account.Name);
-            alsoFailVpn = e is Gw2TimeoutException;
+            alsoFailVpn = false && e is Gw2TimeoutException;
         }
         catch (Exception e)
         {
@@ -262,7 +262,7 @@ public class Launcher
             client.AccountLogger?.Debug("GW2 process killed", account.Name);
         }
 
-        if (alsoFailVpn) vpnDetails.SetFail(client.Account);
+        //if (alsoFailVpn) vpnDetails.SetFail(client.Account);
         return false;
     }
 

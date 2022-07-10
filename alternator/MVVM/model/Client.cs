@@ -3,6 +3,7 @@
 [DebuggerDisplay("{" + nameof(DebugDisplay) + ",nq}")]
 public class Client : ObservableObject, IEquatable<Client>
 {
+    private readonly ILogger? launchLogger;
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private const string MutexName = "AN-Mutex-Window-Guild Wars 2";
 
@@ -80,7 +81,9 @@ public class Client : ObservableObject, IEquatable<Client>
         get => runStatus;
         set
         {
-            if (SetProperty(ref runStatus, value) && runStatus != RunState.Error) StatusMessage = null;
+            if (!SetProperty(ref runStatus, value)) return;
+            if (runStatus != RunState.Error) StatusMessage = null;
+            AccountLogger?.Debug("RunStatus: {0})", runStatus);
         }
     }
 
@@ -90,7 +93,9 @@ public class Client : ObservableObject, IEquatable<Client>
         get => runStage;
         private set
         {
-            if (SetProperty(ref runStage, value) && runStatus != RunState.Error) StatusMessage = $"Stage: {runStage}";
+            if (!SetProperty(ref runStage, value)) return;
+            if (runStatus != RunState.Error) StatusMessage = $"Stage: {runStage}";
+            AccountLogger?.Debug("RunStage: {0})", runStage);
         }
     }
 
@@ -116,8 +121,9 @@ public class Client : ObservableObject, IEquatable<Client>
         logFactory?.Shutdown();
     }
 
-    public Client(IAccount account, int accountIndex)
+    public Client(IAccount account, int accountIndex, ILogger? launchLogger)
     {
+        this.launchLogger = launchLogger;
         Account = account;
         AccountIndex = accountIndex;
         RunStatus = RunState.Ready;
@@ -282,7 +288,7 @@ public class Client : ObservableObject, IEquatable<Client>
 
         await Start(launchType, cancellationToken);
 
-        if (launchType is not LaunchType.Update) KillMutex();
+        if (launchType is not LaunchType.Update) KillMutex(200);
 
         var timeout = launchType == LaunchType.Collect ? TimeSpan.MaxValue : new TimeSpan(0, 0, settings.LaunchTimeout);
         // State Engine
@@ -291,6 +297,7 @@ public class Client : ObservableObject, IEquatable<Client>
             if (DateTime.UtcNow.Subtract(StartAt) > timeout)
             {
                 Logger.Debug("{0} Timed-out after {1}s, giving up)", Account.Name, timeout.TotalSeconds);
+                launchLogger?.Info("{0} Timed-out after {1}s, giving up)", Account.Name, timeout.TotalSeconds);
                 AccountLogger?.Debug("Timed-out after {1}s, giving up)", Account.Name, timeout.TotalSeconds);
                 await Shutdown(0);
                 throw new Gw2TimeoutException("GW2 process timed-out");
@@ -355,6 +362,7 @@ public class Client : ObservableObject, IEquatable<Client>
         RunStatus = RunState.Running;
         StartAt = p.StartTime.ToUniversalTime();
         Logger.Debug("{0} Started {1}", Account.Name, launchType);
+        launchLogger?.Info("{0} Started {1}", Account.Name, launchType);
         AccountLogger?.Debug("Started {1}", Account.Name, launchType);
         await ChangeRunStage(RunStage.Started, 200, "Normal start", cancellationToken);
     }
@@ -364,26 +372,36 @@ public class Client : ObservableObject, IEquatable<Client>
         SendEnter();
     }
 
-    private void KillMutex()
+    private async void KillMutex(int delay)
     {
         if (p == null) return;
         p.WaitForInputIdle();
 
+        await Task.Delay(delay);
         var handle = Win32Handles.GetHandle(p.Id, MutexName, Win32Handles.MatchMode.EndsWith);
 
         if (handle == null)
         {
             if (p.MainWindowHandle != IntPtr.Zero) return;
-            Logger.Error("{0} Mutex will not die, give up", Account.Name);
-            AccountLogger?.Error("Mutex will not die, give up", Account.Name);
+            Logger.Error("{0} Mutex not found, give up", Account.Name);
+            launchLogger?.Info("{0} Mutex not found, give up", Account.Name);
+            AccountLogger?.Error("Mutex not found, give up", Account.Name);
             p.Kill(true);
-            throw new Gw2Exception($"{Account.Name} Mutex will not die, give up");
+            throw new Gw2MutexException($"{Account.Name} Mutex not found, give up");
         }
 
         //Logger.Debug("{0} Got handle to Mutex", account.Name);
-        handle.Kill();
-        Logger.Debug("{0} Killed Mutex", Account.Name);
-        AccountLogger?.Debug("Killed Mutex", Account.Name);
+        try
+        {
+            handle.Kill();
+            Logger.Debug("{0} Killed Mutex", Account.Name);
+            AccountLogger?.Debug("Killed Mutex", Account.Name);
+        }
+        catch (Exception e)
+        {
+            Logger.Error(e, "{0} error killing Mutex, ignoring", Account.Name);
+            AccountLogger?.Error(e, "{0} error killing Mutex, ignoring", Account.Name);
+        }
     }
 
     private List<string> UpdateProcessModules()
@@ -466,7 +484,7 @@ public class Client : ObservableObject, IEquatable<Client>
     {
         if (!Alive) return false;
 
-        AccountLogger?.Debug("Kill GW2 process", Account.Name);
+        AccountLogger?.Debug("Kill GW2 process");
         p!.Kill(true);
         killed = true;
         await Task.Delay(200);
@@ -475,6 +493,8 @@ public class Client : ObservableObject, IEquatable<Client>
 
     private void Gw2Exited(object? sender, EventArgs e)
     {
+        ExitReason = closed ? ExitReason.Success : ExitReason.Crashed;
+
         switch (runStatus)
         {
             case RunState.Completed:
@@ -491,13 +511,13 @@ public class Client : ObservableObject, IEquatable<Client>
                 break;
         }
 
-        ExitReason = closed ? ExitReason.Success : ExitReason.Crashed;
         ChangeRunStage(RunStage.Exited, "Process.Exit event");
         Logger.Debug("{0} GW2 process exited because {1}", Account.Name, ExitReason);
+        launchLogger?.Info("{0} GW2 process exited because {1}", Account.Name, ExitReason);
         AccountLogger?.Debug("GW2 process exited because {1}", Account.Name, ExitReason);
         if (!killed && launchType != LaunchType.Update)
         {
-            AccountLogger?.Debug("This exit was unexpected", Account.Name);
+            AccountLogger?.Debug("This exit was unexpected");
         }
         ExitAt = DateTime.UtcNow;
     }

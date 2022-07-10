@@ -34,7 +34,7 @@ public interface IAccount : IEquatable<IAccount>
     void Undo();
     Task FetchAccountDetails(TimeSpan delay, CancellationToken cancellationToken);
 
-    Task<Client> NewClient();
+    Task<Client> NewClient(ILogger? launchLogger);
     Client? CurrentClient { get; }
     RunState RunStatus { get; }
     string? StatusMessage { get; }
@@ -308,7 +308,7 @@ public class Account : ObservableObject, IAccount
     }
 
     private Counter clients;
-    public async Task<Client> NewClient()
+    public async Task<Client> NewClient(ILogger? launchLogger)
     {
         if (CurrentClient != null)
         {
@@ -318,7 +318,7 @@ public class Account : ObservableObject, IAccount
 
         successFailCounter.SetAttempt();
         clients.Increment();
-        CurrentClient = new Client(this, clients.Count);
+        CurrentClient = new Client(this, clients.Count, launchLogger);
         CurrentClient.PropertyChanged += CurrentClientOnPropertyChanged();
         OnPropertyChanged(nameof(Attempt));
         return CurrentClient;

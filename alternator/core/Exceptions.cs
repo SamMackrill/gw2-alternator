@@ -16,6 +16,22 @@ public class Gw2Exception : Exception
 
 }
 
+public class Gw2MutexException : Gw2Exception
+{
+    public Gw2MutexException()
+    {
+    }
+
+    public Gw2MutexException(string? message) : base(message)
+    {
+    }
+
+    public Gw2MutexException(string? message, Exception? innerException) : base(message, innerException)
+    {
+    }
+
+}
+
 public class Gw2CrashedException : Gw2Exception
 {
     public Gw2CrashedException()
