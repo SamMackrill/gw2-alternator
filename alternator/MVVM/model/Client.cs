@@ -288,7 +288,7 @@ public class Client : ObservableObject, IEquatable<Client>
 
         await Start(launchType, cancellationToken);
 
-        if (launchType is not LaunchType.Update) KillMutex(200);
+        if (launchType is not LaunchType.Update) KillMutex(200, 500);
 
         var timeout = launchType == LaunchType.Collect ? TimeSpan.MaxValue : new TimeSpan(0, 0, settings.LaunchTimeout);
         // State Engine
@@ -372,34 +372,37 @@ public class Client : ObservableObject, IEquatable<Client>
         SendEnter();
     }
 
-    private async void KillMutex(int delay)
+    private async void KillMutex(int delayBefore, int delayAfter)
     {
         if (p == null) return;
-        p.WaitForInputIdle();
 
-        await Task.Delay(delay);
-        var handle = Win32Handles.GetHandle(p.Id, MutexName, Win32Handles.MatchMode.EndsWith);
-
-        if (handle == null)
-        {
-            if (p.MainWindowHandle != IntPtr.Zero) return;
-            Logger.Error("{0} Mutex not found, give up", Account.Name);
-            launchLogger?.Info("{0} Mutex not found, give up", Account.Name);
-            AccountLogger?.Error("Mutex not found, give up", Account.Name);
-            p.Kill(true);
-            throw new Gw2MutexException($"{Account.Name} Mutex not found, give up");
-        }
-
-        //Logger.Debug("{0} Got handle to Mutex", account.Name);
         try
         {
+            p.WaitForInputIdle();
+
+            await Task.Delay(delayBefore);
+            var handle = Win32Handles.GetHandle(p.Id, MutexName, Win32Handles.MatchMode.EndsWith);
+
+            if (handle == null)
+            {
+                if (p.MainWindowHandle != IntPtr.Zero) return;
+                Logger.Error("{0} Mutex not found", Account.Name);
+                launchLogger?.Info("{0} Mutex not found", Account.Name);
+                AccountLogger?.Error("Mutex not found", Account.Name);
+                p.Kill(true);
+                throw new Gw2MutexException($"{Account.Name} Mutex not found");
+            }
+
+            //Logger.Debug("{0} Got handle to Mutex", account.Name);
             handle.Kill();
             Logger.Debug("{0} Killed Mutex", Account.Name);
             AccountLogger?.Debug("Killed Mutex", Account.Name);
+            await Task.Delay(delayAfter);
         }
         catch (Exception e)
         {
             Logger.Error(e, "{0} error killing Mutex, ignoring", Account.Name);
+            launchLogger?.Info("{0} error killing Mutex, ignoring", Account.Name);
             AccountLogger?.Error(e, "{0} error killing Mutex, ignoring", Account.Name);
         }
     }

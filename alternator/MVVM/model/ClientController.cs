@@ -81,6 +81,10 @@ public class ClientController
 
             LaunchLogger = logFactory.GetCurrentClassLogger();
             Logger.Debug("Launch Logging to {0}", fileTarget.FileName);
+            Logger.Info($"GW2-Aternator Version: {MainViewModel.Version}");
+            Logger.Info($"GW2 Client Version: {MainViewModel.Gw2ClientBuild}");
+            LaunchLogger.Info($"GW2-Aternator Version: {MainViewModel.Version}");
+            LaunchLogger.Info($"GW2 Client Version: {MainViewModel.Gw2ClientBuild}");
         }
 
         foreach (var account in accounts)
@@ -276,7 +280,7 @@ public class ClientController
         var validClients = clients.Where(c => c.Account.Name != null && c.StartAt > DateTime.MinValue).ToList();
         var lines = new List<string>
         {
-            $"Started\t{startOfRun:d}\t{startOfRun:T}",
+            $"Started\t{startOfRun:d}\t{startOfRun:T}\t{MainViewModel.Gw2ClientBuild}\t{MainViewModel.Version}",
             $"Total Time\t{DateTime.UtcNow.Subtract(startOfRun).TotalSeconds}\ts",
             $"Attempts\\Fails\t{validClients.Count}\t{validClients.Count(c => c.ExitReason != ExitReason.Success)}\t{(double)validClients.Count / validClients.Select(c => c.Account).Distinct().Count():0.###}",
             "Account\tStart\tAuthenticate\tLogin\tEnter\tExit",
