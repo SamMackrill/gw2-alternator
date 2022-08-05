@@ -89,7 +89,7 @@ public class ClientController
 
         foreach (var account in accounts)
         {
-            account.Done = false;
+            account.Reset();
         }
 
         var vpnsUsed = new List<VpnDetails>();
@@ -280,7 +280,7 @@ public class ClientController
         var validClients = clients.Where(c => c.Account.Name != null && c.StartAt > DateTime.MinValue).ToList();
         var lines = new List<string>
         {
-            $"Started\t{startOfRun:d}\t{startOfRun:T}\t{MainViewModel.Gw2ClientBuild}\t{MainViewModel.Version}",
+            $"Started\t{startOfRun:d}\t{startOfRun:T}\t?\t{MainViewModel.Version}",
             $"Total Time\t{DateTime.UtcNow.Subtract(startOfRun).TotalSeconds}\ts",
             $"Attempts\\Fails\t{validClients.Count}\t{validClients.Count(c => c.ExitReason != ExitReason.Success)}\t{(double)validClients.Count / validClients.Select(c => c.Account).Distinct().Count():0.###}",
             "Account\tStart\tAuthenticate\tLogin\tEnter\tExit",

@@ -39,12 +39,12 @@
 
   <ItemGroup>
     <PackageReference Include="AsyncAwaitBestPractices" Version="6.0.5" />
-    <PackageReference Include="Autoupdater.NET.Official" Version="1.7.3" />
+    <PackageReference Include="Autoupdater.NET.Official" Version="1.7.4" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.0.0-preview4" />
-    <PackageReference Include="Gw2Sharp" Version="1.7.2" />
+    <PackageReference Include="Gw2Sharp" Version="1.7.3" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
     <PackageReference Include="MvvmDialogs" Version="8.0.0" />
-    <PackageReference Include="Nerdbank.GitVersioning" Version="3.5.107">
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.5.108">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

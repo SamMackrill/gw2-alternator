@@ -49,6 +49,11 @@ public static class Extensions
         return new string(name.Select(c => invalids.Contains(c) ? replace : c).ToArray());
     }
 
+    public static string SplitCamelCase(this string input)
+    {
+        return Regex.Replace(input, "([A-Z])", " $1", RegexOptions.Compiled).Trim();
+    }
+
     private static string? cancellationReason;
 
     public static void Cancel(

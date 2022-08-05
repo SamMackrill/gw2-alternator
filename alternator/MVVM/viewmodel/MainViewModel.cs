@@ -424,7 +424,7 @@ public class MainViewModel : ObservableObject
 
         RefreshRunState();
 
-        if (true || !Debugger.IsAttached)
+        if (!Debugger.IsAttached)
         {
             apiFetchCancellation = new CancellationTokenSource();
             await FetchApiData(accountCollection.Accounts, apiFetchCancellation.Token);
@@ -466,7 +466,7 @@ public class MainViewModel : ObservableObject
 
         Gw2ClientBuild =  build.Id.ToString("#,#");
 
-        // TODO check versions
+        // TODO check versions (can't as API is not updated)
     }
 
     private async ValueTask LoadAccountsAndVpns()

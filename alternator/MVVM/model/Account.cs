@@ -2,10 +2,9 @@
 
 namespace guildwars2.tools.alternator.MVVM.model;
 
-public interface IAccount : IEquatable<IAccount>
+public interface IAccount : IEquatable<IAccount>, INotifyPropertyChanged, INotifyPropertyChanging
 {
     string? Name { get; }
-    string? DisplayName { get; set; }
     string? Character { get; set; }
     string? LoginFilePath { get; set; }
     string? ApiKey { get; set; }
@@ -35,11 +34,11 @@ public interface IAccount : IEquatable<IAccount>
     Task FetchAccountDetails(TimeSpan delay, CancellationToken cancellationToken);
 
     Task<Client> NewClient(ILogger? launchLogger);
-    Client? CurrentClient { get; }
     RunState RunStatus { get; }
     string? StatusMessage { get; }
     DateTime Available(DateTime cutoff);
     int VpnPriority { get; }
+    void Reset();
 }
 
 [Serializable]
@@ -298,6 +297,12 @@ public class Account : ObservableObject, IAccount
 
     [JsonIgnore]
     public int VpnPriority => Vpns == null || !Vpns.Any() ? 0 : Vpns.Count;
+
+    public void Reset()
+    {
+        Done = false;
+        OnPropertyChanged(nameof(RunStatus));
+    }
 
     private bool done;
     [JsonIgnore]

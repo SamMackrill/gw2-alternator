@@ -82,11 +82,12 @@ public class Launcher
                     break;
                 case RunStage.Authenticated:
                     ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
+                    client.SendEnterKey(true, e.State.ToString());
                     break;
                 case RunStage.LoginFailed:
                     Logger.Info("{0} login failed, giving up to try again", account.Name);
                     client.AccountLogger?.Debug("login failed, giving up to try again", account.Name);
-                    authenticationThrottle.LoginFailed(vpnDetails, client);
+                    authenticationThrottle.LoginFailed(vpnDetails, client, false);
                     ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
                     alsoFailVpn = false;
                     account.SetFail();
@@ -102,7 +103,7 @@ public class Launcher
                     break;
                 case RunStage.ReadyToPlay:
                     ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
-                    client.SendEnter();
+                    client.SendEnterKey(true, e.State.ToString());
                     break;
                 case RunStage.Playing:
                     authenticationThrottle.LoginSucceeded(vpnDetails, client);

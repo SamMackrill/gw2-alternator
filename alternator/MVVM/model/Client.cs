@@ -83,7 +83,7 @@ public class Client : ObservableObject, IEquatable<Client>
         {
             if (!SetProperty(ref runStatus, value)) return;
             if (runStatus != RunState.Error) StatusMessage = null;
-            AccountLogger?.Debug("RunStatus: {0})", runStatus);
+            AccountLogger?.Debug("RunStatus: {0}", runStatus);
         }
     }
 
@@ -95,7 +95,7 @@ public class Client : ObservableObject, IEquatable<Client>
         {
             if (!SetProperty(ref runStage, value)) return;
             if (runStatus != RunState.Error) StatusMessage = $"Stage: {runStage}";
-            AccountLogger?.Debug("RunStage: {0})", runStage);
+            AccountLogger?.Debug("RunStage: {0}", runStage);
         }
     }
 
@@ -226,9 +226,9 @@ public class Client : ObservableObject, IEquatable<Client>
 
         Dictionary<RunStage, List<string>> runStageFromModules = new()
         {
-            { RunStage.Authenticated,          new List<string> { @"winnsi.dll" } },
+            { RunStage.Authenticated,          new List<string> { @"winnsi.dll", @"nsi.dll" } },
             { RunStage.CharacterSelectReached, new List<string> { @"mscms.dll", @"coloradapterclient.dll", @"icm32.dll" } },
-            { RunStage.Playing,                new List<string> { @"mmdevapi.dll" } },
+            { RunStage.Playing,                new List<string> { @"vcruntime140.dll" } },
         };
 
 
@@ -288,19 +288,26 @@ public class Client : ObservableObject, IEquatable<Client>
 
         await Start(launchType, cancellationToken);
 
-        if (launchType is not LaunchType.Update) KillMutex(200, 500);
+        if (launchType is not LaunchType.Update) KillMutex(200, 1500);
 
         var timeout = launchType == LaunchType.Collect ? TimeSpan.MaxValue : new TimeSpan(0, 0, settings.LaunchTimeout);
         // State Engine
         while (Alive)
         {
+            AccountLogger?.Debug("Loop PING");
             if (DateTime.UtcNow.Subtract(StartAt) > timeout)
             {
-                Logger.Debug("{0} Timed-out after {1}s, giving up)", Account.Name, timeout.TotalSeconds);
-                launchLogger?.Info("{0} Timed-out after {1}s, giving up)", Account.Name, timeout.TotalSeconds);
-                AccountLogger?.Debug("Timed-out after {1}s, giving up)", Account.Name, timeout.TotalSeconds);
+                Logger.Debug("{0} Timed-out after {1}s, giving up", Account.Name, timeout.TotalSeconds);
+                launchLogger?.Info("{0} Timed-out after {1}s, giving up", Account.Name, timeout.TotalSeconds);
+                AccountLogger?.Debug("Timed-out after {1}s, giving up", Account.Name, timeout.TotalSeconds);
                 await Shutdown(0);
                 throw new Gw2TimeoutException("GW2 process timed-out");
+            }
+
+            AccountLogger?.Debug("Loop PING");
+            if (nextEnterKeyRequest < DateTime.Now)
+            {
+                SendEnterKey(true, "engine");
             }
 
             await CheckIfStageUpdated();
@@ -326,6 +333,7 @@ public class Client : ObservableObject, IEquatable<Client>
 
     private async Task ChangeRunStage(RunStage newRunStage, int delay, string? reason, CancellationToken cancellationToken)
     {
+        //nextEnterKeyRequest = DateTime.MaxValue;
         if (delay>0) await Task.Delay(delay, cancellationToken);
         ChangeRunStage(newRunStage, reason);
     }
@@ -355,6 +363,8 @@ public class Client : ObservableObject, IEquatable<Client>
         RunStatusChanged?.Invoke(this, eventArgs);
     }
 
+
+
     private async Task Start(LaunchType launchType, CancellationToken cancellationToken)
     {
         if (!p!.Start()) throw new Gw2Exception($"{Account.Name} Failed to start");
@@ -369,7 +379,7 @@ public class Client : ObservableObject, IEquatable<Client>
 
     public void SelectCharacter()
     {
-        SendEnter();
+        SendEnterKey(false, "SelectCharacter");
     }
 
     private async void KillMutex(int delayBefore, int delayAfter)
@@ -396,6 +406,7 @@ public class Client : ObservableObject, IEquatable<Client>
             //Logger.Debug("{0} Got handle to Mutex", account.Name);
             handle.Kill();
             Logger.Debug("{0} Killed Mutex", Account.Name);
+            launchLogger?.Info("{0} Killed Mutex", Account.Name);
             AccountLogger?.Debug("Killed Mutex", Account.Name);
             await Task.Delay(delayAfter);
         }
@@ -437,16 +448,22 @@ public class Client : ObservableObject, IEquatable<Client>
             }
             catch (Exception e)
             {
-                Logger.Error(e, "{0} Error checking if process alive)", Account.Name);
-                AccountLogger?.Debug(e, "Error checking if process alive)", Account.Name);
+                Logger.Error(e, "{0} Error checking if process alive", Account.Name);
+                AccountLogger?.Debug(e, "Error checking if process alive", Account.Name);
             }
             return false;
         }
     }
 
-    public void SendEnter()
+    private DateTime nextEnterKeyRequest = DateTime.MaxValue;
+    public void SendEnterKey(bool repeat, string source)
     {
         if (!Alive) return;
+
+        Logger.Debug("{0} SendEnterKey from {1}", Account.Name, source);
+        AccountLogger?.Debug("SendEnterKey from {1}", Account.Name, source);
+
+        nextEnterKeyRequest = DateTime.MaxValue;
 
         Logger.Debug("{0} Send ENTER", Account.Name);
         AccountLogger?.Debug("Send ENTER", Account.Name);
@@ -455,11 +472,16 @@ public class Client : ObservableObject, IEquatable<Client>
         {
             _ = Native.SetForegroundWindow(p!.MainWindowHandle);
             InputSender.ClickKey(0x1c); // Enter
+            
+            if (!repeat) return;
+
+            nextEnterKeyRequest = DateTime.Now.AddSeconds(2);
         }
         finally
         {
             _ = Native.SetForegroundWindow(currentFocus);
         }
+
     }
 
     public void MinimiseWindow()
