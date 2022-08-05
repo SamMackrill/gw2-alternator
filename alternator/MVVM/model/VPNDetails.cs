@@ -214,13 +214,13 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
         LastLoginSuccess = DateTime.UtcNow;
     }
 
-    public void SetFail(IAccount account)
+    public void SetFail(IAccount account, bool cancelAll)
     {
         Logger.Debug("{0} VPN SetFail by account {1}", DisplayId, account.Name);
         accountSuccessFailCounter.SetFail();
         LastLoginFail = DateTime.UtcNow;
         LastLoginFailAccount = account.Name;
-        Cancellation?.Cancel();
+        if (cancelAll) Cancellation?.Cancel($"{DisplayId} VPN SetFail by account {account.Name}");
     }
 
     public int LaunchDelay(bool ignoreCalls)

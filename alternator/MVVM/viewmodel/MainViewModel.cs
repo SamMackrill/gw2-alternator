@@ -1,4 +1,5 @@
-﻿namespace guildwars2.tools.alternator.MVVM.viewmodel;
+﻿
+namespace guildwars2.tools.alternator.MVVM.viewmodel;
 
 public class MainViewModel : ObservableObject
 {
@@ -126,7 +127,7 @@ public class MainViewModel : ObservableObject
     public string UpdateText => Running && ActiveLaunchType == LaunchType.Update ? "Updating" : "Update";
     public string StopText => Running && Stopping ? "Stopping" : "Stop!";
 
-    public string Version
+    public static string Version
     {
         get
         {
@@ -239,6 +240,7 @@ public class MainViewModel : ObservableObject
         {
             Logger.Error(ex, "Query GW2 Version");
         });
+
         LoadAccountsAndVpns().SafeFireAndForget(ex =>
         {
             Logger.Error(ex, "Load Accounts");
@@ -328,7 +330,7 @@ public class MainViewModel : ObservableObject
         StopCommand = new RelayCommand<object>(_ =>
         {
             Stopping = true;
-            launchCancellation?.Cancel();
+            launchCancellation?.Cancel("Stop Requested");
         }, _ => Running);
 
         CloseCommand = new AsyncRelayCommand<Window>(async w =>
@@ -422,7 +424,7 @@ public class MainViewModel : ObservableObject
 
         RefreshRunState();
 
-        if (true || !Debugger.IsAttached)
+        if (!Debugger.IsAttached)
         {
             apiFetchCancellation = new CancellationTokenSource();
             await FetchApiData(accountCollection.Accounts, apiFetchCancellation.Token);
@@ -451,15 +453,20 @@ public class MainViewModel : ObservableObject
         RefreshRunState();
     }
 
+
+    public static string Gw2ClientBuild { get; private set; }
+
     private async ValueTask QueryGw2Version()
     {
         var apiConnection = new Gw2Sharp.Connection();
         using var apiClient = new Gw2Sharp.Gw2Client(apiConnection);
         var webApiClient = apiClient.WebApi.V2;
 
-        var build =  await webApiClient.Build.GetAsync();
+        var build = await webApiClient.Build.GetAsync();
 
-        // TODO check versions
+        Gw2ClientBuild =  build.Id.ToString("#,#");
+
+        // TODO check versions (can't as API is not updated)
     }
 
     private async ValueTask LoadAccountsAndVpns()

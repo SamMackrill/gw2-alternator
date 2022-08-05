@@ -26,11 +26,20 @@ public class ClientController
         this.authenticationThrottle = authenticationThrottle;
         this.vpnCollection = vpnCollection;
 
-        readyClients = new List<Client>();
+        logFactory = new LogFactory();
+
+        ReadyClients = new List<Client>();
         loginSemaphore = new SemaphoreSlim(0, 1);
     }
 
     private record VpnAccounts(VpnDetails Vpn, List<IAccount> Accounts);
+
+    public ILogger? LaunchLogger { get; private set; }
+    private readonly LogFactory? logFactory;
+    public void ClearLogging()
+    {
+        logFactory?.Shutdown();
+    }
 
     public async Task LaunchMultiple(
         List<IAccount> selectedAccounts,
@@ -44,7 +53,7 @@ public class ClientController
         CancellationTokenSource cancellationTokenSource
         )
     {
-        readyClients.Clear();
+        ReadyClients.Clear();
         vpnCollection.ResetConnections();
 
         var accounts = selectedAccounts.Any() ? selectedAccounts : accountCollection.AccountsToRun(launchType, all);
@@ -55,9 +64,32 @@ public class ClientController
             return;
         }
 
+        if (logFactory != null)
+        {
+            var fileTarget = new FileTarget("AccountLogger")
+            {
+                FileName = Path.Combine(applicationFolder.FullName, $"gw2-alternator-launch-{launchType}-log.txt"),
+                Layout = new SimpleLayout {Text = "${longdate}|${message:withexception=true}"},
+                ArchiveOldFileOnStartup = true,
+                ArchiveNumbering = ArchiveNumberingMode.DateAndSequence,
+                MaxArchiveDays = 14,
+            };
+            var config = new LoggingConfiguration();
+            config.AddTarget(fileTarget);
+            config.AddRuleForAllLevels(fileTarget);
+            logFactory.Configuration = config;
+
+            LaunchLogger = logFactory.GetCurrentClassLogger();
+            Logger.Debug("Launch Logging to {0}", fileTarget.FileName);
+            Logger.Info($"GW2-Aternator Version: {MainViewModel.Version}");
+            Logger.Info($"GW2 Client Version: {MainViewModel.Gw2ClientBuild}");
+            LaunchLogger.Info($"GW2-Aternator Version: {MainViewModel.Version}");
+            LaunchLogger.Info($"GW2 Client Version: {MainViewModel.Gw2ClientBuild}");
+        }
+
         foreach (var account in accounts)
         {
-            account.Done = false;
+            account.Reset();
         }
 
         var vpnsUsed = new List<VpnDetails>();
@@ -66,12 +98,15 @@ public class ClientController
         var start = DateTime.UtcNow;
         try
         {
+            RenameAddonsFolder();
             var exeSemaphore = new SemaphoreSlim(0, maxInstances);
             Logger.Debug("Max GW2 Instances={0}", maxInstances);
 
             var accountsByVpn = AccountCollection.AccountsByVpn(accounts, ignoreVpn);
             while (accounts.Any(a => !a.Done))
             {
+                LaunchLogger?.Info("{0} accounts left", accounts.Count(a => !a.Done));
+
                 var now = DateTime.UtcNow;
 
                 var accountsByVpnDetails = accountsByVpn
@@ -98,6 +133,7 @@ public class ClientController
                     .ToList();
 
                 Logger.Debug("{0} VPN Chosen with {1} accounts", vpn.DisplayId, accountsToLaunch.Count);
+                LaunchLogger?.Info("{0} VPN Chosen with {1} accounts", vpn.DisplayId, accountsToLaunch.Count);
 
                 if (!accountsToLaunch.Any()) continue;
 
@@ -105,7 +141,7 @@ public class ClientController
                 foreach (var account in accountsToLaunch)
                 {
                     Logger.Debug("Launching client for Account {0}", account.Name);
-                    clientsToLaunch.Add(await account.NewClient());
+                    clientsToLaunch.Add(await account.NewClient(LaunchLogger));
                 }
                 clients.AddRange(clientsToLaunch);
 
@@ -127,10 +163,12 @@ public class ClientController
                     if (status != null)
                     {
                         Logger.Error("VPN {0} Connection {1} : {2}", vpn.Id, vpn.ConnectionName, status);
+                        LaunchLogger?.Info("VPN {0} Connection {1} : {2}", vpn.Id, vpn.ConnectionName, status);
                         continue;
                     }
 
                     Logger.Debug("Launching {0} clients", clientsToLaunch.Count);
+                    LaunchLogger?.Info("Launching {0} clients", clientsToLaunch.Count);
                     var tasks = PrimeLaunchTasks(vpn, clientsToLaunch, shareArchive, accountLogs, exeSemaphore, doubleTrouble.Token);
                     if (cancellationTokenSource.IsCancellationRequested) return;
 
@@ -146,11 +184,16 @@ public class ClientController
 
                     await Task.WhenAll(tasks.ToArray());
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException ce)
                 {
                     authenticationThrottle.Reset();
-                    if (cancellationTokenSource.IsCancellationRequested) return;
-                    Logger.Debug("VPN {0} failure detected, skipping", vpn.Id);
+                    Logger.Debug("Cancelled {0} clients because {1}", clientsToLaunch.Count(c => !c.Account.Done), ce.CancellationToken.CancellationReason());
+                    return;
+                }
+                catch (Exception e)
+                {
+                    authenticationThrottle.Reset();
+                    Logger.Error(e, "VPN {0} failure detected, skipping", vpn.Id);
                 }
                 finally
                 {
@@ -174,11 +217,53 @@ public class ClientController
         }
         finally
         {
-            cancellationTokenSource.Cancel(true);
+            cancellationTokenSource.Cancel(true, "Finalisation");
             await Restore(first);
             Logger.Info("GW2 account files restored.");
             await SaveMetrics(start, clients, vpnsUsed);
         }
+    }
+
+    private const string AddonsFolderName = "addons";
+
+    private void RenameAddonsFolder()
+    {
+        try
+        {
+            RenameSubFolder(settingsController.Settings!.Gw2Folder, AddonsFolderName, $"{AddonsFolderName}-temp");
+            Logger.Info("Moving addons folder temporarily, for efficiency");
+        }
+        catch (Exception e)
+        {
+            Logger.Error(e, "LaunchMultiple: unexpected error renaming addons folder");
+            RestoreAddonsFolder();
+        }
+    }
+
+    private void RestoreAddonsFolder()
+    {
+        try
+        {
+            RenameSubFolder(settingsController.Settings!.Gw2Folder, $"{AddonsFolderName}-temp", AddonsFolderName);
+            Logger.Info("Restored addons folder");
+        }
+        catch (Exception e)
+        {
+            Logger.Error(e, "LaunchMultiple: unexpected error restoring addons folder");
+        }
+    }
+
+    private void RenameSubFolder(string? parent, string from, string to)
+    {
+        if (!Directory.Exists(parent)) return;
+
+        var addonsBackupFolderPath = new DirectoryInfo(Path.Combine(parent, from));
+        if (!addonsBackupFolderPath.Exists) return;
+
+        var addonsFolderPath = Path.Combine(parent, to);
+        if (Directory.Exists(addonsFolderPath)) return;
+
+        addonsBackupFolderPath.MoveTo(addonsFolderPath);
     }
 
     private async Task SaveMetrics(DateTime startOfRun, List<Client> clients, List<VpnDetails> vpnDetailsList)
@@ -192,14 +277,16 @@ public class ClientController
             return (line, time);
         }
 
+        var validClients = clients.Where(c => c.Account.Name != null && c.StartAt > DateTime.MinValue).ToList();
         var lines = new List<string>
         {
-            $"Started\t{startOfRun:d}\t{startOfRun:T}", 
+            $"Started\t{startOfRun:d}\t{startOfRun:T}\t?\t{MainViewModel.Version}",
             $"Total Time\t{DateTime.UtcNow.Subtract(startOfRun).TotalSeconds}\ts",
+            $"Attempts\\Fails\t{validClients.Count}\t{validClients.Count(c => c.ExitReason != ExitReason.Success)}\t{(double)validClients.Count / validClients.Select(c => c.Account).Distinct().Count():0.###}",
             "Account\tStart\tAuthenticate\tLogin\tEnter\tExit",
         };
 
-        foreach (var client in clients.Where(c => c.Account.Name != null && c.StartAt > DateTime.MinValue).OrderBy(c => c.StartAt))
+        foreach (var client in validClients.OrderBy(c => c.StartAt))
         {
             //Logger.Debug("Client {0} {1} {2}", client.Account.Name, client.AccountIndex, client.StartAt);
             var line = client.Account.Name;
@@ -269,12 +356,13 @@ public class ClientController
         return tasks;
     }
 
-    private List<Client> readyClients { get; }
+    private List<Client> ReadyClients { get; }
     private Client? activeClient;
+
     private void LauncherClientReady(object? sender, EventArgs e)
     {
         if (sender is not Client client) return;
-        if (!readyClients.Contains(client)) readyClients.Add(client);
+        if (!ReadyClients.Contains(client)) ReadyClients.Add(client);
         if (activeClient != null) return;
         activeClient = client;
         activeClient.RestoreWindow();
@@ -283,9 +371,9 @@ public class ClientController
     private void LauncherClientClosed(object? sender, EventArgs e)
     {
         if (sender is not Client client) return;
-        if (readyClients.Contains(client)) readyClients.Remove(client);
+        if (ReadyClients.Contains(client)) ReadyClients.Remove(client);
         if (activeClient != client) return;
-        var next = readyClients.FirstOrDefault();
+        var next = ReadyClients.FirstOrDefault();
         if (next == null)
         {
             activeClient = null;
@@ -315,6 +403,7 @@ public class ClientController
         }
         finally
         {
+            RestoreAddonsFolder();
             if (obtainedLoginLock) loginSemaphore.Release();
         }
     }

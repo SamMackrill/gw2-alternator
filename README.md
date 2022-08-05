@@ -5,11 +5,13 @@ Tool to help logging-in to multiple Guild Wars 2 alt accounts so as to harvest t
 Logging in every day can be a chore but a few factors make this much less so:
  * You do not need to click the chest, just logging into the world claims the reward
    * In fact you can force close the GW2 client as soon as the world loading starts
-   * Chests will wait until you collect them (or auto loot if too many stacked)
+   * Chests will wait until you collect them (or auto loot if > 4 stacked)
  * Harvesting the rewards is even slower and is best done periodically, say once a month
 
 ## Requires at least [.Net 6.0.2](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
 
+## Warning
+Latest version may have issues authenticating, expect a few extra automatic retries
 
 ![Running](images/running.png)
 
@@ -83,11 +85,13 @@ Logging in every day can be a chore but a few factors make this much less so:
 
 ### GW2 API Key
  * Given a GW2 API key then Laurels and Mystic Coins will be counted (excludes any from unclaimed reward chests, max 4)
-   * Account/Inventories/Characters/Wallet
+   * API access: Account/Inventories/Characters/Wallet
+   * Assumes that the final reward chest is converted to laurels
 
  ![Create Key](images/api_create.png)
 
 ### VPN
+ * Alternator assumes that all accounts also authenticated for your non-VPN configuration
  * If you create manual VPN configurations in Windows then alternator can be configured to use these automatically
    * Ensure that the connection is a static IP or restricted to 255.255.255.0 subnet (for smooth GW2 authentication)
      * Windows stores them here: %APPDATA%\Microsoft\Network\Connections\Pbk\rasphone.pbk
@@ -98,12 +102,15 @@ Logging in every day can be a chore but a few factors make this much less so:
 ### Login Errors
  * Typical errors you may see
    * Fixes
+     * Update the client
      * Wait 5 minutes
      * Use a VPN
 
 ![Error](images/Login_Error.png)
 ![Undefined Error](images/Login_Error_Undefined.png)
 ![Crash](images/GW2-crash.png)
+![Download failed](images/GW2-download-failed.png)
+This one usually means the client needs updating
 
 ## Credits:
 * GW2 Launchbuddy https://github.com/TheCheatsrichter/Gw2_Launchbuddy

@@ -44,10 +44,16 @@ global using guildwars2.tools.alternator.MVVM.model;
 global using guildwars2.tools.alternator.MVVM.view;
 global using guildwars2.tools.alternator.MVVM.viewmodel;
 
+global using Gw2Sharp.WebApi.V2.Clients;
+global using Gw2Sharp.WebApi.V2.Models;
+
 global using NLog;
-using NLog.Config;
-using NLog.Layouts;
-using NLog.Targets;
+global using NLog.Config;
+global using NLog.Layouts;
+global using NLog.Targets;
+
+global using File = System.IO.File;
+
 using XamlParseException = System.Windows.Markup.XamlParseException;
 
 

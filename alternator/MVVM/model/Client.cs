@@ -1,12 +1,9 @@
-﻿using NLog.Config;
-using NLog.Layouts;
-using NLog.Targets;
-
-namespace guildwars2.tools.alternator.MVVM.model;
+﻿namespace guildwars2.tools.alternator.MVVM.model;
 
 [DebuggerDisplay("{" + nameof(DebugDisplay) + ",nq}")]
 public class Client : ObservableObject, IEquatable<Client>
 {
+    private readonly ILogger? launchLogger;
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private const string MutexName = "AN-Mutex-Window-Guild Wars 2";
 
@@ -20,6 +17,7 @@ public class Client : ObservableObject, IEquatable<Client>
     private DateTime lastStageSwitchTime;
     private bool closed;
     private bool killed;
+    private LaunchType launchType;
     private record struct EngineTuning(TimeSpan Pause, long MemoryUsage, long MinDiff, TimeSpan StuckDelay, int StuckTolerance);
 
     private EngineTuning tuning;
@@ -38,9 +36,9 @@ public class Client : ObservableObject, IEquatable<Client>
 
     public event EventHandler<ClientStateChangedEventArgs>? RunStatusChanged;
 
-    private string? stuckReason;
+    private string? failedReason;
 
-    private string DebugDisplay => $"{Account?.Name ?? "Unset"} Status:{RunStatus} Stage:{RunStage} {stuckReason ?? ""}";
+    private string DebugDisplay => $"{Account?.Name ?? "Unset"} Status:{RunStatus} Stage:{RunStage} {failedReason ?? ""}";
 
     private DateTime startAt;
     public DateTime StartAt
@@ -83,7 +81,9 @@ public class Client : ObservableObject, IEquatable<Client>
         get => runStatus;
         set
         {
-            if (SetProperty(ref runStatus, value) && runStatus != RunState.Error) StatusMessage = null;
+            if (!SetProperty(ref runStatus, value)) return;
+            if (runStatus != RunState.Error) StatusMessage = null;
+            AccountLogger?.Debug("RunStatus: {0}", runStatus);
         }
     }
 
@@ -93,8 +93,17 @@ public class Client : ObservableObject, IEquatable<Client>
         get => runStage;
         private set
         {
-            if (SetProperty(ref runStage, value) && runStatus != RunState.Error) StatusMessage = $"Stage: {runStage}";
+            if (!SetProperty(ref runStage, value)) return;
+            if (runStatus != RunState.Error) StatusMessage = $"Stage: {runStage}";
+            AccountLogger?.Debug("RunStage: {0}", runStage);
         }
+    }
+
+    private ExitReason exitReason;
+    public ExitReason ExitReason
+    {
+        get => exitReason;
+        private set => SetProperty(ref exitReason, value);
     }
 
     private string? statusMessage;
@@ -112,8 +121,9 @@ public class Client : ObservableObject, IEquatable<Client>
         logFactory?.Shutdown();
     }
 
-    public Client(IAccount account, int accountIndex)
+    public Client(IAccount account, int accountIndex, ILogger? launchLogger)
     {
+        this.launchLogger = launchLogger;
         Account = account;
         AccountIndex = accountIndex;
         RunStatus = RunState.Ready;
@@ -130,6 +140,7 @@ public class Client : ObservableObject, IEquatable<Client>
         CancellationToken cancellationToken
         )
     {
+        this.launchType = launchType;
         if (accountLogs)
         {
             logFactory = new LogFactory();
@@ -147,6 +158,7 @@ public class Client : ObservableObject, IEquatable<Client>
             logFactory.Configuration = config;
 
             AccountLogger = logFactory.GetCurrentClassLogger();
+            Logger.Debug("{0} Logging to {1}", Account.Name, fileTarget.FileName);
         }
 
         async Task CheckIfMovedOn(long memoryUsage)
@@ -178,34 +190,52 @@ public class Client : ObservableObject, IEquatable<Client>
 
         async Task CheckIfStuck(long memoryUsage, long diff)
         {
-            if (RunStage is not (RunStage.Authenticated or RunStage.ReadyToPlay)) return;
+            if (RunStage is not (RunStage.Authenticated or RunStage.ReadyToPlay or RunStage.Playing)) return;
 
-            if (diff >= tuning.StuckTolerance) return;
+            if (diff >= tuning.StuckTolerance) return; // still doing something
 
             var switchTime = DateTime.UtcNow.Subtract(lastStageSwitchTime);
             if (switchTime < tuning.StuckDelay) return;
 
-            stuckReason = $"Stuck, took too long ({switchTime.TotalSeconds:F1}s>{tuning.StuckDelay.TotalSeconds}s)";
+            failedReason = $"Stuck, took too long ({switchTime.TotalSeconds:F1}s>{tuning.StuckDelay.TotalSeconds}s)";
 
-            Logger.Debug("{0} Stuck awaiting login, mem={1} diff={2} (because: {3})", Account.Name, memoryUsage, diff, stuckReason);
-            AccountLogger?.Debug("Stuck awaiting login, mem={1} diff={2} (because: {3})", Account.Name, memoryUsage, diff, stuckReason);
+            Logger.Debug("{0} failed awaiting login, mem={1} diff={2} (because: {3})", Account.Name, memoryUsage, diff, failedReason);
+            AccountLogger?.Debug("Failed awaiting login, mem={1} diff={2} (because: {3})", Account.Name, memoryUsage, diff, failedReason);
 
             //CaptureWindow(RunStage.EntryFailed, applicationFolder);
-            await ChangeRunStage(RunStage.LoginFailed, 20, stuckReason, cancellationToken);
+            await ChangeRunStage(RunStage.LoginFailed, 20, failedReason, cancellationToken);
         }
 
-        bool DetectCrash() => !closed && launchType == LaunchType.Login;
+        const string playingSuccessModule = @"lglcdapi.dll";
+        async Task CheckIfCrashed()
+        {
+            if (RunStage is not (RunStage.Playing)) return;
+
+            var switchTime = DateTime.UtcNow.Subtract(lastStageSwitchTime);
+            if (switchTime.TotalSeconds < settings.CrashWaitDelay) return;
+
+            if (loadedModules.Contains(playingSuccessModule)) return;
+
+            failedReason = $"Crashed state detected ({playingSuccessModule} not loaded within {settings.CrashWaitDelay}s)";
+
+            Logger.Debug("{0} failed awaiting login (because: {1})", Account.Name, failedReason);
+            AccountLogger?.Debug("Failed awaiting login (because: {1})", Account.Name, failedReason);
+
+            await ChangeRunStage(RunStage.LoginCrashed, 20, failedReason, cancellationToken);
+        }
 
         Dictionary<RunStage, List<string>> runStageFromModules = new()
         {
-            { RunStage.Authenticated,          new List<string> { @"winnsi.dll" } },
+            { RunStage.Authenticated,          new List<string> { @"winnsi.dll", @"nsi.dll" } },
             { RunStage.CharacterSelectReached, new List<string> { @"mscms.dll", @"coloradapterclient.dll", @"icm32.dll" } },
-            { RunStage.Playing,                new List<string> { @"mmdevapi.dll" } },
+            { RunStage.Playing,                new List<string> { @"vcruntime140.dll" } },
         };
 
 
         async Task CheckIfStageUpdated()
         {
+            await CheckIfCrashed();
+
             if (launchType == LaunchType.Update) return;
 
             var memoryUsage = p.WorkingSet64 / 1024;
@@ -258,18 +288,26 @@ public class Client : ObservableObject, IEquatable<Client>
 
         await Start(launchType, cancellationToken);
 
-        if (launchType is not LaunchType.Update) KillMutex();
+        if (launchType is not LaunchType.Update) KillMutex(200, 1500);
 
-        var timeout = launchType == LaunchType.Collect ? TimeSpan.MaxValue : new TimeSpan(0, 5, 0);
+        var timeout = launchType == LaunchType.Collect ? TimeSpan.MaxValue : new TimeSpan(0, 0, settings.LaunchTimeout);
         // State Engine
         while (Alive)
         {
+            AccountLogger?.Debug("Loop PING");
             if (DateTime.UtcNow.Subtract(StartAt) > timeout)
             {
-                Logger.Debug("{0} Timed-out after {1}s, giving up)", Account.Name, timeout.TotalSeconds);
-                AccountLogger?.Debug("Timed-out after {1}s, giving up)", Account.Name, timeout.TotalSeconds);
+                Logger.Debug("{0} Timed-out after {1}s, giving up", Account.Name, timeout.TotalSeconds);
+                launchLogger?.Info("{0} Timed-out after {1}s, giving up", Account.Name, timeout.TotalSeconds);
+                AccountLogger?.Debug("Timed-out after {1}s, giving up", Account.Name, timeout.TotalSeconds);
                 await Shutdown(0);
                 throw new Gw2TimeoutException("GW2 process timed-out");
+            }
+
+            AccountLogger?.Debug("Loop PING");
+            if (nextEnterKeyRequest < DateTime.Now)
+            {
+                SendEnterKey(true, "engine");
             }
 
             await CheckIfStageUpdated();
@@ -278,8 +316,8 @@ public class Client : ObservableObject, IEquatable<Client>
         }
 
         if (closed) return;
-        if (!string.IsNullOrEmpty(stuckReason)) throw new Gw2TimeoutException($"GW2 process stuck: {stuckReason}");
-        if (DetectCrash()) throw new Gw2CrashedException("GW2 process crashed");
+        if (!string.IsNullOrEmpty(failedReason)) throw new Gw2TimeoutException($"GW2 process stuck: {failedReason}");
+        if (!closed && launchType == LaunchType.Login) throw new Gw2CrashedException("GW2 process crashed");
     }
 
     private void UpdateEngineSpeed()
@@ -295,6 +333,7 @@ public class Client : ObservableObject, IEquatable<Client>
 
     private async Task ChangeRunStage(RunStage newRunStage, int delay, string? reason, CancellationToken cancellationToken)
     {
+        //nextEnterKeyRequest = DateTime.MaxValue;
         if (delay>0) await Task.Delay(delay, cancellationToken);
         ChangeRunStage(newRunStage, reason);
     }
@@ -324,6 +363,8 @@ public class Client : ObservableObject, IEquatable<Client>
         RunStatusChanged?.Invoke(this, eventArgs);
     }
 
+
+
     private async Task Start(LaunchType launchType, CancellationToken cancellationToken)
     {
         if (!p!.Start()) throw new Gw2Exception($"{Account.Name} Failed to start");
@@ -331,35 +372,50 @@ public class Client : ObservableObject, IEquatable<Client>
         RunStatus = RunState.Running;
         StartAt = p.StartTime.ToUniversalTime();
         Logger.Debug("{0} Started {1}", Account.Name, launchType);
+        launchLogger?.Info("{0} Started {1}", Account.Name, launchType);
         AccountLogger?.Debug("Started {1}", Account.Name, launchType);
         await ChangeRunStage(RunStage.Started, 200, "Normal start", cancellationToken);
     }
 
     public void SelectCharacter()
     {
-        SendEnter();
+        SendEnterKey(false, "SelectCharacter");
     }
 
-    private void KillMutex()
+    private async void KillMutex(int delayBefore, int delayAfter)
     {
         if (p == null) return;
-        p.WaitForInputIdle();
 
-        var handle = Win32Handles.GetHandle(p.Id, MutexName, Win32Handles.MatchMode.EndsWith);
-
-        if (handle == null)
+        try
         {
-            if (p.MainWindowHandle != IntPtr.Zero) return;
-            Logger.Error("{0} Mutex will not die, give up", Account.Name);
-            AccountLogger?.Error("Mutex will not die, give up", Account.Name);
-            p.Kill(true);
-            throw new Gw2Exception($"{Account.Name} Mutex will not die, give up");
-        }
+            p.WaitForInputIdle();
 
-        //Logger.Debug("{0} Got handle to Mutex", account.Name);
-        handle.Kill();
-        Logger.Debug("{0} Killed Mutex", Account.Name);
-        AccountLogger?.Debug("Killed Mutex", Account.Name);
+            await Task.Delay(delayBefore);
+            var handle = Win32Handles.GetHandle(p.Id, MutexName, Win32Handles.MatchMode.EndsWith);
+
+            if (handle == null)
+            {
+                if (p.MainWindowHandle != IntPtr.Zero) return;
+                Logger.Error("{0} Mutex not found", Account.Name);
+                launchLogger?.Info("{0} Mutex not found", Account.Name);
+                AccountLogger?.Error("Mutex not found", Account.Name);
+                p.Kill(true);
+                throw new Gw2MutexException($"{Account.Name} Mutex not found");
+            }
+
+            //Logger.Debug("{0} Got handle to Mutex", account.Name);
+            handle.Kill();
+            Logger.Debug("{0} Killed Mutex", Account.Name);
+            launchLogger?.Info("{0} Killed Mutex", Account.Name);
+            AccountLogger?.Debug("Killed Mutex", Account.Name);
+            await Task.Delay(delayAfter);
+        }
+        catch (Exception e)
+        {
+            Logger.Error(e, "{0} error killing Mutex, ignoring", Account.Name);
+            launchLogger?.Info("{0} error killing Mutex, ignoring", Account.Name);
+            AccountLogger?.Error(e, "{0} error killing Mutex, ignoring", Account.Name);
+        }
     }
 
     private List<string> UpdateProcessModules()
@@ -383,15 +439,31 @@ public class Client : ObservableObject, IEquatable<Client>
     {
         get
         {
-            if (p == null) return false;
-            p.Refresh();
-            return !p.HasExited;
+            if (p == null || RunStage == RunStage.NotRun) return false;
+            try
+            {
+                p.Refresh();
+                return !p.HasExited;
+
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e, "{0} Error checking if process alive", Account.Name);
+                AccountLogger?.Debug(e, "Error checking if process alive", Account.Name);
+            }
+            return false;
         }
     }
 
-    public void SendEnter()
+    private DateTime nextEnterKeyRequest = DateTime.MaxValue;
+    public void SendEnterKey(bool repeat, string source)
     {
         if (!Alive) return;
+
+        Logger.Debug("{0} SendEnterKey from {1}", Account.Name, source);
+        AccountLogger?.Debug("SendEnterKey from {1}", Account.Name, source);
+
+        nextEnterKeyRequest = DateTime.MaxValue;
 
         Logger.Debug("{0} Send ENTER", Account.Name);
         AccountLogger?.Debug("Send ENTER", Account.Name);
@@ -400,11 +472,16 @@ public class Client : ObservableObject, IEquatable<Client>
         {
             _ = Native.SetForegroundWindow(p!.MainWindowHandle);
             InputSender.ClickKey(0x1c); // Enter
+            
+            if (!repeat) return;
+
+            nextEnterKeyRequest = DateTime.Now.AddSeconds(2);
         }
         finally
         {
             _ = Native.SetForegroundWindow(currentFocus);
         }
+
     }
 
     public void MinimiseWindow()
@@ -432,7 +509,7 @@ public class Client : ObservableObject, IEquatable<Client>
     {
         if (!Alive) return false;
 
-        AccountLogger?.Debug("Kill GW2 process", Account.Name);
+        AccountLogger?.Debug("Kill GW2 process");
         p!.Kill(true);
         killed = true;
         await Task.Delay(200);
@@ -441,12 +518,31 @@ public class Client : ObservableObject, IEquatable<Client>
 
     private void Gw2Exited(object? sender, EventArgs e)
     {
-        ChangeRunStage(RunStage.Exited, "Process.Exit event");
-        Logger.Debug("{0} GW2 process exited", Account.Name);
-        AccountLogger?.Debug("GW2 process exited", Account.Name);
-        if (!killed)
+        ExitReason = closed ? ExitReason.Success : ExitReason.Crashed;
+
+        switch (runStatus)
         {
-            AccountLogger?.Debug("This exit was unexpected", Account.Name);
+            case RunState.Completed:
+                ExitReason = ExitReason.Success;
+                break;
+            default:
+                break;
+        }
+
+        switch (runStage)
+        {
+            case RunStage.LoginFailed:
+                ExitReason = ExitReason.LoginFailed;
+                break;
+        }
+
+        ChangeRunStage(RunStage.Exited, "Process.Exit event");
+        Logger.Debug("{0} GW2 process exited because {1}", Account.Name, ExitReason);
+        launchLogger?.Info("{0} GW2 process exited because {1}", Account.Name, ExitReason);
+        AccountLogger?.Debug("GW2 process exited because {1}", Account.Name, ExitReason);
+        if (!killed && launchType != LaunchType.Update)
+        {
+            AccountLogger?.Debug("This exit was unexpected");
         }
         ExitAt = DateTime.UtcNow;
     }

@@ -104,11 +104,11 @@ public class AuthenticationThrottle : ObservableObject
         }
     }
 
-    public void LoginFailed(VpnDetails vpnDetails, Client client)
+    public void LoginFailed(VpnDetails vpnDetails, Client client, bool cancelVpn)
     {
         failedCount.Increment();
         if (client.Account.Name != null) failedClients.AddOrUpdate(client.Account.Name, client, (_, _) => client);
-        vpnDetails.SetFail(client.Account);
+        vpnDetails.SetFail(client.Account, cancelVpn);
     }
 
     public void LoginSucceeded(VpnDetails vpnDetails, Client client)

@@ -92,7 +92,7 @@ public class AccountViewModel : ObservableObject
         set => aggregateLoginCount = value.Trim();
     }
 
-    public string RunStatus => Account == null ? "" : Account.RunStatus.ToString();
+    public string RunStatus => Account == null ? "" : Account.RunStatus.ToString().SplitCamelCase().Replace("Unset", "");
     public string? TooltipText => Account == null ? "" : Account.StatusMessage;
 
     private bool isSelected;

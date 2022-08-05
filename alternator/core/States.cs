@@ -27,6 +27,7 @@ public enum RunStage
     Started,
     Authenticated,
     LoginFailed,
+    LoginCrashed,
     ReadyToPlay,
     Playing,
     CharacterSelectReached,
@@ -34,4 +35,13 @@ public enum RunStage
     CharacterSelected,
     WorldEntered,
     Exited,
+}
+
+public enum ExitReason
+{
+    Unset,
+    Success,
+    LoginFailed,
+    Crashed,
+    Cancelled,
 }

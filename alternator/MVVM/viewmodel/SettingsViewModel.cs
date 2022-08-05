@@ -84,6 +84,12 @@ public class SettingsViewModel : ObservableObject
         set => Settings.StuckTimeout = value;
     }
 
+    public int LaunchTimeout
+    {
+        get => Settings.LaunchTimeout;
+        set => Settings.LaunchTimeout = value;
+    }
+
     public int VpnAccountCount
     {
         get => Settings.VpnAccountCount;
@@ -112,6 +118,12 @@ public class SettingsViewModel : ObservableObject
     {
         get => Settings.ShutDownDelay;
         set => Settings.ShutDownDelay = value;
+    }
+
+    public int CrashWaitDelay
+    {
+        get => Settings.CrashWaitDelay;
+        set => Settings.CrashWaitDelay = value;
     }
 
     public ErrorDetection ExperimentalErrorDetection
@@ -207,6 +219,16 @@ public class SettingsViewModel : ObservableObject
     {
         var defaultSettings = SettingsController.DefaultSettings;
         Settings.StuckTimeout = defaultSettings.StuckTimeout;
+    });
+    public RelayCommand<object> ResetLaunchTimeoutCommand => new(_ =>
+    {
+        var defaultSettings = SettingsController.DefaultSettings;
+        Settings.LaunchTimeout = defaultSettings.LaunchTimeout;
+    });
+    public RelayCommand<object> ResetCrashWaitDelayCommand => new(_ =>
+    {
+        var defaultSettings = SettingsController.DefaultSettings;
+        Settings.CrashWaitDelay = defaultSettings.CrashWaitDelay;
     });
     public RelayCommand<object> ResetVpnAccountCountCommand => new(_ =>
     {

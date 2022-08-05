@@ -152,7 +152,8 @@ public class AccountCollection : JsonCollection<Account>, IAccountCollection
                     continue;
                 }
                 var lastLoginText = settings?.Element("AccountInformation")?.Element("LastLogin")?.Value;
-                var account = Accounts!.FirstOrDefault(a => string.Equals(a.Name, accountName, StringComparison.OrdinalIgnoreCase));
+                var account = Accounts!.FirstOrDefault(a => string.Equals(a.Name, accountName, StringComparison.OrdinalIgnoreCase) &&
+                                                            string.Equals(a.LoginFilePath, pathToLoginDat, StringComparison.OrdinalIgnoreCase));
                 if (account != null)
                 {
                     account.LoginFilePath = pathToLoginDat;
@@ -459,11 +460,13 @@ public class AccountCollection : JsonCollection<Account>, IAccountCollection
 
             // Dat2
             var dat2Count = reader.ReadUInt16();
+            var dat2Paths = new Dictionary<uint, string>();
             for (var i = 0; i < dat2Count; i++)
             {
-                _ = reader.ReadUInt16();
-                _ = reader.ReadString();
+                var id = reader.ReadUInt16();
+                var path = reader.ReadString();
                 _ = reader.ReadByte();
+                dat2Paths.Add(id, path);
             }
 
             // Accounts

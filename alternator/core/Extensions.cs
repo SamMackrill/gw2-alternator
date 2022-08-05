@@ -48,4 +48,37 @@ public static class Extensions
         var invalids = Path.GetInvalidFileNameChars();
         return new string(name.Select(c => invalids.Contains(c) ? replace : c).ToArray());
     }
+
+    public static string SplitCamelCase(this string input)
+    {
+        return Regex.Replace(input, "([A-Z])", " $1", RegexOptions.Compiled).Trim();
+    }
+
+    private static string? cancellationReason;
+
+    public static void Cancel(
+        this CancellationTokenSource cancellationTokenSource,
+        string reason
+    )
+    {
+        cancellationReason = reason;
+        cancellationTokenSource.Cancel();
+    }
+
+    public static void Cancel(
+        this CancellationTokenSource cancellationTokenSource,
+        bool throwOnFirstException,
+        string reason
+    )
+    {
+        cancellationReason = reason;
+        cancellationTokenSource.Cancel(throwOnFirstException);
+    }
+
+    public static string CancellationReason(
+        this CancellationToken ct)
+    {
+        return cancellationReason ?? "unknown";
+    }
+
 }

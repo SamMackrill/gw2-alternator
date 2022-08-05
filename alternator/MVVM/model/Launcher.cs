@@ -45,8 +45,11 @@ public class Launcher
         SemaphoreSlim loginSemaphore,
         SemaphoreSlim exeSemaphore)
     {
+        if (!File.Exists(account.LoginFilePath)) return false;
+
         Task? releaseLoginTask = null;
         var loginInProcess = false;
+        bool alsoFailVpn = false;
 
         client.RunStatusChanged += Client_RunStatusChanged;
 
@@ -79,18 +82,28 @@ public class Launcher
                     break;
                 case RunStage.Authenticated:
                     ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
+                    client.SendEnterKey(true, e.State.ToString());
                     break;
                 case RunStage.LoginFailed:
                     Logger.Info("{0} login failed, giving up to try again", account.Name);
                     client.AccountLogger?.Debug("login failed, giving up to try again", account.Name);
-                    authenticationThrottle.LoginFailed(vpnDetails, client);
+                    authenticationThrottle.LoginFailed(vpnDetails, client, false);
                     ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
+                    alsoFailVpn = false;
+                    account.SetFail();
+                    client.Kill().Wait();
+                    break;
+                case RunStage.LoginCrashed:
+                    Logger.Info("{0} login crashed, giving up to try again", account.Name);
+                    client.AccountLogger?.Debug("login crashed, giving up to try again", account.Name);
+                    ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
+                    alsoFailVpn = false;
                     account.SetFail();
                     client.Kill().Wait();
                     break;
                 case RunStage.ReadyToPlay:
                     ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
-                    client.SendEnter();
+                    client.SendEnterKey(true, e.State.ToString());
                     break;
                 case RunStage.Playing:
                     authenticationThrottle.LoginSucceeded(vpnDetails, client);
@@ -106,6 +119,7 @@ public class Launcher
                     Logger.Info("{0} entry failed, giving up to try again", account.Name);
                     client.AccountLogger?.Debug("entry failed, giving up to try again", account.Name);
                     ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
+                    alsoFailVpn = false;
                     account.SetFail();
                     client.Kill().Wait();
                     break;
@@ -151,7 +165,6 @@ public class Launcher
         loginInProcess = false;
         var exeInProcess = false;
 
-        bool alsoFailVpn = true;
 
         try
         {
@@ -209,11 +222,11 @@ public class Launcher
             account.Done = true;
             return true;
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException ce)
         {
             client.RunStatus = RunState.Cancelled;
-            Logger.Info("{0} cancelled", account.Name);
-            client.AccountLogger?.Debug("cancelled", account.Name);
+            Logger.Info("{0} Launch cancelled because {1}", account.Name, ce.CancellationToken.CancellationReason());
+            client.AccountLogger?.Debug("Launch cancelled because {1}", account.Name, ce.CancellationToken.CancellationReason());
             alsoFailVpn = false;
         }
         catch (Gw2Exception e)
@@ -222,7 +235,7 @@ public class Launcher
             client.StatusMessage = $"Launch failed: {e.Message}";
             Logger.Error(e, "{0} launch failed", account.Name);
             client.AccountLogger?.Debug(e, "launch failed", account.Name);
-            alsoFailVpn = e is Gw2TimeoutException;
+            alsoFailVpn = false && e is Gw2TimeoutException;
         }
         catch (Exception e)
         {
@@ -250,7 +263,7 @@ public class Launcher
             client.AccountLogger?.Debug("GW2 process killed", account.Name);
         }
 
-        if (alsoFailVpn) vpnDetails.SetFail(client.Account);
+        //if (alsoFailVpn) vpnDetails.SetFail(client.Account);
         return false;
     }
 

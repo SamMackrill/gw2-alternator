@@ -2,10 +2,9 @@
 
 namespace guildwars2.tools.alternator.MVVM.model;
 
-public interface IAccount : IEquatable<IAccount>
+public interface IAccount : IEquatable<IAccount>, INotifyPropertyChanged, INotifyPropertyChanging
 {
     string? Name { get; }
-    string? DisplayName { get; set; }
     string? Character { get; set; }
     string? LoginFilePath { get; set; }
     string? ApiKey { get; set; }
@@ -34,12 +33,12 @@ public interface IAccount : IEquatable<IAccount>
     void Undo();
     Task FetchAccountDetails(TimeSpan delay, CancellationToken cancellationToken);
 
-    Task<Client> NewClient();
-    Client? CurrentClient { get; }
+    Task<Client> NewClient(ILogger? launchLogger);
     RunState RunStatus { get; }
     string? StatusMessage { get; }
     DateTime Available(DateTime cutoff);
     int VpnPriority { get; }
+    void Reset();
 }
 
 [Serializable]
@@ -299,6 +298,12 @@ public class Account : ObservableObject, IAccount
     [JsonIgnore]
     public int VpnPriority => Vpns == null || !Vpns.Any() ? 0 : Vpns.Count;
 
+    public void Reset()
+    {
+        Done = false;
+        OnPropertyChanged(nameof(RunStatus));
+    }
+
     private bool done;
     [JsonIgnore]
     public bool Done
@@ -308,7 +313,7 @@ public class Account : ObservableObject, IAccount
     }
 
     private Counter clients;
-    public async Task<Client> NewClient()
+    public async Task<Client> NewClient(ILogger? launchLogger)
     {
         if (CurrentClient != null)
         {
@@ -318,7 +323,7 @@ public class Account : ObservableObject, IAccount
 
         successFailCounter.SetAttempt();
         clients.Increment();
-        CurrentClient = new Client(this, clients.Count);
+        CurrentClient = new Client(this, clients.Count, launchLogger);
         CurrentClient.PropertyChanged += CurrentClientOnPropertyChanged();
         OnPropertyChanged(nameof(Attempt));
         return CurrentClient;
@@ -515,7 +520,9 @@ public class Account : ObservableObject, IAccount
 
     public bool Equals(IAccount? other)
     {
-        return Name != null && other != null && Name.Equals(other.Name);
+        return Name != null && other != null 
+            && Name.Equals(other.Name, StringComparison.OrdinalIgnoreCase) 
+            && (LoginFilePath?.Equals(other.LoginFilePath, StringComparison.OrdinalIgnoreCase) ?? true);
     }
 
     public void SetUndo()
