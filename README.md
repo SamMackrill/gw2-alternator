@@ -10,6 +10,8 @@ Logging in every day can be a chore but a few factors make this much less so:
 
 ## Requires at least [.Net 6.0.2](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
 
+## Warning
+Latest version may have issues authenticating, expect a few extra automatic retries
 
 ![Running](images/running.png)
 
@@ -100,6 +102,7 @@ Logging in every day can be a chore but a few factors make this much less so:
 ### Login Errors
  * Typical errors you may see
    * Fixes
+     * Update the client
      * Wait 5 minutes
      * Use a VPN
 
@@ -107,6 +110,7 @@ Logging in every day can be a chore but a few factors make this much less so:
 ![Undefined Error](images/Login_Error_Undefined.png)
 ![Crash](images/GW2-crash.png)
 ![Download failed](images/GW2-download-failed.png)
+This one usually means the client needs updating
 
 ## Credits:
 * GW2 Launchbuddy https://github.com/TheCheatsrichter/Gw2_Launchbuddy
