@@ -81,9 +81,9 @@ public class ClientController
 
             LaunchLogger = logFactory.GetCurrentClassLogger();
             Logger.Debug("Launch Logging to {0}", fileTarget.FileName);
-            Logger.Info($"GW2-Aternator Version: {MainViewModel.Version}");
+            Logger.Info($"GW2-Alternator Version: {MainViewModel.Version}");
             Logger.Info($"GW2 Client Version: {MainViewModel.Gw2ClientBuild}");
-            LaunchLogger.Info($"GW2-Aternator Version: {MainViewModel.Version}");
+            LaunchLogger.Info($"GW2-Alternator Version: {MainViewModel.Version}");
             LaunchLogger.Info($"GW2 Client Version: {MainViewModel.Gw2ClientBuild}");
         }
 

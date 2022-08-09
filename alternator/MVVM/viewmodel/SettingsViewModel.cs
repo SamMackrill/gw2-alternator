@@ -90,6 +90,12 @@ public class SettingsViewModel : ObservableObject
         set => Settings.LaunchTimeout = value;
     }
 
+    public int StartDelay
+    {
+        get => Settings.StartDelay;
+        set => Settings.StartDelay = value;
+    }
+
     public int VpnAccountCount
     {
         get => Settings.VpnAccountCount;
@@ -224,6 +230,11 @@ public class SettingsViewModel : ObservableObject
     {
         var defaultSettings = SettingsController.DefaultSettings;
         Settings.LaunchTimeout = defaultSettings.LaunchTimeout;
+    });
+    public RelayCommand<object> ResetStartDelayCommand => new(_ =>
+    {
+        var defaultSettings = SettingsController.DefaultSettings;
+        Settings.StartDelay = defaultSettings.StartDelay;
     });
     public RelayCommand<object> ResetCrashWaitDelayCommand => new(_ =>
     {

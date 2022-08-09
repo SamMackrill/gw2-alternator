@@ -108,6 +108,13 @@ public class Settings : ObservableObject
         set => SetProperty(ref launchTimeout, value);
     }
 
+    private int startDelay;
+    public int StartDelay
+    {
+        get => startDelay;
+        set => SetProperty(ref startDelay, value);
+    }
+
     private int crashWaitDelay;
     public int CrashWaitDelay
     {
