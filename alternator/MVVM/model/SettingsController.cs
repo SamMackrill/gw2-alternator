@@ -172,7 +172,7 @@ public class SettingsController : ObservableObject, ISettingsController
         settings.StuckTimeout = 30;
         settings.CrashWaitDelay = 6;
         settings.LaunchTimeout = 120;
-        settings.StartDelay = 2000;
+        settings.StartDelay = 200;
         settings.CrashWaitDelay = 20;
         settings.VpnAccountCount = 10;
         settings.AuthenticationMemoryThreshold = 120;
