@@ -52,6 +52,7 @@ public class Launcher
         bool alsoFailVpn = false;
 
         client.RunStatusChanged += Client_RunStatusChanged;
+        client.MutexDeleted += MutexDeleted;
 
         async Task? ReleaseLogin(CancellationToken cancellationToken)
         {
@@ -69,6 +70,17 @@ public class Launcher
             }
         }
 
+        void MutexDeleted(object? sender, EventArgs e)
+        {
+            releaseLoginTask = ReleaseLogin(launchCancelled);
+        }
+
+        void ReleaseLoginIfRequired(bool logininprocess, ref Task? releaselogintask, CancellationToken launchcancelled)
+        {
+            if (!logininprocess) return;
+            releaselogintask ??= ReleaseLogin(launchcancelled);
+        }
+
 
         void Client_RunStatusChanged(object? sender, Client.ClientStateChangedEventArgs e)
         {
@@ -81,7 +93,6 @@ public class Launcher
                 case RunStage.Started:
                     break;
                 case RunStage.Authenticated:
-                    ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
                     client.SendEnterKey(true, e.State.ToString());
                     break;
                 case RunStage.LoginFailed:
@@ -102,7 +113,6 @@ public class Launcher
                     client.Kill().Wait();
                     break;
                 case RunStage.ReadyToPlay:
-                    ReleaseLoginIfRequired(loginInProcess, ref releaseLoginTask, launchCancelled);
                     client.SendEnterKey(true, e.State.ToString());
                     break;
                 case RunStage.Playing:
@@ -154,12 +164,6 @@ public class Launcher
                 default:
                     throw new ArgumentOutOfRangeException($"Unhandled RunStage: {e.State}");
             }
-        }
-
-        void ReleaseLoginIfRequired(bool logininprocess, ref Task? releaselogintask, CancellationToken launchcancelled)
-        {
-            if (!logininprocess) return;
-            releaselogintask ??= ReleaseLogin(launchcancelled);
         }
 
         loginInProcess = false;
@@ -266,5 +270,6 @@ public class Launcher
         //if (alsoFailVpn) vpnDetails.SetFail(client.Account);
         return false;
     }
+
 
 }

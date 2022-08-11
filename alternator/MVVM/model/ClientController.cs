@@ -81,9 +81,9 @@ public class ClientController
 
             LaunchLogger = logFactory.GetCurrentClassLogger();
             Logger.Debug("Launch Logging to {0}", fileTarget.FileName);
-            Logger.Info($"GW2-Aternator Version: {MainViewModel.Version}");
+            Logger.Info($"GW2-Alternator Version: {MainViewModel.Version}");
             Logger.Info($"GW2 Client Version: {MainViewModel.Gw2ClientBuild}");
-            LaunchLogger.Info($"GW2-Aternator Version: {MainViewModel.Version}");
+            LaunchLogger.Info($"GW2-Alternator Version: {MainViewModel.Version}");
             LaunchLogger.Info($"GW2 Client Version: {MainViewModel.Gw2ClientBuild}");
         }
 
@@ -136,6 +136,8 @@ public class ClientController
                 LaunchLogger?.Info("{0} VPN Chosen with {1} accounts", vpn.DisplayId, accountsToLaunch.Count);
 
                 if (!accountsToLaunch.Any()) continue;
+
+                if (launchType == LaunchType.Login) KillAllGw2();
 
                 var clientsToLaunch = new List<Client>();
                 foreach (var account in accountsToLaunch)
@@ -222,6 +224,15 @@ public class ClientController
             Logger.Info("GW2 account files restored.");
             await SaveMetrics(start, clients, vpnsUsed);
         }
+    }
+
+    private void KillAllGw2()
+    {
+        Parallel.ForEach(Process.GetProcessesByName("Gw2-64"), process =>
+        {
+            Logger.Info($"Killing GW2 rogue process {process.Id}");
+            process.Kill();
+        });
     }
 
     private const string AddonsFolderName = "addons";

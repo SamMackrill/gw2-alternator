@@ -274,6 +274,7 @@ public class Account : ObservableObject, IAccount
 
     [JsonIgnore]
     public RunState RunStatus => CurrentClient?.RunStatus ?? RunState.Unset;
+
     [JsonIgnore]
     public string? StatusMessage => CurrentClient?.StatusMessage;
 
@@ -301,6 +302,7 @@ public class Account : ObservableObject, IAccount
     public void Reset()
     {
         Done = false;
+        CurrentClient = null;
         OnPropertyChanged(nameof(RunStatus));
     }
 

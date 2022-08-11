@@ -96,6 +96,7 @@ public class SettingsController : ObservableObject, ISettingsController
         if (Settings!.MaxLoginInstances == default) Settings!.MaxLoginInstances = defaults.MaxLoginInstances;
         if (Settings!.StuckTimeout == default) Settings!.StuckTimeout = defaults.StuckTimeout;
         if (Settings!.LaunchTimeout == default) Settings!.LaunchTimeout = defaults.LaunchTimeout;
+        if (Settings!.StartDelay == default) Settings!.StartDelay = defaults.StartDelay;
         if (Settings!.CrashWaitDelay == default) Settings!.CrashWaitDelay = defaults.CrashWaitDelay;
         if (Settings!.VpnAccountCount == default) Settings!.VpnAccountCount = defaults.VpnAccountCount;
         if (Settings!.AuthenticationMemoryThreshold == default) Settings!.AuthenticationMemoryThreshold = defaults.AuthenticationMemoryThreshold;
@@ -171,6 +172,7 @@ public class SettingsController : ObservableObject, ISettingsController
         settings.StuckTimeout = 30;
         settings.CrashWaitDelay = 6;
         settings.LaunchTimeout = 120;
+        settings.StartDelay = 200;
         settings.CrashWaitDelay = 20;
         settings.VpnAccountCount = 10;
         settings.AuthenticationMemoryThreshold = 120;
