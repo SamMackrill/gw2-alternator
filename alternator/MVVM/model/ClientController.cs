@@ -137,6 +137,8 @@ public class ClientController
 
                 if (!accountsToLaunch.Any()) continue;
 
+                if (launchType == LaunchType.Login) KillAllGw2();
+
                 var clientsToLaunch = new List<Client>();
                 foreach (var account in accountsToLaunch)
                 {
@@ -222,6 +224,15 @@ public class ClientController
             Logger.Info("GW2 account files restored.");
             await SaveMetrics(start, clients, vpnsUsed);
         }
+    }
+
+    private void KillAllGw2()
+    {
+        Parallel.ForEach(Process.GetProcessesByName("Gw2-64"), process =>
+        {
+            Logger.Info($"Killing GW2 rogue process {process.Id}");
+            process.Kill();
+        });
     }
 
     private const string AddonsFolderName = "addons";

@@ -25,9 +25,10 @@ public class AccountsViewModel : ObservableObject
     private readonly Dictionary<string, List<string>> propertyConverter = new()
     {
         { "AlwaysIgnoreVpn", new() { nameof(VpnVisibilityHide), nameof(VpnVisibilityCollapse) } },
+        { "LoginRequired", new() { nameof(OutstandingLogins) } },
         { "LaurelCount", new() { nameof(TotalLaurels) } },
         { "MysticCoinCount", new() { nameof(TotalMC) } },
-        { "LoginCount", new() { nameof(TotalChests) } },
+        { "LoginCount", new() { nameof(LoginsSinceCollected) } },
     };
 
     private void Add(IEnumerable<IAccount>? accounts)
@@ -87,7 +88,8 @@ public class AccountsViewModel : ObservableObject
     // Totals
     public string DisplayText => "TOTAL";
 
-    public string TotalChests => Accounts.Sum(a => a.Account?.LoginCount ?? 0).ToString();
+    public string OutstandingLogins => Accounts.Sum(a => (a.Account?.LoginRequired ?? false) ? 1 : 0).ToString();
+    public string LoginsSinceCollected => Accounts.Sum(a => a.Account?.LoginCount ?? 0).ToString();
     public string TotalLaurels => Accounts.Sum(a => a.Account?.LaurelsGuess ?? 0).ToString();
     public string TotalMC => Accounts.Sum(a => a.Account?.MysticCoinsGuess ?? 0).ToString();
 

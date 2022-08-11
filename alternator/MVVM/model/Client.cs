@@ -458,14 +458,12 @@ public class Client : ObservableObject, IEquatable<Client>
             {
                 p.Refresh();
                 if (!p.HasExited) return true;
-
             }
             catch (Exception e)
             {
                 Logger.Error(e, "{0} Error checking if process alive", Account.Name);
                 AccountLogger?.Debug(e, "Error checking if process alive", Account.Name);
             }
-            launchLogger?.Info("{0} Process {1} is Dead", Account.Name, ProcessId);
             AccountLogger?.Info("Process {1} is Dead", Account.Name, ProcessId);
             return false;
         }
@@ -554,7 +552,7 @@ public class Client : ObservableObject, IEquatable<Client>
 
         ChangeRunStage(RunStage.Exited, "Process.Exit event");
         Logger.Debug("{0} GW2 process exited because {1}", Account.Name, ExitReason);
-        launchLogger?.Info("{0} GW2 process {2} exited because {1}", Account.Name, ExitReason, ProcessId);
+        launchLogger?.Info("{0} GW2 process exited because {1}", Account.Name, ExitReason);
         AccountLogger?.Debug("GW2 process {2} exited because {1}", Account.Name, ExitReason, ProcessId);
         if (!killed && launchType != LaunchType.Update)
         {
