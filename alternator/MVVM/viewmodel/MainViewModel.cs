@@ -290,8 +290,9 @@ public class MainViewModel : ObservableObject
                 launchCancellation.Token.ThrowIfCancellationRequested();
                 var launcher = new ClientController(settingsController.ApplicationFolder, settingsController, authenticationThrottle, vpnCollection, launchType);
                 launcher.MetricsUpdated += Launcher_MetricsUpdated;
+                var selectedAccounts = AccountsVM.SelectedAccounts.ToList();
                 await launcher.LaunchMultiple(
-                    AccountsVM.SelectedAccounts.ToList(), 
+                    selectedAccounts, 
                     accountCollection, 
                     all, 
                     !serial,

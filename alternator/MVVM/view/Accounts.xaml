@@ -32,6 +32,8 @@
                   GridLinesVisibility="Horizontal"
                   HorizontalGridLinesBrush="Transparent"
                   RowHeaderWidth="0"
+                  HorizontalScrollBarVisibility="Auto"
+                  VerticalScrollBarVisibility="Auto"
                   SelectionMode="Extended"
                   IsReadOnly="True"
                   SelectionUnit="FullRow"

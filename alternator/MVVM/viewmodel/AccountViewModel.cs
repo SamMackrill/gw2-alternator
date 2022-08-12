@@ -102,4 +102,3 @@ public class AccountViewModel : ObservableObject
         set => _ = SetProperty(ref isSelected, value);
     }
 }
-
