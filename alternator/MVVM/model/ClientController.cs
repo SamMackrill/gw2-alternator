@@ -103,7 +103,7 @@ public class ClientController
             Logger.Debug("Max GW2 Instances={0}", maxInstances);
 
             var accountsByVpn = AccountCollection.AccountsByVpn(accounts, ignoreVpn);
-            while (accounts.Any(a => !a.Done))
+            while (accounts.Any(a => !a.Done) && !cancellationTokenSource.IsCancellationRequested)
             {
                 LaunchLogger?.Info("{0} accounts left", accounts.Count(a => !a.Done));
 
