@@ -1,4 +1,6 @@
-﻿namespace guildwars2.tools.alternator.MVVM.viewmodel;
+﻿using Account = Gw2Sharp.WebApi.V2.Models.Account;
+
+namespace guildwars2.tools.alternator.MVVM.viewmodel;
 
 public class AccountsViewModel : ObservableObject
 {
@@ -26,9 +28,11 @@ public class AccountsViewModel : ObservableObject
     {
         { "AlwaysIgnoreVpn", new() { nameof(VpnVisibilityHide), nameof(VpnVisibilityCollapse) } },
         { "LoginRequired", new() { nameof(OutstandingLogins) } },
+        { "CollectionRequired", new() { nameof(OutstandingCollections) } },
         { "LaurelCount", new() { nameof(TotalLaurels) } },
         { "MysticCoinCount", new() { nameof(TotalMC) } },
         { "LoginCount", new() { nameof(LoginsSinceCollected) } },
+        { "Attempt", new() { nameof(TotalAttempts) } },
     };
 
     private void Add(IEnumerable<IAccount>? accounts)
@@ -88,9 +92,12 @@ public class AccountsViewModel : ObservableObject
     // Totals
     public string DisplayText => "TOTAL";
 
-    public string OutstandingLogins => Accounts.Sum(a => (a.Account?.LoginRequired ?? false) ? 1 : 0).ToString();
+    public string OutstandingLogins => Accounts.Sum(a => a.Account?.LoginRequired ?? false ? 1 : 0).ToString();
+    public string OutstandingCollections => Accounts.Sum(a => a.Account?.CollectionRequired ?? false ? 1 : 0).ToString();
+
     public string LoginsSinceCollected => Accounts.Sum(a => a.Account?.LoginCount ?? 0).ToString();
     public string TotalLaurels => Accounts.Sum(a => a.Account?.LaurelsGuess ?? 0).ToString();
     public string TotalMC => Accounts.Sum(a => a.Account?.MysticCoinsGuess ?? 0).ToString();
 
+    public string TotalAttempts => Accounts.Sum(a => a.Account?.Attempt ?? 0).ToString();
 }

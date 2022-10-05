@@ -149,13 +149,15 @@
             <TextBox Width="{Binding ElementName=Col_LastCollected,Path=ActualWidth}" BorderThickness="0" HorizontalContentAlignment="Right"/>
             <TextBox Width="{Binding ElementName=Col_Chests,Path=ActualWidth}" BorderThickness="0"
                      Text="{Binding LoginsSinceCollected, Mode=OneWay, FallbackValue=10}" FontWeight="Bold" HorizontalContentAlignment="Right"/>
-            <TextBox Width="{Binding ElementName=Col_Collect,Path=ActualWidth}" BorderThickness="0" HorizontalContentAlignment="Right"/>
+            <TextBox Width="{Binding ElementName=Col_Collect,Path=ActualWidth}" BorderThickness="0"
+                     Text="{Binding OutstandingCollections, Mode=OneWay, FallbackValue=17}" FontWeight="Bold" HorizontalContentAlignment="Center"/>
             <TextBox Width="{Binding ElementName=Col_Laurels,Path=ActualWidth}" BorderThickness="0" Visibility="{Binding ApiVisibilityCollapse, Mode=OneWay}"
                      Text="{Binding TotalLaurels, Mode=OneWay, FallbackValue=20}" FontWeight="Bold" HorizontalContentAlignment="Right"/>
             <TextBox Width="{Binding ElementName=Col_MC,Path=ActualWidth}" BorderThickness="0" Visibility="{Binding ApiVisibilityCollapse, Mode=OneWay}"
                      Text="{Binding TotalMC, Mode=OneWay, FallbackValue=30}" FontWeight="Bold" HorizontalContentAlignment="Right"/>
             <TextBox Width="{Binding ElementName=Col_Status,Path=ActualWidth}" BorderThickness="0" HorizontalContentAlignment="Right"/>
-            <TextBox Width="{Binding ElementName=Col_Attempt,Path=ActualWidth}" BorderThickness="0" HorizontalContentAlignment="Right"/>
+            <TextBox Width="{Binding ElementName=Col_Attempt,Path=ActualWidth}" BorderThickness="0" 
+                     Text="{Binding TotalAttempts, Mode=OneWay, FallbackValue=0}" FontWeight="Bold" HorizontalContentAlignment="Right"/>
 
         </StackPanel>
 
