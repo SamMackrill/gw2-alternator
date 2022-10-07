@@ -235,6 +235,8 @@ public class MainViewModel : ObservableObject
         authenticationThrottle = new AuthenticationThrottle(settingsController.Settings);
         authenticationThrottle.PropertyChanged += ThrottlePropertyChanged;
 
+        ForceSerialOverride = true;
+
 
         QueryGw2Version().SafeFireAndForget(ex =>
         {
