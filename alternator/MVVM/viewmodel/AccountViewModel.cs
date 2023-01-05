@@ -57,39 +57,38 @@ public class AccountViewModel : ObservableObject
     public string Collected => Account == null ? "" : DateTimeDisplay(Account.LastCollection);
 
     public string CollectionRequired => Account == null ? "" : Account.CollectionRequired ? "Yes" : "No";
-    public string Age => Account == null ? "" : Math.Floor(DateTime.UtcNow.Subtract(Account.CreatedAt).TotalDays).ToString("F0");
+    public int Age => Account == null ? 0 : (int)Math.Floor(DateTime.UtcNow.Subtract(Account.CreatedAt).TotalDays);
 
     public string VpnsDisplay => Account == null ? "" : string.Join(',', Account.Vpns?.OrderBy(v => v).ToArray() ?? Array.Empty<string>());
 
-    public List<AccountVpnViewModel> Vpns { get; set; }
+    public List<AccountVpnViewModel>? Vpns { get; set; }
 
-    private string aggregateLaurelCount;
-    public string LaurelCount
+    private int aggregateLaurelCount;
+    public int LaurelCount
     {
-        get => Account == null ? aggregateLaurelCount : Account.LaurelsGuess.ToString("F0");
-        set => aggregateLaurelCount = value.Trim();
+        get => Account?.LaurelsGuess ?? aggregateLaurelCount;
+        set => aggregateLaurelCount = value;
     }
 
-    private string aggregateMysticCoinCount;
-    public string MysticCoinCount
+    private int aggregateMysticCoinCount;
+    public int MysticCoinCount
     {
-        get => Account == null ? aggregateMysticCoinCount : Account.MysticCoinsGuess.ToString("F0");
-        set => aggregateMysticCoinCount = value.Trim();
+        get => Account?.MysticCoinsGuess ?? aggregateMysticCoinCount;
+        set => aggregateMysticCoinCount = value;
     }
 
-    private string aggregateAttempt;
-    public string Attempt
+    private int aggregateAttempt;
+    public int Attempt
     {
-        get => Account == null ? aggregateAttempt : Account.Attempt.ToString();
-        set => aggregateAttempt = value.Trim();
+        get => Account?.Attempt ?? aggregateAttempt;
+        set => aggregateAttempt = value;
     }
 
-    private string aggregateLoginCount;
-
-    public string LoginCount
+    private int aggregateLoginCount;
+    public int LoginCount
     {
-        get => Account == null ? aggregateLoginCount : Account.LoginCount.ToString();
-        set => aggregateLoginCount = value.Trim();
+        get => Account?.LoginCount ?? aggregateLoginCount;
+        set => aggregateLoginCount = value;
     }
 
     public string RunStatus => Account == null ? "" : Account.RunStatus.ToString().SplitCamelCase().Replace("Unset", "");

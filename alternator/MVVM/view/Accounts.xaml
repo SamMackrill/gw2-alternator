@@ -44,7 +44,7 @@
             <DataGrid.Columns>
                 <DataGridTextColumn x:Name="Col_Account"   Header="Account"   Binding="{Binding AccountName}" HeaderStyle="{StaticResource LeftHeader}"/>
                 <DataGridTextColumn x:Name="Col_Character" Header="Character" Binding="{Binding Character}"   HeaderStyle="{StaticResource LeftHeader}"/>
-                <DataGridTextColumn x:Name="Col_Age"       Header="Age"       Binding="{Binding Age}" 
+                <DataGridTextColumn x:Name="Col_Age"       Header="Age"       Binding="{Binding Path=Age, StringFormat={}\{0:N0\}}" 
                                     CellStyle="{StaticResource RightCell}" 
                                     Visibility="{Binding Data.ApiVisibilityHide, Source={StaticResource proxy}}"/>
 
@@ -73,17 +73,17 @@
                 <DataGridTextColumn x:Name="Col_Login" Header="Login?" Binding="{Binding LoginRequired}" CellStyle="{StaticResource CenterCell}"/>
                 <DataGridTextColumn x:Name="Col_LastCollected" Header="Last Collected" Binding="{Binding Collected}" CellStyle="{StaticResource RightCell}"/>
                 <DataGridTextColumn x:Name="Col_Chests" Header="Logins" 
-                                Binding="{Binding LoginCount}" CellStyle="{StaticResource RightCell}">
+                                Binding="{Binding LoginCount, StringFormat={}\{0:N0\}}" CellStyle="{StaticResource RightCell}">
                 </DataGridTextColumn>
                 <DataGridTextColumn x:Name="Col_Collect" Header="Collect?" Binding="{Binding CollectionRequired}" CellStyle="{StaticResource CenterCell}"/>
 
                 <DataGridTextColumn x:Name="Col_Laurels" Header="Laurels" CellStyle="{StaticResource RightCell}"
-                                    Binding="{Binding LaurelCount, FallbackValue=0}"
+                                    Binding="{Binding LaurelCount, FallbackValue=0, StringFormat={}\{0:N0\}}"
                                     Visibility="{Binding Data.ApiVisibilityHide, Source={StaticResource proxy}}">
                 </DataGridTextColumn>
 
                 <DataGridTextColumn x:Name="Col_MC" Header="M.C." CellStyle="{StaticResource RightCell}"
-                                    Binding="{Binding MysticCoinCount, FallbackValue=?}"
+                                    Binding="{Binding Path=MysticCoinCount, FallbackValue=?, StringFormat={}\{0:N0\}}"
                                     Visibility="{Binding Data.ApiVisibilityHide, Source={StaticResource proxy}}">
                 </DataGridTextColumn>
 
@@ -115,7 +115,7 @@
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
 
-                <DataGridTextColumn x:Name="Col_Attempt" Header="Attempt" Binding="{Binding Attempt, FallbackValue=0}" CellStyle="{StaticResource RightCell}"/>
+                <DataGridTextColumn x:Name="Col_Attempt" Header="Attempt" Binding="{Binding Attempt, FallbackValue=0, StringFormat={}\{0:N0\}}" CellStyle="{StaticResource RightCell}"/>
 
             </DataGrid.Columns>
 
