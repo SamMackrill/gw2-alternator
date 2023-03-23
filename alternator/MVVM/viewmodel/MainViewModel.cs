@@ -235,6 +235,8 @@ public class MainViewModel : ObservableObject
         authenticationThrottle = new AuthenticationThrottle(settingsController.Settings);
         authenticationThrottle.PropertyChanged += ThrottlePropertyChanged;
 
+        ForceSerialOverride = true;
+
 
         QueryGw2Version().SafeFireAndForget(ex =>
         {
@@ -330,12 +332,14 @@ public class MainViewModel : ObservableObject
 
         StopCommand = new RelayCommand<object>(_ =>
         {
+            Logger.Debug("Stop Requested by user");
             Stopping = true;
             launchCancellation?.Cancel("Stop Requested");
         }, _ => Running);
 
         CloseCommand = new AsyncRelayCommand<Window>(async w =>
         {
+            Logger.Debug("Close Requested by user");
             await SaveCollections(accountCollection, vpnCollection);
             w?.Close();
             Application.Current.Shutdown(0);

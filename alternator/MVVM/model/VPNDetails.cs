@@ -137,18 +137,18 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
         return null;
     }
 
-    public async Task<string?> Disconnect(CancellationToken cancellationToken)
+    public async Task<string?> Disconnect()
     {
         currentConnectionMetrics?.DisconnectStart();
 
-        var status = await RunRasdial("Disconnecting from", @" /d", false, cancellationToken);
+        var status = await RunRasdial("Disconnecting from", @" /d", false);
         if (status != null) return status;
 
         currentConnectionMetrics?.Disconnected();
         return null;
     }
 
-    private async Task<string?> RunRasdial(string display, string arg, bool record, CancellationToken cancellationToken)
+    private async Task<string?> RunRasdial(string display, string arg, bool record, CancellationToken? cancellationToken = null)
     {
         if (!IsReal) return null;
 
@@ -171,10 +171,21 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
             return $"{display} VPN Process null";
         }
 
-        _ = Task.Run(() => ReadStream(vpnProcess.StandardOutput, s => Logger.Debug("VPN: {0}", s)), cancellationToken);
-        _ = Task.Run(() => ReadStream(vpnProcess.StandardError, s => Logger.Debug("VPN Error: {0}", s)), cancellationToken);
+        if (cancellationToken != null)
+        {
+            _ = Task.Run(() => ReadStream(vpnProcess.StandardOutput, s => Logger.Debug("VPN: {0}", s)), cancellationToken.Value);
+            _ = Task.Run(() => ReadStream(vpnProcess.StandardError, s => Logger.Debug("VPN Error: {0}", s)), cancellationToken.Value);
 
-        await vpnProcess.WaitForExitAsync(cancellationToken);
+            await vpnProcess.WaitForExitAsync(cancellationToken.Value);
+        }
+        else
+        {
+            _ = Task.Run(() => ReadStream(vpnProcess.StandardOutput, s => Logger.Debug("VPN: {0}", s)));
+            _ = Task.Run(() => ReadStream(vpnProcess.StandardError, s => Logger.Debug("VPN Error: {0}", s)));
+
+            await vpnProcess.WaitForExitAsync();
+        }
+
         if (vpnProcess.ExitCode > 0)
         {
             Logger.Error("{0} VPN {1} Error={2}", display, ToString(), vpnProcess.ExitCode);
@@ -187,7 +198,7 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
         }
 
         if (record) LastConnectionSuccess = DateTime.UtcNow;
-        await Task.Delay(new TimeSpan(0, 0, 1), cancellationToken);
+        await Task.Delay(new TimeSpan(0, 0, 1));
         return null;
     }
 
@@ -256,7 +267,7 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
         var webClient = new HttpClient();
         var pubIp = await webClient.GetStringAsync("https://api.ipify.org", token);
 
-        status = await Disconnect(token);
+        status = await Disconnect();
         if (status != null) return status;
 
         return $"OK IP={pubIp}";

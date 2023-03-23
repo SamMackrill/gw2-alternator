@@ -17,6 +17,8 @@ public class Client : ObservableObject, IEquatable<Client>
 
     private long lastStageMemoryUsage;
     private DateTime lastStageSwitchTime;
+    private int lastStageModuleCount;
+
     private bool closed;
     private bool killed;
     private LaunchType launchType;
@@ -209,7 +211,6 @@ public class Client : ObservableObject, IEquatable<Client>
             await ChangeRunStage(RunStage.LoginFailed, 20, failedReason, cancellationToken);
         }
 
-        const string playingSuccessModule = @"lglcdapi.dll";
         async Task CheckIfCrashed()
         {
             if (RunStage is not (RunStage.Playing)) return;
@@ -217,9 +218,9 @@ public class Client : ObservableObject, IEquatable<Client>
             var switchTime = DateTime.UtcNow.Subtract(lastStageSwitchTime);
             if (switchTime.TotalSeconds < settings.CrashWaitDelay) return;
 
-            if (loadedModules.Contains(playingSuccessModule)) return;
+            if (loadedModules.Count > lastStageModuleCount) return;
 
-            failedReason = $"Crashed state detected ({playingSuccessModule} not loaded within {settings.CrashWaitDelay}s)";
+            failedReason = $"Crashed state detected no modules loaded within {settings.CrashWaitDelay}s)";
 
             Logger.Debug("{0} failed awaiting login (because: {1})", Account.Name, failedReason);
             AccountLogger?.Debug("Failed awaiting login (because: {1})", Account.Name, failedReason);
@@ -229,9 +230,9 @@ public class Client : ObservableObject, IEquatable<Client>
 
         Dictionary<RunStage, List<string>> runStageFromModules = new()
         {
-            { RunStage.Authenticated,          new List<string> { @"winnsi.dll", @"nsi.dll" } },
-            { RunStage.CharacterSelectReached, new List<string> { @"mscms.dll", @"coloradapterclient.dll", @"icm32.dll" } },
-            { RunStage.Playing,                new List<string> { @"vcruntime140.dll" } },
+            { RunStage.Authenticated,          new List<string> { @"winnsi.dll", @"nsi.dll" } }, // Windows Network Store Information
+            { RunStage.CharacterSelectReached, new List<string> { @"mscms.dll", @"coloradapterclient.dll", @"icm32.dll" } }, // Microsoft Color Management System
+            { RunStage.Playing,                new List<string> { @"vcruntime140.dll" } }, // C++ runtime library
         };
 
 
@@ -293,7 +294,7 @@ public class Client : ObservableObject, IEquatable<Client>
 
         if (launchType is not LaunchType.Update)
         {
-            await KillMutex(settings.StartDelay, 1500);
+            await KillMutex(settings.StartDelay, 200);
             MutexDeleted?.Invoke(this, EventArgs.Empty);
         }
 
@@ -312,6 +313,8 @@ public class Client : ObservableObject, IEquatable<Client>
 
             if (nextEnterKeyRequest < DateTime.Now)
             {
+                var stageDiff = Math.Abs(p.WorkingSet64 / 1024 - lastStageMemoryUsage);
+                AccountLogger?.Info("Memory delta {0}", stageDiff);
                 SendEnterKey(true, "engine");
             }
 
@@ -364,6 +367,7 @@ public class Client : ObservableObject, IEquatable<Client>
         RunStage = newRunStage;
         if (!p!.HasExited) lastStageMemoryUsage = p!.WorkingSet64 / 1024;
         lastStageSwitchTime = DateTime.UtcNow;
+        lastStageModuleCount = loadedModules.Count;
         UpdateEngineSpeed();
         RunStatusChanged?.Invoke(this, eventArgs);
     }
@@ -387,7 +391,7 @@ public class Client : ObservableObject, IEquatable<Client>
         SendEnterKey(false, "SelectCharacter");
     }
 
-    private async Task? KillMutex(int delayBefore, int delayAfter)
+    private async Task KillMutex(int delayBefore, int delayAfter)
     {
         if (!Alive) return;
 
