@@ -42,7 +42,10 @@
               >
 
             <DataGrid.Columns>
-                <DataGridTextColumn x:Name="Col_Account"   Header="Account"   Binding="{Binding AccountName}" HeaderStyle="{StaticResource LeftHeader}"/>
+                <DataGridTextColumn x:Name="Col_Account"   Header="Account"   Binding="{Binding AccountName}" HeaderStyle="{StaticResource LeftHeader}">
+                    <!-- Bold if Main? -->
+                </DataGridTextColumn>
+
                 <DataGridTextColumn x:Name="Col_Character" Header="Character" Binding="{Binding Character}"   HeaderStyle="{StaticResource LeftHeader}"/>
                 <DataGridTextColumn x:Name="Col_Age"       Header="Age"       Binding="{Binding Path=Age, StringFormat={}\{0:N0\}}" 
                                     CellStyle="{StaticResource RightCell}" 

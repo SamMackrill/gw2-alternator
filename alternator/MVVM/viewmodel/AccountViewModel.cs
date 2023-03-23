@@ -29,13 +29,13 @@ public class AccountViewModel : ObservableObject
 
     private readonly Dictionary<string, List<string>> propertyConverter = new()
     {
-        { "Name", new() { nameof(AccountName) } },
-        { "LastLogin", new() { nameof(Login) } },
-        { "LastCollection", new() { nameof(Collected) } },
-        { "CreatedAt", new() { nameof(Age) } },
-        { "StatusMessage", new() { nameof(TooltipText) } },
-        { "Vpns", new() { nameof(VpnsDisplay) } },
-        { "LoginCount", new() { nameof(LoginCount), nameof(MysticCoinCount) } },
+        { "Name", new List<string> { nameof(AccountName) } },
+        { "LastLogin", new List<string> { nameof(Login) } },
+        { "LastCollection", new List<string> { nameof(Collected) } },
+        { "CreatedAt", new List<string> { nameof(Age) } },
+        { "StatusMessage", new List<string> { nameof(TooltipText) } },
+        { "Vpns", new List<string> { nameof(VpnsDisplay) } },
+        { "LoginCount", new List<string> { nameof(LoginCount), nameof(MysticCoinCount) } },
     };
 
     private void ModelPropertyChanged(object? sender, PropertyChangedEventArgs args)
@@ -51,6 +51,7 @@ public class AccountViewModel : ObservableObject
 
     public string AccountName => Account == null ? "TOTAL" : Account.Name ?? "Unknown";
 
+    public string Main => Account is {IsMain: true} ? "Yes" : "No";
     public string Character => Account == null ? "" : Account.Character ?? "Unknown";
     public string Login => Account == null ? "" : DateTimeDisplay(Account.LastLogin);
     public string LoginRequired => Account == null ? "" : Account.LoginRequired ? "Yes" : "No";

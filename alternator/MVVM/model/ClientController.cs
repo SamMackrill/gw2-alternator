@@ -156,9 +156,11 @@ public class ClientController
 
                 try
                 {
+                    // This cancellation token allows another attempt to fail all the logins on a dis-functional VPN
                     vpn.Cancellation = new CancellationTokenSource();
                     var vpnToken = vpn.Cancellation.Token;
                     vpnToken.ThrowIfCancellationRequested();
+
                     var doubleTrouble = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token, vpnToken);
                     if (!vpnsUsed.Contains(vpn)) vpnsUsed.Add(vpn);
                     var status = await vpn.Connect(cancellationTokenSource.Token);
@@ -185,6 +187,7 @@ public class ClientController
                     }
 
                     await Task.WhenAll(tasks.ToArray());
+                    if (cancellationTokenSource.IsCancellationRequested) return;
                 }
                 catch (OperationCanceledException ce)
                 {
@@ -199,6 +202,8 @@ public class ClientController
                 }
                 finally
                 {
+                    if (cancellationTokenSource.IsCancellationRequested) Logger.Debug("Cancellation Requested, tidy-up");
+
                     var status = await vpn.Disconnect();
                     if (status != null)
                     {

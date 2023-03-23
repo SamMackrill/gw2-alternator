@@ -6,6 +6,7 @@ public interface IAccount : IEquatable<IAccount>, INotifyPropertyChanged, INotif
 {
     string? Name { get; }
     string? Character { get; set; }
+    bool IsMain { get; set; }
     string? LoginFilePath { get; set; }
     string? ApiKey { get; set; }
     ObservableCollectionEx<string>? Vpns { get; set; }
@@ -88,6 +89,13 @@ public class Account : ObservableObject, IAccount
         set => SetProperty(ref apiKey, value);
     }
     private string? apiKeyUndo;
+
+    private bool isMain;
+    public bool IsMain
+    {
+        get => isMain;
+        set => SetProperty(ref isMain, value);
+    }
 
     private int loginCount;
     public int LoginCount
