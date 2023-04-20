@@ -168,11 +168,14 @@ public class Client : ObservableObject, IEquatable<Client>
 
         async Task CheckIfMovedOn(long memoryUsage)
         {
+            if (RunStage != RunStage.CharacterSelectReached) return;
+
             var stageDiff = Math.Abs(memoryUsage - lastStageMemoryUsage);
-            if (RunStage == RunStage.CharacterSelectReached && stageDiff > settings.DeltaMemoryThreshold)
-            {
-                await ChangeRunStage(RunStage.CharacterSelected, 200, $"Memory increased by {stageDiff} > {settings.DeltaMemoryThreshold}", cancellationToken);
-            }
+            if (stageDiff < settings.DeltaMemoryThreshold) return;
+            AccountLogger?.Debug("CheckIfMovedOn={1} ({2}>{3})", Account.Name, memoryUsage, stageDiff, settings.DeltaMemoryThreshold);
+
+            await ChangeRunStage(RunStage.CharacterSelected, 200,
+                $"Memory increased by {stageDiff} > {settings.DeltaMemoryThreshold}", cancellationToken);
         }
 
         async Task CheckMemoryThresholdReached(long diff, long memoryUsage)
@@ -181,7 +184,7 @@ public class Client : ObservableObject, IEquatable<Client>
 
             if (diff >= tuning.MinDiff) return;
 
-            //Logger.Debug("{0} Memory={1} ({2}<{3})", Account.Name, memoryUsage, diff, tuning.MinDiff);
+            AccountLogger?.Debug("Memory={1} ({2}<{3})", Account.Name, memoryUsage, diff, tuning.MinDiff);
             switch (RunStage)
             {
                 case RunStage.Authenticated when memoryUsage > settings.AuthenticationMemoryThreshold * 1000:
@@ -231,8 +234,8 @@ public class Client : ObservableObject, IEquatable<Client>
         Dictionary<RunStage, List<string>> runStageFromModules = new()
         {
             { RunStage.Authenticated,          new List<string> { @"winnsi.dll", @"nsi.dll" } }, // Windows Network Store Information
-            { RunStage.CharacterSelectReached, new List<string> { @"mscms.dll", @"coloradapterclient.dll", @"icm32.dll" } }, // Microsoft Color Management System
-            { RunStage.Playing,                new List<string> { @"vcruntime140.dll" } }, // C++ runtime library
+            { RunStage.CharacterSelectReached, new List<string> { @"lglcdapi.dll" } }, // Microsoft Color Management System
+            { RunStage.Playing,                new List<string> { @"nan.dll" } }, // C++ runtime library
         };
 
 
@@ -432,7 +435,7 @@ public class Client : ObservableObject, IEquatable<Client>
         {
             Logger.Error(e, "{0} error killing Mutex, ignoring", Account.Name);
             launchLogger?.Info("{0} error killing Mutex, ignoring", Account.Name);
-            AccountLogger?.Error(e, "{0} error killing Mutex, ignoring", Account.Name);
+            AccountLogger?.Error(e, "error killing Mutex, ignoring", Account.Name);
         }
     }
 
@@ -486,6 +489,7 @@ public class Client : ObservableObject, IEquatable<Client>
 
         Logger.Debug("{0} Send ENTER", Account.Name);
         AccountLogger?.Debug("Send ENTER", Account.Name);
+
         var currentFocus = Native.GetForegroundWindow();
         try
         {

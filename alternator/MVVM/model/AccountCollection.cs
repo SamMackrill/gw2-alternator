@@ -8,7 +8,7 @@ public interface IAccountCollection : IJsonCollection
     List<IAccount>? Accounts { get; }
     bool CanImportFromLaunchbuddy { get; }
     bool CanImportFromLauncher { get; }
-    List<IAccount>? AccountsToRun(LaunchType launchType, bool all);
+    List<IAccount>? AccountsToRun(LaunchType launchType, bool all, int collectionSpan);
     int ImportFromLaunchbuddy();
     int ImportFromLauncher();
     void SetUndo();
@@ -78,15 +78,15 @@ public class AccountCollection : JsonCollection<Account>, IAccountCollection
         }
     }
 
-    public List<IAccount>? AccountsToRun(LaunchType launchType, bool all)
+    public List<IAccount>? AccountsToRun(LaunchType launchType, bool all, int collectionSpan)
     {
         if (Accounts == null) return null;
 
         return launchType switch
         {
-            LaunchType.Login => Accounts.Where(a => all || a.LoginRequired).ToList(),
-            LaunchType.Collect => Accounts.Where(a => all || a.CollectionRequired).OrderBy(a => a.LastCollection).ToList(),
-            LaunchType.Update => Accounts.Where(a => all || a.UpdateRequired).ToList(),
+            LaunchType.Login   => Accounts.Where(a => all || a.LoginRequired).ToList(),
+            LaunchType.Collect => Accounts.Where(a => all || a.CollectionRequired(collectionSpan)).OrderBy(a => a.LastCollection).ToList(),
+            LaunchType.Update  => Accounts.Where(a => all || a.UpdateRequired).ToList(),
             _ => throw new ArgumentException(message: "invalid enum value", paramName: nameof(launchType))
         };
     }

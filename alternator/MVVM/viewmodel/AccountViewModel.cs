@@ -21,10 +21,16 @@ public class AccountViewModel : ObservableObject
 
     private void SettingsController_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName != "DisplayLocalTime") return;
-        OnPropertyChanged(nameof(Login));
-        OnPropertyChanged(nameof(Collected));
-
+        switch (e.PropertyName)
+        {
+            case "DisplayLocalTime":
+                OnPropertyChanged(nameof(Login));
+                OnPropertyChanged(nameof(Collected));
+                break;
+            case "CollectionSpan":
+                OnPropertyChanged(nameof(CollectionRequired));
+                break;
+        }
     }
 
     private readonly Dictionary<string, List<string>> propertyConverter = new()
@@ -57,7 +63,7 @@ public class AccountViewModel : ObservableObject
     public string LoginRequired => Account == null ? "" : Account.LoginRequired ? "Yes" : "No";
     public string Collected => Account == null ? "" : DateTimeDisplay(Account.LastCollection);
 
-    public string CollectionRequired => Account == null ? "" : Account.CollectionRequired ? "Yes" : "No";
+    public string CollectionRequired => Account == null ? "" : Account.CollectionRequired(settingsController.Settings?.CollectionSpan ?? 30) ? "Yes" : "No";
     public int Age => Account == null ? 0 : (int)Math.Floor(DateTime.UtcNow.Subtract(Account.CreatedAt).TotalDays);
 
     public string VpnsDisplay => Account == null ? "" : string.Join(',', Account.Vpns?.OrderBy(v => v).ToArray() ?? Array.Empty<string>());

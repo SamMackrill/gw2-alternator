@@ -93,6 +93,7 @@ public class SettingsController : ObservableObject, ISettingsController
     {
         DiscoverGw2ExeLocation();
         var defaults = DefaultSettings;
+        if (Settings!.CollectionSpan == default) Settings!.CollectionSpan = defaults.CollectionSpan;
         if (Settings!.MaxLoginInstances == default) Settings!.MaxLoginInstances = defaults.MaxLoginInstances;
         if (Settings!.StuckTimeout == default) Settings!.StuckTimeout = defaults.StuckTimeout;
         if (Settings!.LaunchTimeout == default) Settings!.LaunchTimeout = defaults.LaunchTimeout;
@@ -162,6 +163,7 @@ public class SettingsController : ObservableObject, ISettingsController
     private static void Reset(Settings settings)
     {
         settings.Gw2Folder = null;
+        settings.CollectionSpan = 30;
         settings.MaxLoginInstances = 4;
         settings.AccountBand1 = 10;
         settings.AccountBand1Delay = 5;
