@@ -13,6 +13,13 @@ public class Settings : ObservableObject
         set => SetProperty(ref gw2Folder, value);
     }
 
+    private int collectionSpan;
+    public int CollectionSpan
+    {
+        get => collectionSpan;
+        set => SetProperty(ref collectionSpan, value);
+    }
+
     private int maxLoginInstances;
     public int MaxLoginInstances
     {

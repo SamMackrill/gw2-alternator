@@ -461,6 +461,12 @@ public class MainViewModel : ObservableObject
 
     public static string Gw2ClientBuild { get; private set; }
 
+
+    public RelayCommand<object> ResetThrottle => new(_ =>
+    {
+        authenticationThrottle.Reset();
+    });
+
     private async ValueTask QueryGw2Version()
     {
         var apiConnection = new Gw2Sharp.Connection();

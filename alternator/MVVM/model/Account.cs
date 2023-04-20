@@ -15,7 +15,7 @@ public interface IAccount : IEquatable<IAccount>, INotifyPropertyChanged, INotif
     DateTime LastCollection { get; set; }
     DateTime CreatedAt { get; }
     bool LoginRequired { get; }
-    bool CollectionRequired { get; }
+    bool CollectionRequired(int collectionSpan);
     bool UpdateRequired { get; }
     Task SwapFilesAsync(FileInfo gw2LocalDat, FileInfo gw2GfxSettings, FileInfo referenceGfxSettingsFile);
     int MysticCoinsGuess { get; }
@@ -49,7 +49,7 @@ public class Account : ObservableObject, IAccount
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
     // ReSharper disable once UnassignedField.Global
-    public EventHandler? AccountCollected; 
+    public EventHandler? AccountCollected;
 
     private string? name;
     public string? Name
@@ -241,7 +241,9 @@ public class Account : ObservableObject, IAccount
 
     private SuccessFailCounter successFailCounter;
 
-    public Account()
+
+    [JsonConstructor]
+    public Account() 
     {
         successFailCounter = new SuccessFailCounter();
 
@@ -347,8 +349,7 @@ public class Account : ObservableObject, IAccount
     [JsonIgnore]
     public bool LoginRequired => LastLogin < DateTime.UtcNow.Date;
 
-    [JsonIgnore]
-    public bool CollectionRequired => LastCollection < DateTime.UtcNow.Date && DateTime.UtcNow.Date.Subtract(LastCollection).TotalDays > 30;
+    public bool CollectionRequired(int collectionSpan) => LastCollection < DateTime.UtcNow.Date && DateTime.UtcNow.Date.Subtract(LastCollection).TotalDays > collectionSpan;
 
     [JsonIgnore]
     public bool UpdateRequired => true;

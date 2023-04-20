@@ -93,7 +93,7 @@ public class AccountsViewModel : ObservableObject
     public string DisplayText => "TOTAL";
 
     public string OutstandingLogins => Accounts.Sum(a => a.Account?.LoginRequired ?? false ? 1 : 0).ToString();
-    public string OutstandingCollections => Accounts.Sum(a => a.Account?.CollectionRequired ?? false ? 1 : 0).ToString();
+    public string OutstandingCollections => Accounts.Sum(a => a.Account?.CollectionRequired(settingsController.Settings?.CollectionSpan ?? 30) ?? false ? 1 : 0).ToString();
 
     public string LoginsSinceCollected => Accounts.Sum(a => a.Account?.LoginCount ?? 0).ToString();
     public string TotalLaurels => Accounts.Sum(a => a.Account?.LaurelsGuess ?? 0).ToString();

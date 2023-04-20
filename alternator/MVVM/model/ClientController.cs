@@ -14,7 +14,8 @@ public class ClientController
     public event EventHandler? MetricsUpdated;
 
 
-    public ClientController(DirectoryInfo applicationFolder,
+    public ClientController(
+        DirectoryInfo applicationFolder,
         ISettingsController settingsController,
         AuthenticationThrottle authenticationThrottle,
         IVpnCollection vpnCollection,
@@ -56,7 +57,7 @@ public class ClientController
         ReadyClients.Clear();
         vpnCollection.ResetConnections();
 
-        var accounts = selectedAccounts.Any() ? selectedAccounts : accountCollection.AccountsToRun(launchType, all);
+        var accounts = selectedAccounts.Any() ? selectedAccounts : accountCollection.AccountsToRun(launchType, all, settingsController.Settings?.CollectionSpan ?? 30);
 
         if (accounts == null || !accounts.Any())
         {

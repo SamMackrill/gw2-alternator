@@ -38,6 +38,12 @@ public class SettingsViewModel : ObservableObject
         set => Settings.Gw2Folder = value;
     }
 
+    public int CollectionSpan
+    {
+        get => Settings.CollectionSpan;
+        set => Settings.CollectionSpan = value;
+    }
+
     public int MaxLoginInstances
     {
         get => Settings.MaxLoginInstances;
@@ -194,6 +200,11 @@ public class SettingsViewModel : ObservableObject
     public RelayCommand<object> ResetGw2FolderCommand => new(_ =>
     {
         settingsController.DiscoverGw2ExeLocation();
+    });
+
+    public RelayCommand<object> ResetCollectionSpanCommand => new(_ =>
+    {
+        Settings.CollectionSpan = SettingsController.DefaultSettings.CollectionSpan;
     });
 
     public RelayCommand<object> ResetMaxLoginInstancesCommand => new(_ =>
