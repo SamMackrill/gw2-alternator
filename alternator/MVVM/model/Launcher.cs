@@ -116,7 +116,6 @@ public class Launcher
                     client.SendEnterKey(true, e.State.ToString());
                     break;
                 case RunStage.Playing:
-                    client.StopSendingEnter();
                     authenticationThrottle.LoginSucceeded(vpnDetails, client);
                     break;
                 case RunStage.CharacterSelection:

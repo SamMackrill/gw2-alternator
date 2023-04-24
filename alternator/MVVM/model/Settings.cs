@@ -87,6 +87,13 @@ public class Settings : ObservableObject
         set => SetProperty(ref authenticationMemoryThreshold, value);
     }
 
+    private int characterSelectionMemoryThreshold;
+    public int CharacterSelectionMemoryThreshold
+    {
+        get => characterSelectionMemoryThreshold;
+        set => SetProperty(ref characterSelectionMemoryThreshold, value);
+    }
+
     private int characterSelectedMemoryThreshold;
     public int CharacterSelectedMemoryThreshold
     {

@@ -183,6 +183,10 @@ public class Client : ObservableObject, IEquatable<Client>
                     AccountLogger?.Debug("{3} Threshold(kB): {1:n0}>{2:n0}", Account.Name, tuning.StageDiff, settings.AuthenticationMemoryThreshold, RunStage);
                     await ChangeRunStage(RunStage.ReadyToPlay, $"Memory(kB) {tuning.StageDiff} > {settings.AuthenticationMemoryThreshold}", 200, cancellationToken);
                     break;
+                case RunStage.Playing when tuning.StageDiff > settings.CharacterSelectionMemoryThreshold * 1024:
+                    AccountLogger?.Debug("{3} Threshold(MB): {1:n0}>{2:n0}", Account.Name, tuning.StageDiff / 1024, settings.CharacterSelectionMemoryThreshold, RunStage);
+                    await ChangeRunStage(RunStage.CharacterSelection, $"Memory(MB) {tuning.StageDiff / 1024} > {settings.CharacterSelectionMemoryThreshold}", 200, cancellationToken);
+                    break;
                 case RunStage.CharacterSelection when tuning.StageDiff > settings.CharacterSelectedMemoryThreshold * 1024:
                     AccountLogger?.Debug("{3} Threshold(MB): {1:n0}>{2:n0}", Account.Name, tuning.StageDiff / 1024, settings.CharacterSelectedMemoryThreshold, RunStage);
                     await ChangeRunStage(RunStage.CharacterSelected, $"Memory(MB) {tuning.StageDiff / 1024} > {settings.CharacterSelectedMemoryThreshold}", 200, cancellationToken);
@@ -246,7 +250,7 @@ public class Client : ObservableObject, IEquatable<Client>
         {
             { RunStage.ReadyToLogin,       new List<string> { @"umpdc.dll", @"powrprof.dll" } }, // Windows Network Store Information
             { RunStage.Playing,            new List<string> { @"d3d11.dll" } }, // DX11
-            { RunStage.CharacterSelection, new List<string> { @"lglcdapi.dll" } }, // Microsoft Color Management System
+            { RunStage.CharacterSelection, new List<string> { @"nan.dll" } }, // can't find one :(
         };
 
 
