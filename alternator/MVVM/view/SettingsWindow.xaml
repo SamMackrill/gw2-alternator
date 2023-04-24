@@ -171,7 +171,7 @@
                     <Image Source="/images/folder.png" ToolTip="Change..." Width="16" />
                 </Button>
 
-                <Label Padding="0" Grid.Row="3" Grid.Column="1" Margin="0,4,0,0"
+                <!--<Label Padding="0" Grid.Row="3" Grid.Column="1" Margin="0,4,0,0"
                        ToolTip="Error detection method (disabled)"
                    Content="Detect Errors" />
                 <StackPanel Grid.Row="3" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,0">
@@ -192,10 +192,10 @@
                         Command="{Binding Path=ResetErrorDetectionCommand, Mode=OneWay}" >
 
                     <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
-                </Button>
+                </Button>-->
 
 
-                <Label Padding="0" Grid.Row="4" Grid.Column="1" Margin="0,0,0,0"
+                <Label Padding="0" Grid.Row="4" Grid.Column="1" Margin="0,4,0,0"
                        Content="Font Size" />
 
                 <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,0" >
@@ -569,7 +569,7 @@
 
 
                 <Label Padding="0" Grid.Row="26" Grid.Column="1" Margin="0,4,0,0"
-                       ToolTip="Memory threshold to detect Authorisation phase"
+                       ToolTip="Memory threshold to detect Login Success"
                        Content="Auth.Threshold" />
                 <StackPanel Grid.Row="26" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,0">
                     <Slider Margin="4,0,0,0"
@@ -598,7 +598,7 @@
 
 
                 <Label Padding="0" Grid.Row="27" Grid.Column="1" Margin="0,4,0,0"
-                       ToolTip="Memory threshold to detect Character Selection phase"
+                       ToolTip="Memory threshold to detect Character Selected"
                        Content="Char.Threshold" />
                 <StackPanel Grid.Row="27" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,0">
                     <Slider Margin="4,0,0,0"
@@ -608,9 +608,9 @@
                             Maximum="5000"
                             HorizontalAlignment="Left"
                             Style="{StaticResource IntegerSlider}"
-                            Value="{Binding Path=CharacterSelectedMemoryThreshold, Mode=TwoWay, FallbackValue=1400}"
+                            Value="{Binding Path=CharacterSelectedMemoryThreshold, Mode=TwoWay, FallbackValue=700}"
                     />
-                    <Label Padding="1,0,0,0" Content="kB" />
+                    <Label Padding="1,0,0,0" Content="MB" />
                 </StackPanel>
                 <Button Grid.Row="27" Grid.Column="3"  
                         Margin="4,0,0,0" 
@@ -627,8 +627,8 @@
 
 
                 <Label Padding="0" Grid.Row="28" Grid.Column="1" Margin="0,4,0,0"
-                       ToolTip="Memory delta to detect stage change"
-                       Content="Delta Threshold" />
+                       ToolTip="Memory threshold to detect World Entered"
+                       Content="World Threshold" />
                 <StackPanel Grid.Row="28" Grid.Column="2" Orientation="Horizontal" Margin="0,4,0,0">
                     <Slider Margin="4,0,0,0"
                             MinWidth="35"
@@ -637,9 +637,9 @@
                             Maximum="9999"
                             HorizontalAlignment="Left"
                             Style="{StaticResource IntegerSlider}"
-                            Value="{Binding Path=DeltaMemoryThreshold, Mode=TwoWay, FallbackValue=100}"
+                            Value="{Binding Path=WorldEnteredMemoryThreshold, Mode=TwoWay, FallbackValue=1400}"
                     />
-                    <Label Padding="1,0,0,0" Content="B" />
+                    <Label Padding="1,0,0,0" Content="MB" />
                 </StackPanel>
                 <Button Grid.Row="28" Grid.Column="3"  
                         Margin="4,0,0,0" 
@@ -649,7 +649,7 @@
                         Height="16" Width="16"
                         Background="Transparent"
                         Style="{StaticResource FadeOutButton}"
-                        Command="{Binding Path=ResetDeltaMemoryThresholdCommand, Mode=OneWay}" >
+                        Command="{Binding Path=ResetWorldEnteredMemoryThresholdCommand, Mode=OneWay}" >
 
                     <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
                 </Button>
@@ -741,11 +741,41 @@
                 </Button>
 
                 <Label Padding="0" Grid.Row="32" Grid.Column="1" Margin="0,4,0,0"
-                       ToolTip="Maximum accounts to launch simultaneously under a single VPN"
-                       Visibility="{Binding VpnVisibility}"
-                   Content="VPN Max Launch" />
+                       ToolTip="Maximum Enter Key Retries"
+                   Content="Enter Key Retry" />
                 <StackPanel 
                     Grid.Row="32" Grid.Column="2" 
+                    Orientation="Horizontal" 
+                    Margin="0,4,0,0">
+                    <Slider Margin="4,0,0,0"
+                            MinWidth="35"
+                            Width="50"
+                            Minimum="0"
+                            Maximum="100"
+                            HorizontalAlignment="Left"
+                            Style="{StaticResource IntegerSlider}"
+                            Value="{Binding Path=MaxEnterRetries, Mode=TwoWay, FallbackValue=16}"
+                    />
+                </StackPanel>
+                <Button Grid.Row="32" Grid.Column="3"  
+                    Margin="4,0,0,0" 
+                    Opacity="0.6"
+                    VerticalAlignment="Center" 
+                    BorderThickness="0" 
+                    Height="16" Width="16"
+                    Background="Transparent"
+                    Style="{StaticResource FadeOutButton}"
+                    Command="{Binding Path=ResetMaxEnterRetriesCommand, Mode=OneWay}" >
+
+                    <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
+                </Button>
+
+                <Label Padding="0" Grid.Row="33" Grid.Column="1" Margin="0,4,0,0"
+                       ToolTip="Maximum accounts to launch simultaneously under a single VPN"
+                       Visibility="{Binding VpnVisibility}"
+                       Content="VPN Max Launch" />
+                <StackPanel 
+                    Grid.Row="33" Grid.Column="2" 
                     Orientation="Horizontal" 
                     Visibility="{Binding VpnVisibility}"
                     Margin="0,4,0,0">
@@ -759,20 +789,19 @@
                             Value="{Binding Path=VpnAccountCount, Mode=TwoWay, FallbackValue=10}"
                     />
                 </StackPanel>
-                <Button Grid.Row="32" Grid.Column="3"  
-                    Margin="4,0,0,0" 
-                    Opacity="0.6"
-                    VerticalAlignment="Center" 
-                    BorderThickness="0" 
-                    Height="16" Width="16"
-                    Background="Transparent"
-                    Visibility="{Binding VpnVisibility}"
-                    Style="{StaticResource FadeOutButton}"
-                    Command="{Binding Path=ResetVpnAccountCountCommand, Mode=OneWay}" >
+                <Button Grid.Row="33" Grid.Column="3"  
+                        Margin="4,0,0,0" 
+                        Opacity="0.6"
+                        VerticalAlignment="Center" 
+                        BorderThickness="0" 
+                        Height="16" Width="16"
+                        Background="Transparent"
+                        Visibility="{Binding VpnVisibility}"
+                        Style="{StaticResource FadeOutButton}"
+                        Command="{Binding Path=ResetVpnAccountCountCommand, Mode=OneWay}" >
 
                     <Image Source="/images/undo.png" ToolTip="Reset to default" Width="16" />
                 </Button>
-
 
                 <Grid Grid.Row="40" Grid.Column="1" Grid.ColumnSpan="4" Margin="0,4,0,0" >
 

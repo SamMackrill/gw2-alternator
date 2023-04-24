@@ -19,7 +19,7 @@ public interface ISettingsController
     string MetricsFile { get; }
     string UniqueMetricsFile { get; }
     DirectoryInfo ApplicationFolder { get; }
-    void Load();
+    void Load(Version? currentVersion);
     void Save();
     Task SaveAsync();
     void DiscoverGw2ExeLocation( );
@@ -65,7 +65,7 @@ public class SettingsController : ObservableObject, ISettingsController
         semaphore = new SemaphoreSlim(1, 1);
     }
 
-    public void Load()
+    public void Load(Version? currentVersion)
     {
         try
         {
@@ -74,7 +74,7 @@ public class SettingsController : ObservableObject, ISettingsController
             var settingsFromFile = JsonSerializer.Deserialize<Settings>(stream);
             Logger.Debug("Settings loaded from {0}", settingsJson);
             Settings = settingsFromFile ?? DefaultSettings;
-            ValidateSettings();
+            ValidateSettings(currentVersion);
             return;
         }
         catch (Exception e)
@@ -89,7 +89,7 @@ public class SettingsController : ObservableObject, ISettingsController
         DiscoverGw2ExeLocation();
     }
 
-    private void ValidateSettings()
+    private void ValidateSettings(Version? currentVersion)
     {
         DiscoverGw2ExeLocation();
         var defaults = DefaultSettings;
@@ -102,10 +102,22 @@ public class SettingsController : ObservableObject, ISettingsController
         if (Settings!.VpnAccountCount == default) Settings!.VpnAccountCount = defaults.VpnAccountCount;
         if (Settings!.AuthenticationMemoryThreshold == default) Settings!.AuthenticationMemoryThreshold = defaults.AuthenticationMemoryThreshold;
         if (Settings!.CharacterSelectedMemoryThreshold == default) Settings!.CharacterSelectedMemoryThreshold = defaults.CharacterSelectedMemoryThreshold;
+        if (Settings!.WorldEnteredMemoryThreshold == default) Settings!.WorldEnteredMemoryThreshold = defaults.WorldEnteredMemoryThreshold;
         if (Settings!.DeltaMemoryThreshold == default) Settings!.DeltaMemoryThreshold = defaults.DeltaMemoryThreshold;
         if (Settings!.ShutDownDelay == default) Settings!.ShutDownDelay = defaults.ShutDownDelay;
         if (Settings!.FontSize == default) Settings!.FontSize = defaults.FontSize;
+        if (Settings!.MaxEnterRetries == default) Settings!.MaxEnterRetries = defaults.MaxEnterRetries;
         Settings!.VpnMatch ??= defaults.VpnMatch;
+
+        if (currentVersion == null) return;
+
+        if (Settings!.Version == null || Settings!.Version <= new Version(1, 0, 31))
+        {
+            if (Settings!.AuthenticationMemoryThreshold == 120) Settings!.AuthenticationMemoryThreshold = defaults.AuthenticationMemoryThreshold;
+            if (Settings!.CharacterSelectedMemoryThreshold == 1400) Settings!.CharacterSelectedMemoryThreshold = defaults.CharacterSelectedMemoryThreshold;
+        }
+
+        Settings!.Version = currentVersion;
     }
 
     public void Save()
@@ -177,11 +189,13 @@ public class SettingsController : ObservableObject, ISettingsController
         settings.StartDelay = 200;
         settings.CrashWaitDelay = 20;
         settings.VpnAccountCount = 10;
-        settings.AuthenticationMemoryThreshold = 120;
-        settings.CharacterSelectedMemoryThreshold = 1400;
+        settings.AuthenticationMemoryThreshold = 200;
+        settings.CharacterSelectedMemoryThreshold = 700;
+        settings.WorldEnteredMemoryThreshold = 1400;
         settings.DeltaMemoryThreshold = 100;
         settings.ShutDownDelay = 500;
         settings.FontSize = 12;
+        settings.MaxEnterRetries = 16;
         settings.ExperimentalErrorDetection = ErrorDetection.Delay;
         settings.AlwaysIgnoreVpn = true;
         settings.VpnMatch = @"\w+-\w+-st\d+\.prod\.surfshark\.com";

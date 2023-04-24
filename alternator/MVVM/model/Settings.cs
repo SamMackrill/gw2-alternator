@@ -94,6 +94,13 @@ public class Settings : ObservableObject
         set => SetProperty(ref characterSelectedMemoryThreshold, value);
     }
 
+    private int worldEnteredMemoryThreshold;
+    public int WorldEnteredMemoryThreshold
+    {
+        get => worldEnteredMemoryThreshold;
+        set => SetProperty(ref worldEnteredMemoryThreshold, value);
+    }
+
     private int deltaMemoryThreshold;
     public int DeltaMemoryThreshold
     {
@@ -174,4 +181,17 @@ public class Settings : ObservableObject
         set => SetProperty(ref vpnMatch, value);
     }
 
+    private Version? version;
+    public Version? Version
+    {
+        get => version;
+        set => SetProperty(ref version, value);
+    }
+
+    private int maxEnterRetries;
+    public int MaxEnterRetries
+    {
+        get => maxEnterRetries;
+        set => SetProperty(ref maxEnterRetries, value);
+    }
 }

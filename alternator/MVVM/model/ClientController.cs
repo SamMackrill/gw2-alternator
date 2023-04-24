@@ -309,7 +309,6 @@ public class ClientController
             var line = client.Account.Name;
             var reference = startOfRun;
             (line, reference) = AddOffset(reference, client.StartAt, line!);
-            (line, reference) = AddOffset(reference, client.AuthenticationAt, line);
             (line, reference) = AddOffset(reference, client.LoginAt, line);
             (line, reference) = AddOffset(reference, client.EnterAt, line);
             (line, reference) = AddOffset(reference, client.ExitAt, line);

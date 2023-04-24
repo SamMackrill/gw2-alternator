@@ -120,6 +120,12 @@ public class SettingsViewModel : ObservableObject
         set => Settings.CharacterSelectedMemoryThreshold = value;
     }
 
+    public int WorldEnteredMemoryThreshold
+    {
+        get => Settings.WorldEnteredMemoryThreshold;
+        set => Settings.WorldEnteredMemoryThreshold = value;
+    }
+
     public int DeltaMemoryThreshold
     {
         get => Settings.DeltaMemoryThreshold;
@@ -172,6 +178,12 @@ public class SettingsViewModel : ObservableObject
     {
         get => Settings.FontSize;
         set => Settings.FontSize = value;
+    }
+
+    public int MaxEnterRetries
+    {
+        get => Settings.MaxEnterRetries;
+        set => Settings.MaxEnterRetries = value;
     }
 
     public double HeaderFontSize => Settings.HeaderFontSize;
@@ -292,6 +304,11 @@ public class SettingsViewModel : ObservableObject
         var defaultSettings = SettingsController.DefaultSettings;
         Settings.CharacterSelectedMemoryThreshold = defaultSettings.CharacterSelectedMemoryThreshold;
     });
+    public RelayCommand<object> ResetWorldEnteredMemoryThresholdCommand => new(_ =>
+    {
+        var defaultSettings = SettingsController.DefaultSettings;
+        Settings.WorldEnteredMemoryThreshold = defaultSettings.WorldEnteredMemoryThreshold;
+    });
     public RelayCommand<object> ResetDeltaMemoryThresholdCommand => new(_ =>
     {
         var defaultSettings = SettingsController.DefaultSettings;
@@ -306,6 +323,11 @@ public class SettingsViewModel : ObservableObject
     {
         var defaultSettings = SettingsController.DefaultSettings;
         Settings.FontSize = defaultSettings.FontSize;
+    });
+    public RelayCommand<object> ResetMaxEnterRetriesCommand => new(_ =>
+    {
+        var defaultSettings = SettingsController.DefaultSettings;
+        Settings.MaxEnterRetries = defaultSettings.MaxEnterRetries;
     });
     public RelayCommand<object> ResetAllCommand => new(_ =>
     {

@@ -92,7 +92,7 @@ public class Launcher
                     break;
                 case RunStage.Started:
                     break;
-                case RunStage.Authenticated:
+                case RunStage.ReadyToLogin:
                     client.SendEnterKey(true, e.State.ToString());
                     break;
                 case RunStage.LoginFailed:
@@ -116,13 +116,15 @@ public class Launcher
                     client.SendEnterKey(true, e.State.ToString());
                     break;
                 case RunStage.Playing:
+                    client.StopSendingEnter();
                     authenticationThrottle.LoginSucceeded(vpnDetails, client);
                     break;
-                case RunStage.CharacterSelectReached:
+                case RunStage.CharacterSelection:
                     client.SelectCharacter();
                     client.MinimiseWindow();
                     break;
                 case RunStage.CharacterSelected:
+                    client.StopSendingEnter();
                     if (launchType is LaunchType.Login) client.Shutdown(settings.ShutDownDelay).Wait();
                     break;
                 case RunStage.EntryFailed:
@@ -219,7 +221,7 @@ public class Launcher
             client.RunStatus = RunState.WaitingForAuthenticationThrottle;
             await authenticationThrottle.WaitAsync(client, vpnDetails, launchCancelled);
 
-            await client.Launch(launchType, settings, shareArchive, logAccount, applicationFolder, launchCancelled);
+            await client.Launch(launchType, settings, shareArchive, logAccount, applicationFolder, vpnDetails, launchCancelled);
 
             client.RunStatus = RunState.Completed;
             vpnDetails.SetSuccess();

@@ -1,4 +1,6 @@
-﻿namespace guildwars2.tools.alternator;
+﻿using System.Security;
+
+namespace guildwars2.tools.alternator;
 
 public static class Extensions
 {
@@ -40,7 +42,6 @@ public static class Extensions
         {
             onPropertyChanged(name);
         }
-
     }
 
     public static string GetSafeFileName(this string name, char replace = '_')
@@ -80,5 +81,60 @@ public static class Extensions
     {
         return cancellationReason ?? "unknown";
     }
+
+
+
+    public static void Resume(this Process process)
+    {
+        if (process.HasExited) return;
+
+        void resume(ProcessThread pt)
+        {
+            var threadHandle = Native.OpenThread(ThreadAccess.SUSPEND_RESUME, false, (uint)pt.Id);
+
+            if (threadHandle == IntPtr.Zero) return;
+            try { _ = Native.ResumeThread(threadHandle); }
+            finally { _ = Native.CloseHandle(threadHandle); }
+        }
+
+        var threads = process.Threads.Cast<ProcessThread>().ToArray();
+
+        if (threads.Length > 1)
+        {
+            Parallel.ForEach(threads,
+                new ParallelOptions { MaxDegreeOfParallelism = threads.Length },
+                resume);
+        }
+        else resume(threads[0]);
+    }
+
+    public static void Suspend(this Process process)
+    {
+        if (process.HasExited) return;
+
+        void suspend(ProcessThread pt)
+        {
+            var threadHandle = Native.OpenThread(ThreadAccess.SUSPEND_RESUME, false, (uint)pt.Id);
+
+            if (threadHandle == IntPtr.Zero)
+            {
+                return;
+            }
+
+            try { _ = Native.SuspendThread(threadHandle); }
+            finally { _ = Native.CloseHandle(threadHandle); }
+        }
+
+        var threads = process.Threads.Cast<ProcessThread>().ToArray();
+
+        if (threads.Length > 1)
+        {
+            Parallel.ForEach(threads,
+                new ParallelOptions { MaxDegreeOfParallelism = threads.Length },
+                suspend);
+        }
+        else suspend(threads[0]);
+    }
+
 
 }
