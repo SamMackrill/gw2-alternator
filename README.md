@@ -109,7 +109,9 @@ Latest version may have issues authenticating, expect a few extra automatic retr
 ![Error](images/Login_Error.png)
 ![Undefined Error](images/Login_Error_Undefined.png)
 ![Crash](images/GW2-crash.png)
+![Blank Credentials](images/blank-creds.png)
 ![Download failed](images/GW2-download-failed.png)
+
 This one usually means the client needs updating
 
 ## Credits:
