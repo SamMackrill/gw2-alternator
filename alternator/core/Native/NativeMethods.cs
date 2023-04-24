@@ -1,5 +1,8 @@
+using System.Security;
+
 namespace guildwars2.tools.alternator;
 
+[SuppressUnmanagedCodeSecurity]
 internal static class Native
 {
     [DllImport("ntdll")]
@@ -44,5 +47,13 @@ internal static class Native
     [return: MarshalAs(UnmanagedType.Bool)]
     internal static extern bool ShowWindowAsync(IntPtr hWnd, ShowWindowCommands nCmdShow);
 
+    [DllImport("kernel32.dll")]
+    public static extern IntPtr OpenThread(
+        ThreadAccess dwDesiredAccess, bool bInheritHandle, uint dwThreadId);
 
+    [DllImport("kernel32.dll")]
+    public static extern uint ResumeThread(IntPtr hThread);
+
+    [DllImport("kernel32.dll")]
+    public static extern uint SuspendThread(IntPtr hThread);
 }

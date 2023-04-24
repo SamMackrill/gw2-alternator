@@ -15,14 +15,28 @@ public class Client : ObservableObject, IEquatable<Client>
     private Process? p;
     private string ProcessId => p?.Id.ToString() ?? "?";
 
-    private long lastStageMemoryUsage;
     private DateTime lastStageSwitchTime;
     private int lastStageModuleCount;
 
     private bool closed;
     private bool killed;
     private LaunchType launchType;
-    private record struct EngineTuning(TimeSpan Pause, long MemoryUsage, long MinDiff, TimeSpan StuckDelay, int StuckTolerance);
+    private VpnDetails vpn;
+    private record struct EngineTuning(
+        TimeSpan Pause, 
+        long LastMemoryUsage, 
+        long LastStageMemoryUsage, 
+        long MinDiff, 
+        TimeSpan StuckDelay, 
+        int StuckTolerance, 
+        long LoopDiff, 
+        long StageDiff,
+        int StageEnterCount
+        );
+
+    private bool StepFeatureFlag = false;
+    private bool DoNotSendEnter = false;
+    private bool DoNotTimeout = false;
 
     private EngineTuning tuning;
 
@@ -50,13 +64,6 @@ public class Client : ObservableObject, IEquatable<Client>
     {
         get => startAt;
         private set => SetProperty(ref startAt, value);
-    }
-
-    private DateTime authenticationAt;
-    public DateTime AuthenticationAt
-    {
-        get => authenticationAt;
-        private set => SetProperty(ref authenticationAt, value);
     }
 
     private DateTime loginAt;
@@ -141,11 +148,13 @@ public class Client : ObservableObject, IEquatable<Client>
         Settings settings,
         bool shareArchive,
         bool accountLogs,
-        DirectoryInfo applicationFolder, 
+        DirectoryInfo applicationFolder,
+        VpnDetails vpn,
         CancellationToken cancellationToken
         )
     {
         this.launchType = launchType;
+        this.vpn = vpn;
         if (accountLogs)
         {
             logFactory = new LogFactory();
@@ -166,113 +175,105 @@ public class Client : ObservableObject, IEquatable<Client>
             Logger.Debug("{0} Logging to {1}", Account.Name, fileTarget.FileName);
         }
 
-        async Task CheckIfMovedOn(long memoryUsage)
+        async Task CheckIfMemoryThresholdReached()
         {
-            if (RunStage != RunStage.CharacterSelectReached) return;
-
-            var stageDiff = Math.Abs(memoryUsage - lastStageMemoryUsage);
-            if (stageDiff < settings.DeltaMemoryThreshold) return;
-            AccountLogger?.Debug("CheckIfMovedOn={1} ({2}>{3})", Account.Name, memoryUsage, stageDiff, settings.DeltaMemoryThreshold);
-
-            await ChangeRunStage(RunStage.CharacterSelected, 200,
-                $"Memory increased by {stageDiff} > {settings.DeltaMemoryThreshold}", cancellationToken);
-        }
-
-        async Task CheckMemoryThresholdReached(long diff, long memoryUsage)
-        {
-            if (RunStage is not (RunStage.Authenticated or RunStage.CharacterSelected)) return;
-
-            if (diff >= tuning.MinDiff) return;
-
-            AccountLogger?.Debug("Memory={1} ({2}<{3})", Account.Name, memoryUsage, diff, tuning.MinDiff);
             switch (RunStage)
             {
-                case RunStage.Authenticated when memoryUsage > settings.AuthenticationMemoryThreshold * 1000:
-                    await ChangeRunStage(RunStage.ReadyToPlay, 4000, $"Memory threshold {memoryUsage / 1000} > {settings.AuthenticationMemoryThreshold}", cancellationToken);
+                case RunStage.ReadyToLogin when tuning.StageDiff > settings.AuthenticationMemoryThreshold:
+                    AccountLogger?.Debug("{3} Threshold(kB): {1:n0}>{2:n0}", Account.Name, tuning.StageDiff, settings.AuthenticationMemoryThreshold, RunStage);
+                    await ChangeRunStage(RunStage.ReadyToPlay, $"Memory(kB) {tuning.StageDiff} > {settings.AuthenticationMemoryThreshold}", 200, cancellationToken);
                     break;
-                case RunStage.CharacterSelected when memoryUsage > settings.CharacterSelectedMemoryThreshold * 1000:
-                    await ChangeRunStage(RunStage.WorldEntered, 1800, $"Memory threshold {memoryUsage / 1000} > {settings.CharacterSelectedMemoryThreshold}", cancellationToken);
+                case RunStage.CharacterSelection when tuning.StageDiff > settings.CharacterSelectedMemoryThreshold * 1024:
+                    AccountLogger?.Debug("{3} Threshold(MB): {1:n0}>{2:n0}", Account.Name, tuning.StageDiff / 1024, settings.CharacterSelectedMemoryThreshold, RunStage);
+                    await ChangeRunStage(RunStage.CharacterSelected, $"Memory(MB) {tuning.StageDiff / 1024} > {settings.CharacterSelectedMemoryThreshold}", 200, cancellationToken);
+                    break;
+                case RunStage.CharacterSelected when tuning.StageDiff > settings.WorldEnteredMemoryThreshold * 1024:
+                    AccountLogger?.Debug("{3} Threshold(MB): {1:n0}>{2:n0}", Account.Name, tuning.StageDiff / 1024, settings.WorldEnteredMemoryThreshold, RunStage);
+                    await ChangeRunStage(RunStage.WorldEntered, $"Memory(MB) {tuning.StageDiff / 1024} > {settings.WorldEnteredMemoryThreshold}", 1800, cancellationToken);
                     break;
             }
         }
 
-        async Task CheckIfStuck(long memoryUsage, long diff)
+        async Task CheckIfStuck(long memoryUsage)
         {
-            if (RunStage is not (RunStage.Authenticated or RunStage.ReadyToPlay or RunStage.Playing)) return;
+            if (RunStage is not (RunStage.ReadyToLogin or RunStage.ReadyToPlay or RunStage.Playing)) return;
 
-            if (diff >= tuning.StuckTolerance) return; // still doing something
+            if (tuning.LoopDiff >= tuning.StuckTolerance) return; // still doing something
 
             var switchTime = DateTime.UtcNow.Subtract(lastStageSwitchTime);
             if (switchTime < tuning.StuckDelay) return;
 
             failedReason = $"Stuck, took too long ({switchTime.TotalSeconds:F1}s>{tuning.StuckDelay.TotalSeconds}s)";
 
-            Logger.Debug("{0} failed awaiting login, mem={1} diff={2} (because: {3})", Account.Name, memoryUsage, diff, failedReason);
-            AccountLogger?.Debug("Failed awaiting login, mem={1} diff={2} (because: {3})", Account.Name, memoryUsage, diff, failedReason);
+            Logger.Debug("{0} failed awaiting login, mem={1:n0} diff={2:n0} (because: {3})", Account.Name, memoryUsage, tuning.LoopDiff, failedReason);
+            AccountLogger?.Debug("Failed awaiting login, mem={1:n0} diff={2:n0} (because: {3})", Account.Name, memoryUsage, tuning.LoopDiff, failedReason);
 
             //CaptureWindow(RunStage.EntryFailed, applicationFolder);
-            await ChangeRunStage(RunStage.LoginFailed, 20, failedReason, cancellationToken);
+            await ChangeRunStage(RunStage.LoginFailed, failedReason, 20, cancellationToken);
         }
 
         async Task CheckIfCrashed()
         {
-            if (RunStage is not (RunStage.Playing)) return;
+            switch (RunStage)
+            {
+                case RunStage.ReadyToLogin or RunStage.ReadyToPlay:
+                    if (tuning.StageEnterCount <= settings.MaxEnterRetries) return;
 
-            var switchTime = DateTime.UtcNow.Subtract(lastStageSwitchTime);
-            if (switchTime.TotalSeconds < settings.CrashWaitDelay) return;
+                    failedReason = $"Crashed state detected no progress after {tuning.StageEnterCount} enter key presses";
 
-            if (loadedModules.Count > lastStageModuleCount) return;
+                    Logger.Debug("{0} failed at {2} (because: {1})", Account.Name, failedReason, RunStage);
+                    AccountLogger?.Debug("Failed at {2} (because: {1})", Account.Name, failedReason, RunStage);
 
-            failedReason = $"Crashed state detected no modules loaded within {settings.CrashWaitDelay}s)";
+                    await ChangeRunStage(RunStage.LoginCrashed, failedReason, 20, cancellationToken);
+                    break;
+                case RunStage.Playing:
+                    var switchTime = DateTime.UtcNow.Subtract(lastStageSwitchTime);
+                    if (switchTime.TotalSeconds < settings.CrashWaitDelay) return;
 
-            Logger.Debug("{0} failed awaiting login (because: {1})", Account.Name, failedReason);
-            AccountLogger?.Debug("Failed awaiting login (because: {1})", Account.Name, failedReason);
+                    if (loadedModules.Count > lastStageModuleCount) return;
 
-            await ChangeRunStage(RunStage.LoginCrashed, 20, failedReason, cancellationToken);
+                    failedReason = $"Crashed state detected no modules loaded within {settings.CrashWaitDelay}s)";
+
+                    Logger.Debug("{0} failed at {2} (because: {1})", Account.Name, failedReason, RunStage);
+                    AccountLogger?.Debug("Failed at {2} (because: {1})", Account.Name, failedReason, RunStage);
+
+                    await ChangeRunStage(RunStage.LoginCrashed, failedReason, 20, cancellationToken);
+                    break;
+            }
         }
 
         Dictionary<RunStage, List<string>> runStageFromModules = new()
         {
-            { RunStage.Authenticated,          new List<string> { @"winnsi.dll", @"nsi.dll" } }, // Windows Network Store Information
-            { RunStage.CharacterSelectReached, new List<string> { @"lglcdapi.dll" } }, // Microsoft Color Management System
-            { RunStage.Playing,                new List<string> { @"nan.dll" } }, // C++ runtime library
+            { RunStage.ReadyToLogin,       new List<string> { @"umpdc.dll", @"powrprof.dll" } }, // Windows Network Store Information
+            { RunStage.Playing,            new List<string> { @"d3d11.dll" } }, // DX11
+            { RunStage.CharacterSelection, new List<string> { @"lglcdapi.dll" } }, // Microsoft Color Management System
         };
 
 
-        async Task CheckIfStageUpdated()
+        async Task CheckIfStageUpdated(long memoryUsage)
         {
-            await CheckIfCrashed();
-
             if (launchType == LaunchType.Update) return;
 
-            var memoryUsage = p.WorkingSet64 / 1024;
+            await CheckIfMemoryThresholdReached();
 
-            await CheckIfMovedOn(memoryUsage);
+            if (!DoNotTimeout) await CheckIfStuck(memoryUsage);
 
-            var diff = Math.Abs(memoryUsage - tuning.MemoryUsage);
-            await CheckIfStuck(memoryUsage, diff);
-
-            await CheckMemoryThresholdReached(diff, memoryUsage);
-
-            tuning.MemoryUsage = memoryUsage;
 
             var newModules = UpdateProcessModules();
             foreach (var runStageModules in runStageFromModules)
             {
                 var module = runStageModules.Value.FirstOrDefault(module => newModules.Contains(module));
                 if (module == null) continue;
-                await ChangeRunStage(runStageModules.Key, 200, $"Module {module} loaded", cancellationToken);
+                await ChangeRunStage(runStageModules.Key, $"Module {module} loaded", 200, cancellationToken);
                 return;
             }
         }
-
-        tuning = new EngineTuning(new TimeSpan(0, 0, 0, 0, 200), 0L, 1L, new TimeSpan(0, 0, settings.StuckTimeout), 100);
 
         string FormArguments(bool share)
         {
             if (launchType is LaunchType.Update) return "-image";
 
-            var args = "-windowed -nosound -maploadinfo -dx9 -fps 20 -autologin";
+            var args = "-windowed -nosound -maploadinfo -fps 20 -autologin";
             if (share) args += " -shareArchive";
             return args;
         }
@@ -294,6 +295,9 @@ public class Client : ObservableObject, IEquatable<Client>
         loadedModules.Clear();
 
         await Start(cancellationToken);
+        var startingMemory = p.WorkingSet64 / 1024; // kB
+        tuning = new EngineTuning(new TimeSpan(0, 0, 0, 0, 200), startingMemory, startingMemory, 1L, new TimeSpan(0, 0, settings.StuckTimeout), 100, 0L, 0L, 0);
+
 
         if (launchType is not LaunchType.Update)
         {
@@ -305,7 +309,7 @@ public class Client : ObservableObject, IEquatable<Client>
         // State Engine
         while (Alive)
         {
-            if (DateTime.UtcNow.Subtract(StartAt) > timeout)
+            if (!DoNotTimeout && DateTime.UtcNow.Subtract(StartAt) > timeout)
             {
                 Logger.Debug("{0} Timed-out after {1}s, giving up", Account.Name, timeout.TotalSeconds);
                 launchLogger?.Info("{0} Timed-out after {1}s, giving up", Account.Name, timeout.TotalSeconds);
@@ -314,15 +318,27 @@ public class Client : ObservableObject, IEquatable<Client>
                 throw new Gw2TimeoutException("GW2 process timed-out");
             }
 
-            if (nextEnterKeyRequest < DateTime.Now)
+            var memoryUsage = p.WorkingSet64 / 1024; // kB
+            tuning.LoopDiff = memoryUsage - tuning.LastMemoryUsage;
+            tuning.StageDiff = memoryUsage - tuning.LastStageMemoryUsage;
+            if (tuning.LoopDiff > 5)
             {
-                var stageDiff = Math.Abs(p.WorkingSet64 / 1024 - lastStageMemoryUsage);
-                AccountLogger?.Info("Memory delta {0}", stageDiff);
-                SendEnterKey(true, "engine");
+                AccountLogger?.Debug("Memory(kB) current={1:n0} last={2:n0} Δ={3:n0}", Account.Name, memoryUsage, tuning.LastMemoryUsage, tuning.LoopDiff);
+                AccountLogger?.Debug("Stage(kB)  current={1:n0} last={2:n0} Δ={3:n0}", Account.Name, memoryUsage, tuning.LastStageMemoryUsage, tuning.StageDiff);
             }
 
-            await CheckIfStageUpdated();
+            if (nextEnterKeyRequest < DateTime.Now)
+            {
+                AccountLogger?.Info("Enter Request StageΔ {0:n0}kB", tuning.StageDiff);
+                SendEnterKey(true, "engine");
+                tuning.StageEnterCount++;
+            }
 
+            await CheckIfCrashed();
+
+            await CheckIfStageUpdated(memoryUsage);
+
+            tuning.LastMemoryUsage = memoryUsage;
             await Task.Delay(tuning.Pause, cancellationToken);
         }
 
@@ -335,14 +351,14 @@ public class Client : ObservableObject, IEquatable<Client>
     {
         switch (RunStage)
         {
-            case >= RunStage.CharacterSelectReached:
+            case >= RunStage.CharacterSelection:
                 tuning.Pause = new TimeSpan(0, 0, 0, 2, 0);
                 tuning.MinDiff = 200L;
                 break;
         }
     }
 
-    private async Task ChangeRunStage(RunStage newRunStage, int delay, string? reason, CancellationToken cancellationToken)
+    private async Task ChangeRunStage(RunStage newRunStage, string? reason, int delay, CancellationToken cancellationToken)
     {
         //nextEnterKeyRequest = DateTime.MaxValue;
         if (delay>0) await Task.Delay(delay, cancellationToken);
@@ -353,11 +369,9 @@ public class Client : ObservableObject, IEquatable<Client>
     {
         Logger.Debug("{0} Change State to {1} because {2}", Account.Name, newRunStage, reason);
         AccountLogger?.Debug("Change State to {1} because {2}", Account.Name, newRunStage, reason);
+
         switch (newRunStage)
         {
-            case RunStage.Authenticated:
-                AuthenticationAt = DateTime.UtcNow;
-                break;
             case RunStage.ReadyToPlay:
                 LoginAt = DateTime.UtcNow;
                 break;
@@ -366,15 +380,18 @@ public class Client : ObservableObject, IEquatable<Client>
                 break;
         }
 
+        if (StepFeatureFlag) PauseForAnalysis();
+
         var eventArgs = new ClientStateChangedEventArgs(RunStage, newRunStage);
         RunStage = newRunStage;
-        if (!p!.HasExited) lastStageMemoryUsage = p!.WorkingSet64 / 1024;
+        if (!p!.HasExited) tuning.LastStageMemoryUsage = p!.WorkingSet64 / 1024;
+        tuning.StageEnterCount = 0;
+        AccountLogger?.Debug("lastStageMemoryUsage set: {1:n0}kB", Account.Name, tuning.LastStageMemoryUsage);
         lastStageSwitchTime = DateTime.UtcNow;
         lastStageModuleCount = loadedModules.Count;
         UpdateEngineSpeed();
         RunStatusChanged?.Invoke(this, eventArgs);
     }
-
 
 
     private async Task Start(CancellationToken cancellationToken)
@@ -386,12 +403,15 @@ public class Client : ObservableObject, IEquatable<Client>
         Logger.Debug("{0} Started {1}", Account.Name, launchType);
         launchLogger?.Info("{0} Started {1} process={2}", Account.Name, launchType, ProcessId);
         AccountLogger?.Debug("Started {1} process={2}", Account.Name, launchType, ProcessId);
-        await ChangeRunStage(RunStage.Started, 200, "Normal start", cancellationToken);
+        if (vpn.IsReal) AccountLogger?.Debug("VPN {1}", Account.Name, vpn.DisplayId);
+
+        await ChangeRunStage(RunStage.Started, "Normal Start", 200, cancellationToken);
     }
 
     public void SelectCharacter()
     {
-        SendEnterKey(false, "SelectCharacter");
+        //AccountLogger?.Debug("SelectCharacter (send ENTER)", Account.Name);
+        SendEnterKey(true, "SelectCharacter");
     }
 
     private async Task KillMutex(int delayBefore, int delayAfter)
@@ -424,7 +444,7 @@ public class Client : ObservableObject, IEquatable<Client>
                 throw new Gw2MutexException($"{Account.Name} Mutex not found");
             }
 
-            AccountLogger?.Info("{0} Got handle to Mutex", Account.Name);
+            AccountLogger?.Info("Got handle to Mutex", Account.Name);
             handle.Kill();
             Logger.Debug("{0} Killed Mutex", Account.Name);
             launchLogger?.Info("{0} Killed Mutex", Account.Name);
@@ -482,13 +502,18 @@ public class Client : ObservableObject, IEquatable<Client>
     {
         if (!Alive) return;
 
-        Logger.Debug("{0} SendEnterKey from {1}", Account.Name, source);
-        AccountLogger?.Debug("SendEnterKey from {1}", Account.Name, source);
+        if (DoNotSendEnter)
+        {
+            AccountLogger?.Debug("Skip Send ENTER from {1}", Account.Name, source);
+            return;
+        }
+
+        Logger.Debug("{0} Send ENTER from {1}", Account.Name, source);
+        AccountLogger?.Debug("Send ENTER from {1}", Account.Name, source);
+
+        if (StepFeatureFlag) PauseForAnalysis();
 
         nextEnterKeyRequest = DateTime.MaxValue;
-
-        Logger.Debug("{0} Send ENTER", Account.Name);
-        AccountLogger?.Debug("Send ENTER", Account.Name);
 
         var currentFocus = Native.GetForegroundWindow();
         try
@@ -507,14 +532,36 @@ public class Client : ObservableObject, IEquatable<Client>
 
     }
 
+    public void StopSendingEnter()
+    {
+        nextEnterKeyRequest = DateTime.MaxValue;
+    }
+
+    private void PauseForAnalysis()
+    {
+        if (!Debugger.IsAttached) return;
+
+        AccountLogger?.Debug("GW2 Suspended", Account.Name);
+        _ = Native.SetForegroundWindow(p!.MainWindowHandle);
+        p?.Suspend();
+        Debugger.Break();
+        p?.Resume();
+        AccountLogger?.Debug("GW2 Resumed", Account.Name);
+
+    }
+
     public void MinimiseWindow()
     {
+        if (StepFeatureFlag || DoNotSendEnter) return;
+
         AccountLogger?.Debug("GW2 Hide", Account.Name);
         _ = Native.ShowWindowAsync(p!.MainWindowHandle, ShowWindowCommands.ForceMinimize);
     }
 
     public void RestoreWindow()
     {
+        if (StepFeatureFlag || DoNotSendEnter) return;
+
         AccountLogger?.Debug("GW2 Show", Account.Name);
         _ = Native.ShowWindowAsync(p!.MainWindowHandle, ShowWindowCommands.Restore);
     }
@@ -569,7 +616,7 @@ public class Client : ObservableObject, IEquatable<Client>
         ExitAt = DateTime.UtcNow;
     }
 
-    public bool Equals(Client? other) => Account.Equals(other?.Account) && AccountIndex.Equals(other?.AccountIndex);
+    public bool Equals(Client? other) => Account.Equals(other?.Account) && AccountIndex.Equals(other.AccountIndex);
 
 }
 

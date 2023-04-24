@@ -89,8 +89,10 @@ public class AuthenticationThrottle : ObservableObject
             Logger.Debug("{0} Authentication {1} VPN release delay={2}s", account.Name, vpnDetails.DisplayId, delay);
             if (delay > 0)
             {
+                client.AccountLogger?.Debug("Authentication Throttle set: {0}s", delay);
                 FreeAt = DateTime.UtcNow.AddSeconds(delay);
                 await Task.Delay(new TimeSpan(0, 0, delay), launchCancelled);
+                client.AccountLogger?.Debug("Authentication Throttle Released");
             }
             else
             {
@@ -100,6 +102,7 @@ public class AuthenticationThrottle : ObservableObject
         finally
         {
             Logger.Info("{0} Authentication Semaphore Released", account.Name);
+            client.AccountLogger?.Debug("Authentication Semaphore Released", account.Name);
             authenticationSemaphore.Release();
         }
     }

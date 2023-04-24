@@ -127,15 +127,20 @@ public class MainViewModel : ObservableObject
     public string UpdateText => Running && ActiveLaunchType == LaunchType.Update ? "Updating" : "Update";
     public string StopText => Running && Stopping ? "Stopping" : "Stop!";
 
-    public static string Version
-    {
-        get
-        {
-            var mainModule = Process.GetCurrentProcess().MainModule;
-            if (mainModule == null) return "?.?.?";
+    public static string? Version => versionInfo == null ? "?.?.?" : $"{versionInfo.Major}.{versionInfo.Minor}.{versionInfo.Build}";
 
-            return $"{mainModule.FileVersionInfo.FileMajorPart}.{mainModule.FileVersionInfo.FileMinorPart}.{mainModule.FileVersionInfo.FileBuildPart}" ;
+    private static Version? versionInfo;
+
+    private static void FetchVersion()
+    {
+        var mainModule = Process.GetCurrentProcess().MainModule;
+        if (mainModule == null)
+        {
+            versionInfo =null;
+            return;
         }
+
+        versionInfo = new Version(mainModule.FileVersionInfo.FileMajorPart, mainModule.FileVersionInfo.FileMinorPart, mainModule.FileVersionInfo.FileBuildPart) ;
     }
 
     public double FontSize => settingsController.Settings?.FontSize ?? SettingsController.DefaultSettings.FontSize;
@@ -217,9 +222,11 @@ public class MainViewModel : ObservableObject
             Logger.Debug("Main Window Loaded");
         });
 
+        FetchVersion();
+
         settingsController = Ioc.Default.GetRequiredService<ISettingsController>();
         settingsController.PropertyChanged += SettingsController_PropertyChanged;
-        settingsController.Load();
+        settingsController.Load(versionInfo);
 
         accountCollection = Ioc.Default.GetRequiredService<IAccountCollection>();
         accountCollection.Loaded += AccountCollection_Loaded;
