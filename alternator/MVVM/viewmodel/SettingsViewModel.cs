@@ -114,6 +114,12 @@ public class SettingsViewModel : ObservableObject
         set => Settings.AuthenticationMemoryThreshold = value;
     }
 
+    public int CharacterSelectionMemoryThreshold
+    {
+        get => Settings.CharacterSelectionMemoryThreshold;
+        set => Settings.CharacterSelectionMemoryThreshold = value;
+    }
+
     public int CharacterSelectedMemoryThreshold
     {
         get => Settings.CharacterSelectedMemoryThreshold;
@@ -298,6 +304,11 @@ public class SettingsViewModel : ObservableObject
     {
         var defaultSettings = SettingsController.DefaultSettings;
         Settings.AuthenticationMemoryThreshold = defaultSettings.AuthenticationMemoryThreshold;
+    });
+    public RelayCommand<object> ResetCharacterSelectionMemoryThresholdCommand => new(_ =>
+    {
+        var defaultSettings = SettingsController.DefaultSettings;
+        Settings.CharacterSelectionMemoryThreshold = defaultSettings.CharacterSelectionMemoryThreshold;
     });
     public RelayCommand<object> ResetCharacterSelectedMemoryThresholdCommand => new(_ =>
     {

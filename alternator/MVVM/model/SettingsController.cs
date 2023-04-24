@@ -101,6 +101,7 @@ public class SettingsController : ObservableObject, ISettingsController
         if (Settings!.CrashWaitDelay == default) Settings!.CrashWaitDelay = defaults.CrashWaitDelay;
         if (Settings!.VpnAccountCount == default) Settings!.VpnAccountCount = defaults.VpnAccountCount;
         if (Settings!.AuthenticationMemoryThreshold == default) Settings!.AuthenticationMemoryThreshold = defaults.AuthenticationMemoryThreshold;
+        if (Settings!.CharacterSelectionMemoryThreshold == default) Settings!.CharacterSelectionMemoryThreshold = defaults.CharacterSelectionMemoryThreshold;
         if (Settings!.CharacterSelectedMemoryThreshold == default) Settings!.CharacterSelectedMemoryThreshold = defaults.CharacterSelectedMemoryThreshold;
         if (Settings!.WorldEnteredMemoryThreshold == default) Settings!.WorldEnteredMemoryThreshold = defaults.WorldEnteredMemoryThreshold;
         if (Settings!.DeltaMemoryThreshold == default) Settings!.DeltaMemoryThreshold = defaults.DeltaMemoryThreshold;
@@ -190,6 +191,7 @@ public class SettingsController : ObservableObject, ISettingsController
         settings.CrashWaitDelay = 20;
         settings.VpnAccountCount = 10;
         settings.AuthenticationMemoryThreshold = 200;
+        settings.CharacterSelectionMemoryThreshold = 400;
         settings.CharacterSelectedMemoryThreshold = 700;
         settings.WorldEnteredMemoryThreshold = 1400;
         settings.DeltaMemoryThreshold = 100;
