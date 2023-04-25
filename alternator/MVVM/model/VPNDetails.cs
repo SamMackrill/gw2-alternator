@@ -91,31 +91,40 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
     public DateTime Available(DateTime cutoff, bool ignoreCalls)
     {
         var vnpAvailable = VnpAvailable();
-        var accountAvailable = accountSuccessFailCounter.LastAttempt.AddSeconds(LaunchDelay(ignoreCalls));
-        var available = vnpAvailable > accountAvailable ? vnpAvailable : accountAvailable;
-        Logger.Debug("{0} VPN offset={1}", DisplayId, available.Subtract(cutoff).TotalSeconds);
-        return available > cutoff ? available : cutoff;
+        var (launchDelay, why) = LaunchDelay(ignoreCalls);
+        var available = accountSuccessFailCounter.LastAttempt.AddSeconds(launchDelay);
+        if (vnpAvailable > available)
+        {
+            available = vnpAvailable;
+            why = "VPN on hold";
+        }
+
+        if (available <= cutoff)
+        {
+            available = cutoff;
+        }
+
+        Logger.Debug("{0} available in={1}s because {2}", DisplayId, available.Subtract(DateTime.Now).TotalSeconds, why);
+        return available;
     }
 
     private static readonly List<int> CriticalVpnErrors = new() { 809 };
 
     private DateTime VnpAvailable()
     {
-        if (DateTime.UtcNow.Subtract(LastConnectionFail).TotalHours < 1 && CriticalVpnErrors.Contains(LastConnectionFailCode))
+        var failObsolete = DateTime.UtcNow.Subtract(LastConnectionFail).TotalHours >= 1;
+        if (!failObsolete && CriticalVpnErrors.Contains(LastConnectionFailCode))
         {
             return DateTime.MaxValue;
         }
 
-        if (LastConnectionFail > LastLoginSuccess) return LastConnectionFail.AddSeconds(30);
-
-        return DateTime.MinValue;
+        return LastConnectionFail <= LastLoginSuccess ? DateTime.MinValue : LastConnectionFail.AddSeconds(30);
     }
 
 
     public bool Equals(VpnDetails? other)
     {
-        if (other == null) return false;
-        return Id == other.Id;
+        return other != null && Id == other.Id;
     }
 
     public override string ToString() => $"{Id} \"{ConnectionName}\"";
@@ -227,31 +236,41 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
 
     public void SetFail(IAccount account, bool cancelAll)
     {
-        Logger.Debug("{0} VPN SetFail by account {1}", DisplayId, account.Name);
+        Logger.Debug("{0} SetFail by account {1}", DisplayId, account.Name);
         accountSuccessFailCounter.SetFail();
         LastLoginFail = DateTime.UtcNow;
         LastLoginFailAccount = account.Name;
-        if (cancelAll) Cancellation?.Cancel($"{DisplayId} VPN SetFail by account {account.Name}");
+        if (cancelAll) Cancellation?.Cancel($"{DisplayId} SetFail by account {account.Name}");
     }
 
-    public int LaunchDelay(bool ignoreCalls)
+    public (int, string) LaunchDelay(bool ignoreCalls)
     {
-        var delay = ignoreCalls ? 0 : BandDelay(accountSuccessFailCounter.CallCount);
+        var (delay, why) = ignoreCalls ? (0, "ignore calls") : BandDelay(accountSuccessFailCounter.CallCount);
 
-        if (accountSuccessFailCounter.ConsecutiveFails > 0) delay = Math.Max(delay, 40 + 20 * accountSuccessFailCounter.ConsecutiveFails);
+        if (accountSuccessFailCounter.ConsecutiveFails > 0)
+        {
+            var failDelay = 40 + 20 * accountSuccessFailCounter.ConsecutiveFails;
+            if (failDelay > delay)
+            {
+                delay = failDelay;
+                why = $"fail count = {accountSuccessFailCounter.ConsecutiveFails}";
+            }
+        }
 
-        Logger.Debug("{0} VPN delay={1} ({2})", DisplayId, delay, accountSuccessFailCounter.ToString());
-        return delay;
+        if (delay == 0) why += " no fails";
+
+        Logger.Debug("{0} delay={1} ({2}) because {3}", DisplayId, delay, accountSuccessFailCounter.ToString(), why);
+        return (delay, why);
     }
 
-    private int BandDelay(int count)
+    private (int, string) BandDelay(int count)
     {
-        if (settings==null) return 0;
+        if (settings==null) return (0, "no settings!");
 
-        if (count < settings.AccountBand1) return settings.AccountBand1Delay;
-        if (count < settings.AccountBand2) return settings.AccountBand2Delay;
-        if (count < settings.AccountBand3) return settings.AccountBand3Delay;
-        return settings.AccountBand3Delay + 60;
+        if (count < settings.AccountBand1) return (settings.AccountBand1Delay, $"Band 1 (count={count})");
+        if (count < settings.AccountBand2) return (settings.AccountBand2Delay, $"Band 2 (count={count})");
+        if (count < settings.AccountBand3) return (settings.AccountBand3Delay, $"Band 3 (count={count})");
+        return (settings.AccountBand3Delay + 60, $"Band > 3 (count={count})");
     }
 
     public void Undo()
@@ -274,7 +293,7 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
     }
 
     [JsonIgnore]
-    public string DisplayId => string.IsNullOrWhiteSpace(Id) ? "No" : Id;
+    public string DisplayId => $"{(string.IsNullOrWhiteSpace(Id) ? "No" : Id)} VPN";
 
     [JsonIgnore]
     public int RecentFailures => accountSuccessFailCounter.RecentFails(120);
@@ -291,7 +310,7 @@ public class VpnDetails : ObservableObject, IEquatable<VpnDetails>
         var countPriority = (Math.Max(0, maxAccounts - accountsCount) + real) * maxAccounts;
 
         Priority = RecentCalls + countPriority;
-        Logger.Debug("{0} VPN Priority={1} (R={2} C={3} CP={4} MA={5})", DisplayId, Priority, real, accountsCount, countPriority, maxAccounts);
+        Logger.Debug("{0} Priority={1} (R={2} C={3} CP={4} MA={5})", DisplayId, Priority, real, accountsCount, countPriority, maxAccounts);
         return Priority;
     }
 }

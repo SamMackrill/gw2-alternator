@@ -85,14 +85,16 @@ public class AuthenticationThrottle : ObservableObject
             if (launchType is LaunchType.Update) return;
 
             Logger.Debug("{0} launchCount={1}", account.Name, launchCount.Count);
-            var delay = vpnDetails.LaunchDelay(false);
-            Logger.Debug("{0} Authentication {1} VPN release delay={2}s", account.Name, vpnDetails.DisplayId, delay);
+            var (delay, why) = vpnDetails.LaunchDelay(false);
+            Logger.Debug("{0} Authentication {1} release delay={2}s because {3}", account.Name, vpnDetails.DisplayId, delay, why);
             if (delay > 0)
             {
-                client.AccountLogger?.Debug("Authentication Throttle set: {0}s", delay);
+                client.LaunchLogger?.Debug("{0} Authentication Throttle set: {1}s because {2}", account.Name, delay, why);
+                client.AccountLogger?.Debug("Authentication Throttle set: {1}s because {2}", account.Name, delay, why);
                 FreeAt = DateTime.UtcNow.AddSeconds(delay);
                 await Task.Delay(new TimeSpan(0, 0, delay), launchCancelled);
-                client.AccountLogger?.Debug("Authentication Throttle Released");
+                client.LaunchLogger?.Debug("{0} Authentication Throttle Released", account.Name);
+                client.AccountLogger?.Debug("Authentication Throttle Released", account.Name);
             }
             else
             {

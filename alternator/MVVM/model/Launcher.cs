@@ -18,7 +18,7 @@ public class Launcher
 
     public Launcher(
         Client client, 
-        LaunchType launchType, 
+        LaunchType launchType,
         DirectoryInfo applicationFolder, 
         Settings settings,
         VpnDetails vpnDetails, 
