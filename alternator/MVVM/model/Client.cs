@@ -32,13 +32,18 @@ public class Client : ObservableObject, IEquatable<Client>
         long LoopDiff, 
         long StageDiff,
         int StageEnterCount
-        );
-
-    private bool StepFeatureFlag = false;
-    private bool DoNotSendEnter = false;
-    private bool DoNotTimeout = false;
+    );
 
     private EngineTuning tuning;
+
+    private record struct FeatureFlag(
+         bool ManualStep,
+         bool DoNotSendEnter,
+         bool DoNotTimeout
+    );
+
+    private FeatureFlag featureFlag = new(ManualStep:false, DoNotSendEnter:false, DoNotTimeout:false);
+
 
     public class ClientStateChangedEventArgs : EventArgs
     {
@@ -260,7 +265,7 @@ public class Client : ObservableObject, IEquatable<Client>
 
             await CheckIfMemoryThresholdReached();
 
-            if (!DoNotTimeout) await CheckIfStuck(memoryUsage);
+            if (!featureFlag.DoNotTimeout) await CheckIfStuck(memoryUsage);
 
 
             var newModules = UpdateProcessModules();
@@ -313,7 +318,7 @@ public class Client : ObservableObject, IEquatable<Client>
         // State Engine
         while (Alive)
         {
-            if (!DoNotTimeout && DateTime.UtcNow.Subtract(StartAt) > timeout)
+            if (!featureFlag.DoNotTimeout && DateTime.UtcNow.Subtract(StartAt) > timeout)
             {
                 Logger.Debug("{0} Timed-out after {1}s, giving up", Account.Name, timeout.TotalSeconds);
                 launchLogger?.Info("{0} Timed-out after {1}s, giving up", Account.Name, timeout.TotalSeconds);
@@ -384,7 +389,7 @@ public class Client : ObservableObject, IEquatable<Client>
                 break;
         }
 
-        if (StepFeatureFlag) PauseForAnalysis();
+        if (featureFlag.ManualStep) PauseForAnalysis();
 
         var eventArgs = new ClientStateChangedEventArgs(RunStage, newRunStage);
         RunStage = newRunStage;
@@ -506,7 +511,7 @@ public class Client : ObservableObject, IEquatable<Client>
     {
         if (!Alive) return;
 
-        if (DoNotSendEnter)
+        if (featureFlag.DoNotSendEnter)
         {
             AccountLogger?.Debug("Skip Send ENTER from {1}", Account.Name, source);
             return;
@@ -515,7 +520,7 @@ public class Client : ObservableObject, IEquatable<Client>
         Logger.Debug("{0} Send ENTER from {1}", Account.Name, source);
         AccountLogger?.Debug("Send ENTER from {1}", Account.Name, source);
 
-        if (StepFeatureFlag) PauseForAnalysis();
+        if (featureFlag.ManualStep) PauseForAnalysis();
 
         nextEnterKeyRequest = DateTime.MaxValue;
 
@@ -556,7 +561,7 @@ public class Client : ObservableObject, IEquatable<Client>
 
     public void MinimiseWindow()
     {
-        if (StepFeatureFlag || DoNotSendEnter) return;
+        if (featureFlag.ManualStep || featureFlag.DoNotSendEnter) return;
 
         AccountLogger?.Debug("GW2 Hide", Account.Name);
         _ = Native.ShowWindowAsync(p!.MainWindowHandle, ShowWindowCommands.ForceMinimize);
@@ -564,7 +569,7 @@ public class Client : ObservableObject, IEquatable<Client>
 
     public void RestoreWindow()
     {
-        if (StepFeatureFlag || DoNotSendEnter) return;
+        if (featureFlag.ManualStep || featureFlag.DoNotSendEnter) return;
 
         AccountLogger?.Debug("GW2 Show", Account.Name);
         _ = Native.ShowWindowAsync(p!.MainWindowHandle, ShowWindowCommands.Restore);
