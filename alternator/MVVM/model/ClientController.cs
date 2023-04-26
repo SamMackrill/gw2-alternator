@@ -133,8 +133,8 @@ public class ClientController
                     .Take(vpnAccountSize)
                     .ToList();
 
-                Logger.Debug("{0} VPN Chosen with {1} accounts", vpn.DisplayId, accountsToLaunch.Count);
-                LaunchLogger?.Info("{0} VPN Chosen with {1} accounts", vpn.DisplayId, accountsToLaunch.Count);
+                Logger.Debug("{0} Chosen with {1} accounts", vpn.DisplayId, accountsToLaunch.Count);
+                LaunchLogger?.Info("{0} Chosen with {1} accounts", vpn.DisplayId, accountsToLaunch.Count);
 
                 if (!accountsToLaunch.Any()) continue;
 

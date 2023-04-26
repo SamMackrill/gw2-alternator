@@ -219,7 +219,9 @@
                                Margin="4,0,0,0"
                                FontFamily="Consolas"
                                Visibility="{Binding ThrottleVisible}"
-                               Text="{Binding ThrottleDelay, FallbackValue='37s'}">
+                               ToolTip="{Binding ThrottleReason}"
+                               Text="{Binding ThrottleDelay, FallbackValue='37s'}"
+                               >
                             <TextBlock.InputBindings>
                                 <MouseBinding Command="{Binding ResetThrottle}" MouseAction="LeftDoubleClick" />
                             </TextBlock.InputBindings>

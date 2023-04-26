@@ -18,7 +18,7 @@ public class Launcher
 
     public Launcher(
         Client client, 
-        LaunchType launchType, 
+        LaunchType launchType,
         DirectoryInfo applicationFolder, 
         Settings settings,
         VpnDetails vpnDetails, 
@@ -56,8 +56,9 @@ public class Launcher
 
         async Task? ReleaseLogin(CancellationToken cancellationToken)
         {
-            Logger.Debug("{0} login semaphore release", account.Name);
-            client.AccountLogger?.Debug("login semaphore release", account.Name);
+            Logger.Debug("{0} Release Login", account.Name);
+            client.AccountLogger?.Debug("Release Login", account.Name);
+            client.LaunchLogger?.Debug("{0} Release Login", account.Name);
             try
             {
                 await authenticationThrottle.LoginDone(vpnDetails, client, launchType, cancellationToken);
@@ -67,6 +68,7 @@ public class Launcher
                 loginSemaphore.Release();
                 Logger.Debug("{0} login semaphore released, count={1}", account.Name, loginSemaphore.CurrentCount);
                 client.AccountLogger?.Debug("login semaphore released, count={1}", account.Name, loginSemaphore.CurrentCount);
+                client.LaunchLogger?.Debug("{0} login semaphore released, count={1}", account.Name, loginSemaphore.CurrentCount);
             }
         }
 

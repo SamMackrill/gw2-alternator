@@ -84,6 +84,8 @@ public class MainViewModel : ObservableObject
     public Visibility ThrottleVisible => authenticationThrottle.FreeIn > 1 ? Visibility.Visible : Visibility.Collapsed;
     public string ThrottleDelay => authenticationThrottle.FreeIn.ToString(@"0's'");
 
+    public string ThrottleReason => authenticationThrottle.Reason;
+
     private bool forceSerialOverride;
     public bool ForceSerialOverride
     {
