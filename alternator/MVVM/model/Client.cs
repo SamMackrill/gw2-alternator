@@ -43,7 +43,7 @@ public class Client : ObservableObject, IEquatable<Client>
          bool DoNotTimeout
     );
 
-    private FeatureFlag featureFlag = new(ManualStep:false, DoNotSendEnter:false, DoNotTimeout:false);
+    private readonly FeatureFlag featureFlag = new(ManualStep:false, DoNotSendEnter:false, DoNotTimeout:false);
 
 
     public class ClientStateChangedEventArgs : EventArgs
