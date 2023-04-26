@@ -379,6 +379,7 @@ public class Client : ObservableObject, IEquatable<Client>
     {
         Logger.Debug("{0} Change State to {1} because {2}", Account.Name, newRunStage, reason);
         AccountLogger?.Debug("Change State to {1} because {2}", Account.Name, newRunStage, reason);
+        LaunchLogger?.Debug("{0} Change State to {1} because {2}", Account.Name, newRunStage, reason);
 
         switch (newRunStage)
         {

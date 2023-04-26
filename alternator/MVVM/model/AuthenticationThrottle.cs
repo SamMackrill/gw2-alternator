@@ -33,6 +33,8 @@ public class AuthenticationThrottle : ObservableObject
     private DateTime FreeAt { get; set; }
     public double FreeIn => FreeAt.Subtract(DateTime.UtcNow).TotalSeconds;
 
+    public string Reason { get; private set; }
+
     public string? Vpn => CurrentVpn?.Id;
 
     private Task? releaseTask;
@@ -64,6 +66,7 @@ public class AuthenticationThrottle : ObservableObject
 #pragma warning restore CS1998
     {
         Logger.Debug("{0} LoginDone {1}", client.Account.Name, launchType);
+        client.LaunchLogger?.Debug("{0} LoginDone {1}", client.Account.Name, launchType);
         if (releaseTask is {IsCompleted: false})
         {
             Logger.Debug("{0} Warning previous release task still active!", releaseTaskClient?.Account.Name ?? "Unknown");
@@ -87,8 +90,10 @@ public class AuthenticationThrottle : ObservableObject
             Logger.Debug("{0} launchCount={1}", account.Name, launchCount.Count);
             var (delay, why) = vpnDetails.LaunchDelay(false);
             Logger.Debug("{0} Authentication {1} release delay={2}s because {3}", account.Name, vpnDetails.DisplayId, delay, why);
+            client.LaunchLogger?.Debug("{0} Authentication {1} release delay={2}s because {3}", account.Name, vpnDetails.DisplayId, delay, why);
             if (delay > 0)
             {
+                Reason = why;
                 client.LaunchLogger?.Debug("{0} Authentication Throttle set: {1}s because {2}", account.Name, delay, why);
                 client.AccountLogger?.Debug("Authentication Throttle set: {1}s because {2}", account.Name, delay, why);
                 FreeAt = DateTime.UtcNow.AddSeconds(delay);

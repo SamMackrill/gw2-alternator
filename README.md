@@ -18,7 +18,7 @@ Latest version may have issues authenticating, expect a few extra automatic retr
 ## Features:
  * Import account details from GW2Launcher and/or GW2Launchbuddy
  * Automatically login to accounts with no user input
-   * Will retry automatically on failure
+   * Some failures are sadly expected and logins will retry automatically
  * Assist with collection of rewards every few days
  * Application has no access to your GW2 authentication details
  * Whilst you can still use your PC while this is running focus will constantly be stolen and this can be annoying
