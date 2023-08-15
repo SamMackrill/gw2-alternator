@@ -1,5 +1,14 @@
 # gw2-alternator
-(If anybody wants to help I would be delighted!)
+
+# [RIP](https://www.guildwars2.com/en-gb/news/discover-the-wonders-within-the-wizards-vault-in-guild-wars-2-secrets-of-the-obscure/)
+
+# The Wizard’s Vault replaces the existing daily login rewards
+
+# So long and thanks for all the fish
+
+___
+___
+___
 
 Tool to help logging-in to multiple Guild Wars 2 alt accounts so as to harvest the [daily rewards](https://wiki.guildwars2.com/wiki/Login_rewards).
 Logging in every day can be a chore but a few factors make this much less so:
